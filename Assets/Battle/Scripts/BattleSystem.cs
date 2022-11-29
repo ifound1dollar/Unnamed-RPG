@@ -44,10 +44,12 @@ public class BattleSystem : MonoBehaviour
         enemyHud.SetHUD(currEnemy);
         dialogBox.SetAbilityInfo(currPlayer);
 
+        //TEMP
         yield return dialogBox.DialogSet("TEST TEXT TEST TEXT TEST TEXT TEST TEXT TEST TEXT ");
         yield return new WaitForSeconds(1f);
         yield return dialogBox.DialogAppend("Test append.");
         yield return new WaitForSeconds(1f);
+        //TEMP
 
         StartCoroutine(Loop());
     }
