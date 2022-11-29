@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags: []
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - Collision
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Parallax
+    uniqueID: 3303039173
+    locked: 0
+  - name: LayerBottom
+    uniqueID: 1398753621
+    locked: 0
+  - name: Sprites
+    uniqueID: 3762459277
+    locked: 0
+  - name: LayerTop
+    uniqueID: 1688338019
+    locked: 0
+  - name: Sprites_Bridge
+    uniqueID: 2413879271
+    locked: 0
+  - name: CollisionOverlay
+    uniqueID: 894877101
+    locked: 0
