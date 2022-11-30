@@ -28,14 +28,14 @@ public class BattleChar
     public int AccMod { get; set; }
     public int DodMod { get; set; }
 
-    public BattleChar(SpeciesData speciesData)
+    public BattleChar(SpeciesData speciesData, string name = "TEMP NAME")
     {
         ///WILL TAKE OPTIONAL SAVE CHARACTER FORMAT FOR PLAYER CHARACTERS IN THE FUTURE
         
         SpeciesData = speciesData;
 
         //TEMP
-        Name = "TEMP NAME";
+        Name = name;
         Level = 1;
         Energy = 10;
         MaxEnergy = 10;

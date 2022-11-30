@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class BattleSystem : MonoBehaviour
 {
     enum BattleState { Start, WaitingChoice, PlayerAction, EnemyAction, EndingTurn, NewTurn, Busy }
+    enum BattleChoice { Attack, Pass, Swap, FleeForfeit }
 
     [SerializeField] PlayerHud playerHud;
     [SerializeField] EnemyHud enemyHud;
@@ -21,6 +22,11 @@ public class BattleSystem : MonoBehaviour
     BattleChar currEnemy;
 
     BattleState state;
+    BattleChoice playerChoice;
+    BattleChoice enemyChoice;
+
+    //getter for playerChars
+    public BattleChar[] PlayerChars { get { return playerChars; } }
 
     // Start is called before the first frame update
     void Start()
@@ -30,7 +36,7 @@ public class BattleSystem : MonoBehaviour
     IEnumerator Setup()
     {
         //TEMP add a single BattleChar to playerChars and enemyChars
-        playerChars = new BattleChar[1] { new BattleChar(playerSpecies) };
+        playerChars = new BattleChar[2] { new BattleChar(playerSpecies), new BattleChar(playerSpecies, "SECOND ONE") };
         enemyChars = new BattleChar[1] { new BattleChar(enemySpecies) };
         currPlayer = playerChars[0];
         currEnemy = enemyChars[0];
@@ -42,6 +48,7 @@ public class BattleSystem : MonoBehaviour
         //set hud for each
         playerHud.SetHUD(currPlayer);
         enemyHud.SetHUD(currEnemy);
+        dialogBox.Setup(this);
         dialogBox.SetAbilityInfo(currPlayer);
 
         //TEMP
@@ -53,9 +60,30 @@ public class BattleSystem : MonoBehaviour
 
         StartCoroutine(Loop());
     }
+
+
     IEnumerator Loop()
     {
         WaitPlayerChoice();
+
+        yield return new WaitUntil(() => state == BattleState.NewTurn);
+
+        //enemy AI make choice and set enemyChoice variable
+
+        //check if player flee/forfeit
+
+        //check swaps, performing any chosen swaps by player or enemy
+
+        //check status effect of either currPlayer or currEnemy ending early
+
+        //perform action, checking playerChoice and enemyChoice
+        //  if both attack, check HP of both characters after FIRST ATTACK completes
+        //      if either at 0HP, end attacking and handle 0HP (force swap of either/both
+        //      or end battle)
+
+        //perform end-of-turn operations like status effects, team effects, etc.
+
+        //perform new turn operations (increment turn, take snapshot, etc.)
 
         yield break;
     }
@@ -66,5 +94,42 @@ public class BattleSystem : MonoBehaviour
         dialogBox.ShowMainButtons(true);
     }
 
+
+    //button presses
+    public void OnAbilityButtonPress(int abilityIndex)
+    {
+        if (state != BattleState.WaitingChoice)
+        {
+            return;
+        }
+        playerChoice = BattleChoice.Attack;
+    }
+    public void OnPassButtonPress()
+    {
+        if (state != BattleState.WaitingChoice)
+        {
+            return;
+        }
+        playerChoice = BattleChoice.Pass;
+
+    }
+    public void OnSwapButtonPress(int swapIndex)
+    {
+        if (state != BattleState.WaitingChoice)
+        {
+            return;
+        }
+        playerChoice = BattleChoice.Swap;
+
+    }
+    public void OnFleeForfeitButtonPress()
+    {
+        if (state != BattleState.WaitingChoice)
+        {
+            return;
+        }
+        playerChoice = BattleChoice.FleeForfeit;
+
+    }
 
 }
