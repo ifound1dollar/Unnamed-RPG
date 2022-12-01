@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -11,10 +12,13 @@ public class PartyMenu : MonoBehaviour
     [SerializeField] Button[] charButtons;
     [SerializeField] Button backButton;
 
+    [Header("Details")]
     [SerializeField] GameObject detailsPanel;
     [SerializeField] Button detailsSwapButton;
     [SerializeField] Button detailsBackButton;
     [SerializeField] TMP_Text detailsName;
+    [SerializeField] TMP_Text specUp;
+    [SerializeField] TMP_Text specDown;
     
 
     public Button[] CharButtons { get { return charButtons; } }
@@ -24,20 +28,22 @@ public class PartyMenu : MonoBehaviour
     public int CurrentIndex { get; private set; }
 
     BattleChar[] playerChars;
+    int currPlayerIndex;
 
     /// <summary>
     /// Sets the local reference to the playerChars array
     /// </summary>
     /// <param name="battleChars">Reference to array of BattleChars</param>
-    public void SetBattleCharsReference(BattleChar[] battleChars)
+    public void SetPlayerCharsReference(BattleChar[] battleChars)
     {
         playerChars = battleChars;
     }
 
     /// <summary>
-    /// Loads BattleChar info into party buttons on right side
+    /// Loads BattleChar info into party buttons on right side, also sets currPlayerIndex from argument
     /// </summary>
-    public void LoadPartyChars()
+    /// <param name="currPlayerIndex">Index of currPlayer in playerChars[]</param>
+    public void LoadPartyChars(int currPlayerIndex = -1)
     {
         for (int i = 0; i < partyChars.Length; i++)
         {
@@ -53,6 +59,7 @@ public class PartyMenu : MonoBehaviour
                 charButtons[i].interactable = false;
             }
         }
+        this.currPlayerIndex = currPlayerIndex;
     }
 
     /// <summary>
@@ -66,6 +73,8 @@ public class PartyMenu : MonoBehaviour
 
         //SHOW DATA
         detailsName.text = playerChars[index].Name;
+        specUp.text = "Spec up: " + playerChars[index].SpecialtyUp.ToString();
+        specDown.text = "Spec down: " + playerChars[index].SpecialtyDown.ToString();
 
         detailsPanel.SetActive(true);
     }
@@ -80,16 +89,39 @@ public class PartyMenu : MonoBehaviour
     }
 
     /// <summary>
-    /// Focuses on the details panel, showing local swap and back buttons
+    /// Focuses on the details panel, showing local swap button if valid BattleSystem
     /// </summary>
     public void FocusDetails()
     {
         DetailsFocused = true;
-
-        detailsSwapButton.gameObject.SetActive(true);
         detailsBackButton.gameObject.SetActive(true);
 
-        detailsSwapButton.Select();
+        EnableOtherButtons(false);
+
+        //if currPlayerIndex is -1, then there is no active BattleSystem
+        if (currPlayerIndex == -1)
+        {
+            //disable swap button and auto-select back button
+            detailsSwapButton.gameObject.SetActive(false);
+            detailsBackButton.Select();
+        }
+        else
+        {
+            detailsSwapButton.gameObject.SetActive(true);
+
+            //make swap button non-interactable if is current BattleChar
+            if (currPlayerIndex == CurrentIndex)
+            {
+                detailsSwapButton.interactable = false;
+                detailsBackButton.Select();
+            }
+            else
+            {
+                detailsSwapButton.interactable = true;
+                detailsSwapButton.Select();
+            }
+        }
+        
     }
 
     /// <summary>
@@ -99,6 +131,7 @@ public class PartyMenu : MonoBehaviour
     public void OnSwapButtonPressed(BattleSystem battleSystem)
     {
         //call battleSystem's OnSwapButtonPressed method with currentIndex
+        battleSystem.OnSwapButtonPress(CurrentIndex);
     }
 
     /// <summary>
@@ -106,11 +139,27 @@ public class PartyMenu : MonoBehaviour
     /// </summary>
     public void DetailsBackButtonPress()
     {
+        EnableOtherButtons(true);
+
         //select button from current details panel character
         charButtons[CurrentIndex].Select();
         DetailsFocused = false;
 
         detailsSwapButton.gameObject.SetActive(false);
         detailsBackButton.gameObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// Enables or disables interaction with party buttons and main back button
+    /// </summary>
+    /// <param name="enable">Bool for whether to enable or disable button interaction</param>
+    void EnableOtherButtons(bool enable)
+    {
+        //only enable charButtons that correspond to an actual playerChar
+        for (int i = 0; i < playerChars.Length; i++)
+        {
+            charButtons[i].interactable = enable;
+        }
+        backButton.interactable = enable;
     }
 }

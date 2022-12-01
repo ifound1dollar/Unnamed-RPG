@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0cb0e5bea0a261478e9c119dbd64088, type: 3}
   m_Name: Ember Worg
   m_EditorClassIdentifier: 
-  species: Ember Worg
+  speciesName: Ember Worg
   type1: 3
   type2: 11
   backSprite: {fileID: 21300000, guid: c218da3920f09d845b74fda4cabb5461, type: 3}

@@ -21,6 +21,7 @@ public class EnemyHud : MonoBehaviour
     int currEN;
     int maxEN;
 
+    float delay;
 
     public void SetHUD(BattleChar battleChar)
     {
@@ -69,8 +70,10 @@ public class EnemyHud : MonoBehaviour
     {
         if (!animating) { return; }
 
-        //move back slider down by difference in old and current HP
-        hpBackSlider.value -= (oldHP - currHP) / Time.deltaTime;
+        if (delay < 0.2) { delay += Time.deltaTime; return; }
+
+        //move back slider down by difference in old and current HP, will take 1/2 of a second
+        hpBackSlider.value -= ((oldHP - currHP) * (Time.deltaTime * 2f)) / maxHP;
 
         //if taking damage, set animating to false once less than or equal to mainSlider
         if (oldHP - currHP >= 0)
@@ -79,6 +82,7 @@ public class EnemyHud : MonoBehaviour
             {
                 hpBackSlider.value = hpMainSlider.value;
                 animating = false;
+                delay = 0f;
             }
         }
         //else if healing, set animating to false once greater than or equal to mainSlider
@@ -88,6 +92,7 @@ public class EnemyHud : MonoBehaviour
             {
                 hpBackSlider.value = hpMainSlider.value;
                 animating = false;
+                delay = 0f;
             }
         }
     }

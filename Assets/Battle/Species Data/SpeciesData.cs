@@ -6,7 +6,7 @@ using UnityEngine.UI;
 [CreateAssetMenu(menuName = "Battle/Species Data")]
 public class SpeciesData : ScriptableObject
 {
-    [SerializeField] string species;
+    [SerializeField] string speciesName;
 
     [SerializeField] BattleType type1;
     [SerializeField] BattleType type2;
@@ -23,11 +23,11 @@ public class SpeciesData : ScriptableObject
 
     [SerializeField] List<LearnedAbility> learnedAbilities;
 
-    public string Species       { get { return species; } }
+    public string SpeciesName   { get { return speciesName; } }
     public BattleType Type1     { get { return type1; } }
     public BattleType Type2     { get { return type2; } }
-    public Sprite BackSprite     { get { return backSprite; } }
-    public Sprite FrontSprite    { get { return frontSprite; } }
+    public Sprite BackSprite    { get { return backSprite; } }
+    public Sprite FrontSprite   { get { return frontSprite; } }
     public int HP               { get { return hp; } }
     public int Strength         { get { return strength; } }
     public int Mastery          { get { return mastery; } }

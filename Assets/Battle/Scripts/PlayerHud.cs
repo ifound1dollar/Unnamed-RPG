@@ -23,6 +23,7 @@ public class PlayerHud : MonoBehaviour
     int currEN;
     int maxEN;
 
+    float delay;
 
     public void SetHUD(BattleChar battleChar)
     {
@@ -31,7 +32,7 @@ public class PlayerHud : MonoBehaviour
         //set basic string data
         nameText.text = battleChar.Name;
         levelText.text = ("Level " + battleChar.Level);
-        enText.text = (battleChar.Energy.ToString() + "/" + battleChar.MaxEnergy.ToString());
+        enText.text = (battleChar.Energy + " / " + battleChar.MaxEnergy);
         hpText.text = (battleChar.HP + " / " + battleChar.MaxHP);
 
         //set HP slider values
@@ -49,6 +50,8 @@ public class PlayerHud : MonoBehaviour
     public void UpdateHUD(BattleChar battleChar)
     {
         ///updates player HUD with animations
+        
+        ///IMPORTANT: MUST ALSO UPDATE STATUS EFFECT ICON
 
         //store previous data in variables and update HP and EN text right away
         oldHP = currHP;
@@ -75,8 +78,10 @@ public class PlayerHud : MonoBehaviour
     {
         if (!animating) { return; }
 
-        //move back slider down by difference in old and current HP
-        hpBackSlider.value -= (oldHP - currHP) / Time.deltaTime;
+        if (delay < 0.2) { delay += Time.deltaTime; return; }
+
+        //move back slider down by difference in old and current HP, will take 1/2 of a second
+        hpBackSlider.value -= ((oldHP - currHP) * (Time.deltaTime * 2f)) / maxHP;
 
         //if taking damage, set animating to false once less than or equal to mainSlider
         if (oldHP - currHP >= 0)
@@ -85,6 +90,7 @@ public class PlayerHud : MonoBehaviour
             {
                 hpBackSlider.value = hpMainSlider.value;
                 animating = false;
+                delay = 0f;
             }
         }
         //else if healing, set animating to false once greater than or equal to mainSlider
@@ -94,6 +100,7 @@ public class PlayerHud : MonoBehaviour
             {
                 hpBackSlider.value = hpMainSlider.value;
                 animating = false;
+                delay = 0f;
             }
         }
     }

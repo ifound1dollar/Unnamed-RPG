@@ -36,14 +36,22 @@ public class DialogBox : MonoBehaviour
     public void Setup(BattleSystem battleSystem)
     {
         this.battleSystem = battleSystem;
-        partyMenu.SetBattleCharsReference(battleSystem.PlayerChars);
+        partyMenu.SetPlayerCharsReference(battleSystem.PlayerChars);
+    }
+
+    /// <summary>
+    /// Selects attack button, typically used for beginning of turn
+    /// </summary>
+    public void SelectAttackButton()
+    {
+        attackButton.Select();
     }
 
     /// <summary>
     /// Sets Ability button info for current player BattleChar
     /// </summary>
     /// <param name="battleChar">Reference to player's active BattleChar</param>
-    public void SetAbilityInfo(BattleChar battleChar)
+    public void SetAbilityButtons(BattleChar battleChar)
     {
         for (int i = 0; i < 4; i++)
         {
@@ -110,7 +118,7 @@ public class DialogBox : MonoBehaviour
         //if showing party menu, reload data then select first char show details
         if (enable)
         {
-            partyMenu.LoadPartyChars();
+            partyMenu.LoadPartyChars(currPlayerIndex: battleSystem.GetCurrBattleCharIndex(playerTeam: true));
             partyMenu.CharButtons[0].Select();
             partyMenu.ShowDetails(0);
         }
@@ -192,7 +200,7 @@ public class DialogBox : MonoBehaviour
 
 
     /// <summary>
-    /// Handles Escape key press, which auto-invokes the currently relevant Back Button
+    /// Handles Escape key press, auto-invoking the relevant Back Button
     /// </summary>
     private void Update()
     {
@@ -209,14 +217,12 @@ public class DialogBox : MonoBehaviour
                 //else back out of entire party menu IF BACK BUTTON IS VALID
                 else if (partyMenu.BackButton.gameObject.activeSelf)
                 {
-                    //partyMenu.BackButton.Select();
                     partyMenu.BackButton.onClick.Invoke();
                 }
             }
             //else if abilityOverlay is active
             else if (abilityOverlay.activeSelf)
             {
-                //abilityBackButton.Select();
                 abilityBackButton.onClick.Invoke();
             }
         }
