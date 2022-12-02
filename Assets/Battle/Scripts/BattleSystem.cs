@@ -163,6 +163,7 @@ public class BattleSystem : MonoBehaviour
     {
         //TEMP
         currEnemy.UsedAbility = currEnemy.Abilities[0];
+        enemyChoice = BattleChoice.Attack;
         //TEMP
     }
 

@@ -222,7 +222,7 @@ public class BattleAI
         foreach (Ability ability in abilities)
         {
             //if damaging, increase score by modifier, else decrease by inverse
-            if (ability.DamageType == DamageType.Physical || ability.DamageType == DamageType.Magic)
+            if (ability.Category == Category.Physical || ability.Category == Category.Magic)
             {
                 ability.Score = (int)Mathf.Round(ability.Score * modifier);
             }

@@ -2,14 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum DamageType { None, Self, Physical, Magic }
+public enum Category { Status, Self, Physical, Magic }
 
 public abstract class Ability
 {
     public string Name { get; set; }
     public string Description { get; set; }
     public BattleType AbilityType { get; set; }
-    public DamageType DamageType { get; set; }
+    public Category Category { get; set; }
     public bool MakesContact { get; set; }
     public int Power { get; set; }
     public int Accuracy { get; set; }
@@ -44,11 +44,11 @@ public abstract class Ability
         damage *= Power;
 
         //offense/defense stat ratio calculation
-        if (DamageType == DamageType.Physical)
+        if (Category == Category.Physical)
         {
             damage *= (float)data.User.Strength / data.Target.Armor;
         }
-        else if (DamageType == DamageType.Magic)
+        else if (Category == Category.Magic)
         {
             damage *= (float)data.User.Mastery / data.Target.Resistance;
         }
@@ -98,11 +98,11 @@ public abstract class Ability
         damage *= Power;
 
         //offense/defense stat ratio calculation
-        if (DamageType == DamageType.Physical)
+        if (Category == Category.Physical)
         {
             damage *= (float)user.Strength / target.Armor;
         }
-        else if (DamageType == DamageType.Magic)
+        else if (Category == Category.Magic)
         {
             damage *= (float)user.Mastery / target.Resistance;
         }
@@ -126,7 +126,7 @@ public abstract class Ability
     {
         ///Calculates this Ability's Score in the context of this turn and user/target
 
-        if (!IsUsable(user) || Name == "EMPTY" || Name == "MISSING")
+        if (!IsUsable(user))
         {
             Score = 0;
             return;
