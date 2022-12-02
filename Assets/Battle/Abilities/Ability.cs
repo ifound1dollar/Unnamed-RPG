@@ -185,10 +185,10 @@ public abstract class Ability
         Score += (int)(damagePercent * 100);
         //NOTE: cap at 100% because two Abilities that are both lethal have the same value
 
-        //if expected to be lethal, increase by additional 50
-        if (damagePercent > 1.0)
+        //if expected to be lethal, increase by additional 100
+        if (damagePercent >= 1.0)
         {
-            Score += 50;
+            Score += 100;
         }
     }
 
@@ -218,6 +218,7 @@ public abstract class Ability
     {
         ///Base method returns only whether user has enough Energy to use Ability and that
         /// it is not Blocked. This can be overridden for Abilities with special requirements.
+        ///NOTE: Is overridden to false in EmptyAbility and BadAbility
 
         return (EnergyCost(battleChar) <= battleChar.Energy && !Blocked);
     }

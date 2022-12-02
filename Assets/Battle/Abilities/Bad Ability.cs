@@ -16,4 +16,9 @@ public class BadAbility : Ability
     {
         //Score remains at 0
     }
+
+    public override bool IsUsable(BattleChar battleChar)
+    {
+        return false;
+    }
 }

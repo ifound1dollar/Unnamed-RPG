@@ -529,4 +529,18 @@ public class BattleSystem : MonoBehaviour
             return Array.IndexOf(enemyChars, currEnemy);
         }
     }
+    public int GetRemaining(bool playerTeam)
+    {
+        BattleChar[] team = (playerTeam) ? playerChars : enemyChars;
+
+        int charsAlive = 0;
+        foreach (BattleChar battleChar in team)
+        {
+            if (battleChar.HP > 0)
+            {
+                charsAlive++;
+            }
+        }
+        return charsAlive;
+    }
 }
