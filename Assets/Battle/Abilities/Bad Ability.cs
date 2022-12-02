@@ -8,8 +8,12 @@ public class BadAbility : Ability
     {
         Name = "MISSING";
     }
-    public override void UseAbility()
+    public override void UseAbility(AbilityData data)
     {
         Debug.Log("Tried to use Bad Ability.");
+    }
+    protected override void CalcSpecificScore(BattleChar user, BattleChar target)
+    {
+        //Score remains at 0
     }
 }

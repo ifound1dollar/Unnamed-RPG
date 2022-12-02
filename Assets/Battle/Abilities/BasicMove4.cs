@@ -13,8 +13,12 @@ public class BasicMove4 : Ability
         Description = "A simple damaging attack.";
     }
 
-    public override void UseAbility()
+    public override void UseAbility(AbilityData data)
     {
-
+        
+    }
+    protected override void CalcSpecificScore(BattleChar user, BattleChar target)
+    {
+        
     }
 }
