@@ -14,13 +14,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speciesData: {fileID: 11400000, guid: a94234871811a79408aedd9b49842782, type: 2}
   level: 1
-  ability1: BasicMove4
-  ability2: 
-  ability3: 
-  ability4: 
+  eAbility1: BasicMove4
+  eAbility2: 
+  eAbility3: 
+  eAbility4: 
+  mAbility1: BasicMove4
+  mAbility2: 
+  mAbility3: 
+  mAbility4: 
+  hAbility1: BasicMove4
+  hAbility2: 
+  hAbility3: 
+  hAbility4: 
   nickname: 
   maxEnergy: 0
-  rawHP: -1
+  actualHP: -1
   rawMaxHP: 0
   rawStrength: 0
   rawMastery: 0

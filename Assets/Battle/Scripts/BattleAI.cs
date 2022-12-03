@@ -4,7 +4,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public enum AIDifficulty { Wild, Easy, Medium, Hard, Boss }
+public enum AIDifficulty { Easy, Medium, Hard, Boss, Wild }
 public class BattleAI
 {
     AIDifficulty Difficulty { get; set; }
@@ -42,6 +42,91 @@ public class BattleAI
         {
             return null;
         }
+    }
+    public int CheckShouldSwap(BattleChar currEnemy, BattleChar currPlayer, int maxScore = -1)
+    {
+        //NOTE: maxScore is optional, -1 means has not been calculated yet (no argument)
+
+        //if only one remaining, only active for 1-2 turns, or Easy/Wild difficulty, do not swap
+        if (BattleSystemRef.GetRemaining(playerTeam: false) <= 1 || currEnemy.TurnsActive <= 2
+            || Difficulty == AIDifficulty.Easy || Difficulty == AIDifficulty.Wild)
+        {
+            //MUST ALSO CHECK FOR ATTRIBUTE THAT PREVENTS SWAPPING OUT OF BATTLE
+            return -1;
+        }
+
+        ///MAYBE DON'T EVEN BOTHER CHECKING FOR SWAP BEFOREHAND???
+        ///GUARANTEED SWAP WITH HARD IS NOT FUN, AND IF ROLLING RANDOM WITH MEDIUM ANYWAY,
+        /// WHY NOT JUST DO IT ALL AT ONCE AFTER SCORES ARE CALCULATED?
+        ///STILL USE THRESHOLD, BUT MAKE MUCH SMALLER (BASICALLY GUARANTEE THAT IT WON'T
+        /// SWAP TOO EARLY, MAYBE SET THRESHOLD TO 3-5?)
+
+        //get effectiveness of player vs enemy
+        float mult1 = Effectiveness.GetMultiplier(currPlayer.SpeciesData.Type1, currEnemy.SpeciesData.Type1, currEnemy.SpeciesData.Type2);
+        float mult2 = Effectiveness.GetMultiplier(currPlayer.SpeciesData.Type2, currEnemy.SpeciesData.Type1, currEnemy.SpeciesData.Type2);
+        float typeMultiplier = mult1 * mult2;
+
+        if (maxScore == -1)
+        {
+            int score = 0;
+
+            //+2 points if active status
+            if (currEnemy.HasActiveStatus())
+            {
+                score += 2;
+            }
+
+            //+-1 point per modifier (total magnitude, change by inverse)
+            score -= currEnemy.CountModifierTotal();
+
+            //+1 point if less than 50% Energy remaining, +2 if less than 25%
+            score += (currEnemy.MaxEnergy / currEnemy.Energy) / 2;
+
+            //if Medium, 50% chance once passing threshold; else Hard or Boss is guaranteed
+            if (score * typeMultiplier >= 10)
+            {
+                if (Difficulty == AIDifficulty.Medium)
+                {
+                    if (UnityEngine.Random.Range(0, 100) < 50)
+                    {
+                        //FIND BEST CHARACTER TO SWAP TO AND RETURN ITS INDEX
+                    }
+                }
+                else
+                {
+                    //FIND BEST CHARACTER TO SWAP TO AND RETURN ITS INDEX
+                }
+            }
+            
+        }
+        else
+        {
+            //turn score from above into larger scope (multiply by 5)
+            //do same calculation as with checking for Pass, where if maxScore is greater
+            //  than 200, auto fail (because an attack is strongly preferred there)
+            //otherwise if not greater than 200, add score*5 + maxScore and do chance there
+            //again, medium will roll lower chance (less than score*5 / 2)
+        }
+
+        ///If currEnemy is low(ish) Energy AND type(s) not preferable
+        ///Should calculate score based on interactions PER TYPE, +1 if bad interaction,
+        /// 0 for neutral, and -1 if good interaction
+        ///Chance to swap should be determined by above score, where the higher
+        /// the number of bad interactions, the more likely the choice to swap
+        ///The lower the number of turns active for currEnemy, the less likely
+        /// the choice to swap
+        ///If affected by a negative status effect, higher chance to swap
+        ///The greater the number of negative modifiers, the higher the chance
+
+        ///Hierarchy: 1) types, 2) turns active, 3) negative modifiers & status effects, 4) energy
+        
+        ///this chance to swap WILL BE AFFECTED by AI difficulty:
+        /// NO CHANCE TO SWAP IF EASY
+        /// LOW CHANCE TO SWAP IF MEDIUM
+        /// NORMAL CHANCE TO SWAP IF HARD
+
+        //if should not swap, return -1
+        return -1;
     }
 
     void CalcAbilityScores(BattleChar currEnemy, BattleChar currPlayer)

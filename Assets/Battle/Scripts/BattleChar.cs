@@ -77,9 +77,10 @@ public class BattleChar
     public bool Recharging      { get; set; }
     public bool Delaying        { get; set; }
     public int TurnsActive      { get; set; }
+    public bool WasActive       { get; set; }
 
 
-    public BattleChar(ScriptableBattleChar data, bool playerTeam)
+    public BattleChar(ScriptableBattleChar data, AIDifficulty difficulty, bool playerTeam)
     {
         SpeciesData = data.SpeciesData;
 
@@ -101,7 +102,7 @@ public class BattleChar
         Level = data.Level;
 
         //abilities
-        string[] abilityNames = data.GetAbilitiesAsArray();
+        string[] abilityNames = data.GetAbilitiesAsArray(difficulty);
         for (int i = 0; i < 4; i++)
         {
             if (abilityNames[i] == "")
@@ -344,6 +345,12 @@ public class BattleChar
 
         //if did not return above, then failed to apply
         return false;
+    }
+    public int CountModifierTotal()
+    {
+        ///Counts total magnitude of modifiers and returns it as integer
+
+        return StrMod + MasMod + ArmMod + ResMod + AgiMod + AccMod + DodMod + CrtMod;
     }
     public bool SetModifier(string modifierName, int stages)
     {

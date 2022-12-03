@@ -24,6 +24,8 @@ public class BattleSystem : MonoBehaviour
     BattleChar[] enemyChars;
     BattleChar currPlayer;
     BattleChar currEnemy;
+    BattleAI battleAI;
+    AIDifficulty difficulty;
 
     BattleState state;
     BattleChoice playerChoice;
@@ -45,6 +47,10 @@ public class BattleSystem : MonoBehaviour
         InitEnemyParty();
         currPlayer = playerChars[0];
         currEnemy = enemyChars[0];
+
+        //instantiate BattleAI object (WILL ACCESS DIFFICULTY SETTING LATER)
+        difficulty = AIDifficulty.Easy;
+        battleAI = new(this, difficulty);
 
         //load player and enemy sprites from BattleChar's species data
         playerImage.sprite = currPlayer.SpeciesData.BackSprite;
@@ -70,7 +76,7 @@ public class BattleSystem : MonoBehaviour
         playerChars = new BattleChar[playerParty.Team.Length];
         for (int i = 0; i < playerParty.Team.Length; i++)
         {
-            playerChars[i] = new BattleChar(playerParty.Team[i], playerTeam: true);
+            playerChars[i] = new BattleChar(playerParty.Team[i], difficulty, playerTeam: true);
         }
 
         //find first BattleChar in array with >0HP to make currPlayer
@@ -84,7 +90,7 @@ public class BattleSystem : MonoBehaviour
         enemyChars = new BattleChar[enemyParty.Team.Length];
         for (int i = 0; i < enemyParty.Team.Length; i++)
         {
-            enemyChars[i] = new BattleChar(enemyParty.Team[i], playerTeam: false);
+            enemyChars[i] = new BattleChar(enemyParty.Team[i], difficulty, playerTeam: false);
         }
 
         //find first BattleChar in array with >0HP to make currPlayer

@@ -5,15 +5,30 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Battle/Scriptable BattleChar")]
 public class ScriptableBattleChar : ScriptableObject
 {
-    [Header("Required (at least one ability required)")]
+    [Header("- REQUIRED DATA -")]
     [SerializeField] SpeciesData speciesData;
     [SerializeField] int level;
-    [SerializeField] string ability1;
-    [SerializeField] string ability2;
-    [SerializeField] string ability3;
-    [SerializeField] string ability4;
 
-    [Header("Optional")]
+    [Header("Easy Abilities - at least one")]
+    [SerializeField] string eAbility1;
+    [SerializeField] string eAbility2;
+    [SerializeField] string eAbility3;
+    [SerializeField] string eAbility4;
+
+    [Header("Medium Abilities - at least one")]
+    [SerializeField] string mAbility1;
+    [SerializeField] string mAbility2;
+    [SerializeField] string mAbility3;
+    [SerializeField] string mAbility4;
+
+    [Header("Hard Abilities - at least one")]
+    [SerializeField] string hAbility1;
+    [SerializeField] string hAbility2;
+    [SerializeField] string hAbility3;
+    [SerializeField] string hAbility4;
+
+
+    [Header("- OPTIONAL DATA -")]
     [SerializeField] string nickname;
     [SerializeField] int maxEnergy;
     [Tooltip("Value of -1 implies that it was left unchanged (0 could mean actual 0HP)")]
@@ -64,8 +79,19 @@ public class ScriptableBattleChar : ScriptableObject
     //public int BaseAgility { get { return baseAgility; } }
 
 
-    public string[] GetAbilitiesAsArray()
+    public string[] GetAbilitiesAsArray(AIDifficulty difficulty)
     {
-        return new string[4] { ability1, ability2, ability3, ability4 };
+        if (difficulty == AIDifficulty.Easy || difficulty == AIDifficulty.Wild)
+        {
+            return new string[4] { eAbility1, eAbility2, eAbility3, eAbility4 };
+        }
+        else if (difficulty == AIDifficulty.Medium)
+        {
+            return new string[4] { mAbility1, mAbility2, mAbility3, mAbility4 };
+        }
+        else
+        {
+            return new string[4] { hAbility1, hAbility2, hAbility3, hAbility4 };
+        }
     }
 }
