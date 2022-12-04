@@ -72,7 +72,6 @@ public class BattleSystem : MonoBehaviour
         yield return new WaitForSeconds(textDelay);
 
         currEnemy.Energy = 0;
-
         //TEMP
 
         StartCoroutine(Loop());
@@ -813,6 +812,9 @@ public class BattleSystem : MonoBehaviour
             }
         }
     }
+    
+    //SNAPSHOTS
+    //END BATTLE
 
 
     //button presses
