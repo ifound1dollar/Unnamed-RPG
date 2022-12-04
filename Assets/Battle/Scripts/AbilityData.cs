@@ -12,11 +12,13 @@ public class AbilityData
     public bool CriticalHit { get; set; }
 
     public int TurnNumber { get; set; }
+    public DialogBox DialogBox { get; set; }
 
-    public AbilityData(BattleChar user, BattleChar target, int turnNumber)
+    public AbilityData(BattleChar user, BattleChar target, int turnNumber, DialogBox dialogBox)
     {
         User = user;
         Target = target;
         TurnNumber = turnNumber;
+        DialogBox = dialogBox;
     }
 }

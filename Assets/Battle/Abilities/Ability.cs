@@ -23,7 +23,7 @@ public abstract class Ability
     public bool Blocked { get; set; }
     public int Score { get; set; }
 
-    public abstract void UseAbility(AbilityData data);
+    public abstract IEnumerator UseAbility(AbilityData data);
     protected abstract void CalcSpecificScore(BattleChar user, BattleChar target);
 
     //PROTECTED damage calculators
@@ -82,7 +82,7 @@ public abstract class Ability
         ///Estimates damage dealt by user to target using this Ability. Does not get random
         /// damage value between 90-110% and does not check for critical hit.
 
-        if (Effectiveness.GetMultiplier(AbilityType, target.SpeciesData.Type1, target.SpeciesData.Type2) == 0.0
+        if (Effectiveness.GetMultiplier(AbilityType, target.SpeciesData.Type1, target.SpeciesData.Type2) == 0.0f
             || target.Protected)
         {
             //return 0 immediately if 0 effectiveness or target is protected
@@ -108,8 +108,7 @@ public abstract class Ability
         }
 
         //effectiveness multiplier (assigns data.Effectiveness)
-        float eff = Effectiveness.GetMultiplier(AbilityType, target.SpeciesData.Type1, target.SpeciesData.Type2);
-        damage *= eff;
+        damage *= Effectiveness.GetMultiplier(AbilityType, target.SpeciesData.Type1, target.SpeciesData.Type2);
 
         //same type as user modifier
         if (AbilityType == user.SpeciesData.Type1 || AbilityType == user.SpeciesData.Type2)
@@ -118,7 +117,7 @@ public abstract class Ability
         }
 
         //FINALLY, return estimated damage value
-        return (int)Mathf.Round(damage);
+        return Mathf.RoundToInt(damage);
     }
 
     //universal score calcuation
@@ -182,11 +181,11 @@ public abstract class Ability
 
         //increase based on % current HP dealt by estimated damage (cap at 100%)
         float damagePercent = Mathf.Min((float)estimatedDamage / target.HP, 1.0f);
-        Score += (int)(damagePercent * 100);
+        Score += (int)(damagePercent * 100f);
         //NOTE: cap at 100% because two Abilities that are both lethal have the same value
 
         //if expected to be lethal, increase by additional 100
-        if (damagePercent >= 1.0)
+        if (damagePercent >= 1.0f)
         {
             Score += 100;
         }

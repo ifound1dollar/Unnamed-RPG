@@ -11,11 +11,15 @@ public class BasicMove4 : Ability
         Accuracy = 100;
         Energy = 1;
         Description = "A simple damaging attack.";
+
+        AbilityType = BattleType.Vital;
+        Category = Category.Physical;
+        MakesContact = true;
     }
 
-    public override void UseAbility(AbilityData data)
+    public override IEnumerator UseAbility(AbilityData data)
     {
-        
+        yield break;
     }
     protected override void CalcSpecificScore(BattleChar user, BattleChar target)
     {

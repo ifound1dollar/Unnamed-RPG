@@ -26,7 +26,7 @@ MonoBehaviour:
   hAbility2: StrongAttack
   hAbility3: 
   hAbility4: 
-  nickname: 
+  nickname: nickname
   maxEnergy: 0
   actualHP: -1
   rawMaxHP: 0

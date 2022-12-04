@@ -8,9 +8,11 @@ public class EmptyAbility : Ability
     {
         Name = "EMPTY";
     }
-    public override void UseAbility(AbilityData data)
+
+    public override IEnumerator UseAbility(AbilityData data)
     {
         Debug.Log("Tried to use Empty Ability.");
+        yield break;
     }
     protected override void CalcSpecificScore(BattleChar user, BattleChar target)
     {

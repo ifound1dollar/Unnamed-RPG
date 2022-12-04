@@ -148,9 +148,10 @@ public class BattleAI
                 score += 3;
             }
 
-            //Easy: same for all | Medium: multiplier*2 | Hard: multiplier^2 | Boss: multiplier^3
-            if (Difficulty == AIDifficulty.Easy)
+            //Easy: 10 for all | Medium: multiplier*2 | Hard: multiplier^2 | Boss: multiplier^3
+            if (Difficulty == AIDifficulty.Easy || currPlayer.HP == 0)
             {
+                //IF CURRPLAYER HP IS 0, DO NOT KNOW WHICH COMES OUT NEXT, SO PICK RANDOM
                 score = 10;
             }
             else if (Difficulty == AIDifficulty.Medium)
@@ -192,7 +193,18 @@ public class BattleAI
             }
         }
 
-        //will never be reached, but must be here for compilation
+
+        //it is possible that every one added to pool has 0, so will never return above
+        for (int i = 0; i < enemyChars.Length; i++)
+        {
+            //return first character at > 0HP
+            if (enemyChars[i].HP > 0)
+            {
+                return i;
+            }
+        }
+
+        //needed for compilation
         return 0;
     }
 
@@ -206,14 +218,14 @@ public class BattleAI
             ability.CalcScore(currEnemy, currPlayer);
         }
 
-        //if Easy, modify by 50%; if Medium, modify by 20%
+        //if Easy, modify by 25%; if Medium, modify by 10%
         if (Difficulty == AIDifficulty.Easy)
         {
             MakePreferDamaging(currEnemy.Abilities);
         }
         else if (Difficulty == AIDifficulty.Medium)
         {
-            MakePreferDamaging(currEnemy.Abilities, modifier: 1.2f);
+            MakePreferDamaging(currEnemy.Abilities, modifier: 1.1f);
         }
 
         //if only one enemy remains, prefer damaging
@@ -375,7 +387,7 @@ public class BattleAI
         return null;
     }
 
-    void MakePreferDamaging(Ability[] abilities, float modifier = 1.5f)
+    void MakePreferDamaging(Ability[] abilities, float modifier = 1.25f)
     {
         ///Adjust Score of every Ability up or down by modifier value
 

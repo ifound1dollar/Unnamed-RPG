@@ -27,7 +27,9 @@ public class BattleSystem : MonoBehaviour
     BattleChar currEnemy;
     BattleAI battleAI;
     AIDifficulty difficulty;
+    float textDelay = 1.5f;
 
+    int turnNumber;
     BattleState state;
     BattleChoice playerChoice;
     BattleChoice enemyChoice;
@@ -65,9 +67,9 @@ public class BattleSystem : MonoBehaviour
 
         //TEMP
         yield return dialogBox.DialogSet("TEST TEXT TEST TEXT TEST TEXT TEST TEXT TEST TEXT ");
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(textDelay);
         yield return dialogBox.DialogAppend("Test append.");
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(textDelay);
 
         currEnemy.Energy = 0;
 
@@ -114,14 +116,10 @@ public class BattleSystem : MonoBehaviour
             yield return new WaitUntil(() => state != BattleState.WaitingChoice);
             dialogBox.ShowMainButtons(false);
             yield return dialogBox.DialogSet("Preparing...");
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(textDelay);
 
             //enemy AI make choice and set enemyChoice
             GetEnemyChoice();
-
-            //TEMP
-            yield return new WaitForSeconds(1f);
-            //TEMP
 
             //set player and enemy UsedAbility to null if they did not Attack this turn (reset ConsecutiveUses first)
             if (playerChoice != BattleChoice.Attack && currPlayer.UsedAbility != null)
@@ -147,17 +145,11 @@ public class BattleSystem : MonoBehaviour
             //check status effect of either currPlayer or currEnemy ending early
             yield return CheckStatusEndEarly();
 
-            //perform action, checking playerChoice and enemyChoice
-            //  if both attack, check HP of both characters after FIRST ATTACK completes
-            //      if either at 0HP, end attacking and handle 0HP (force swap of either/both
-            //      or end battle)
-            //currPlayer.TakeDamage(5);
-            //playerHud.UpdateHUD(currPlayer);
-            //yield return new WaitForSeconds(1f);
+            //perform attacks
+            yield return PerformAttacks();
 
-            //currEnemy.TakeDamage(5);
-            //enemyHud.UpdateHUD(currEnemy);
-            //yield return new WaitForSeconds(1f);
+            //check HP immediately after attacks, before end-of-turn operations
+            yield return CheckHP();
 
             //perform end-of-turn operations like status effects, team effects, etc.
             yield return EndOfTurnOperations();
@@ -207,10 +199,6 @@ public class BattleSystem : MonoBehaviour
                 enemyChoice = BattleChoice.Attack;
             }
         }
-
-        //TEMP
-        StartCoroutine(dialogBox.DialogSet("Enemy " + enemyChoice.ToString()));
-        //TEMP
     }
 
     IEnumerator CheckSwaps()
@@ -242,7 +230,7 @@ public class BattleSystem : MonoBehaviour
 
             //update dialog text
             yield return dialogBox.DialogSet("Player swapped to " + playerChars[playerSwapIndex].Name + ".");
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(textDelay);
 
             //if any traps hit, update HUD and print dialog returned from hitting traps
             List<string> trapsHit = currPlayer.DoTrapsHit();
@@ -252,7 +240,7 @@ public class BattleSystem : MonoBehaviour
                 foreach (string text in trapsHit)
                 {
                     yield return dialogBox.DialogSet(text);
-                    yield return new WaitForSeconds(1f);
+                    yield return new WaitForSeconds(textDelay);
                 }
             }
         }
@@ -266,7 +254,7 @@ public class BattleSystem : MonoBehaviour
             enemyHud.SetHUD(currEnemy);
 
             yield return dialogBox.DialogSet("Enemy swapped to " + enemyChars[enemySwapIndex].Name + ".");
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(textDelay);
 
             List<string> trapsHit = currEnemy.DoTrapsHit();
             if (trapsHit.Count > 0)
@@ -275,7 +263,7 @@ public class BattleSystem : MonoBehaviour
                 foreach (string text in trapsHit)
                 {
                     yield return dialogBox.DialogSet(text);
-                    yield return new WaitForSeconds(1f);
+                    yield return new WaitForSeconds(textDelay);
                 }
             }
         }
@@ -288,7 +276,7 @@ public class BattleSystem : MonoBehaviour
         {
             playerHud.SetHUD(currPlayer);
             yield return dialogBox.DialogSet(temp);
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(textDelay);
         }
 
         temp = currEnemy.CheckEffectEndEarly();
@@ -296,13 +284,158 @@ public class BattleSystem : MonoBehaviour
         {
             enemyHud.SetHUD(currEnemy);
             yield return dialogBox.DialogSet(temp);
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(textDelay);
         }
+
+        //after checking status, time to begin attacking
+        state = BattleState.Attacking;
     }
 
-    //determine attack order method
-    //actual attack method
-    //attack after-effects method
+    IEnumerator PerformAttacks()
+    {
+        ///Determine attack order and do attacks
+
+        //if both attacked this turn
+        if (playerChoice == BattleChoice.Attack && enemyChoice == BattleChoice.Attack)
+        {
+            //BattleChar with higher Agility + Priority modification attacks first
+            if ((currPlayer.Agility + currPlayer.UsedAbility.Priority * 1000)
+                >= (currEnemy.Agility + currEnemy.UsedAbility.Priority * 1000))
+            {
+                yield return DoAttack(currPlayer, currEnemy);
+                yield return DoAttack(currEnemy, currPlayer);
+            }
+            else
+            {
+                yield return DoAttack(currEnemy, currPlayer);
+                yield return DoAttack(currPlayer, currEnemy);
+            }
+        }
+        //else if only player attacked, enemy passed/swapped
+        else if (playerChoice == BattleChoice.Attack)
+        {
+            if (enemyChoice == BattleChoice.Pass)
+            {
+                yield return dialogBox.DialogSet(currEnemy.Name + " passed this turn.");
+                yield return new WaitForSeconds(textDelay);
+            }
+            yield return DoAttack(currPlayer, currEnemy);
+        }
+        //else if only enemy attacked, player passed/swapped
+        else if (enemyChoice == BattleChoice.Attack)
+        {
+            if (playerChoice == BattleChoice.Pass)
+            {
+                yield return dialogBox.DialogSet(currPlayer.Name + " passed this turn.");
+                yield return new WaitForSeconds(textDelay);
+            }
+            yield return DoAttack(currEnemy, currPlayer);
+        }
+
+        //after attacks, set state to EndingTurn
+        state = BattleState.EndingTurn;
+    }
+    IEnumerator DoAttack(BattleChar user, BattleChar target)
+    {
+        ///Carry out attacks for this turn, handling all attack-related operations
+
+        #region Prelim checks (0HP, Stunned, Delaying, etc.)
+        //if either at 0HP, break and do not do attack
+        if (user.HP == 0 || target.HP == 0)
+        {
+            yield break;
+        }
+
+        //if user Stunned, acknowledge and do not attack (interrupt Delaying and Recharging)
+        if (user.Stunned > 0)
+        {
+            user.Delaying = false;
+            user.Recharging = false;
+            yield return dialogBox.DialogSet(user.Name + " is Stunned!");
+            yield return new WaitForSeconds(textDelay);
+            yield break;
+        }
+
+        //if user Frozen, 33% chance to be unable to attack this turn (does same as Stunned)
+        if (user.Frozen > 0)
+        {
+            if (UnityEngine.Random.Range(0, 100) < 33)
+            {
+                user.Delaying = false;
+                user.Recharging = false;
+                yield return dialogBox.DialogSet(user.Name + " is too cold to move!");
+                yield return new WaitForSeconds(textDelay);
+                yield break;
+            }
+        }
+
+        //if user currently Recharging, do not attack
+        if (user.Recharging)
+        {
+            user.Recharging = false;
+            yield return dialogBox.DialogSet(user.Name + " is recharging!");
+            yield return new WaitForSeconds(textDelay);
+            yield break;
+        }
+
+        //if user's UsedAbility is Delayed, check if currently waiting or starting delay
+        if (user.UsedAbility.Delayed)
+        {
+            //if user is currently waiting, use Ability this turn; else begin actual delay
+            if (user.Delaying)
+            {
+                user.Delaying = false;
+            }
+            else
+            {
+                user.Delaying = true;
+                yield return dialogBox.DialogSet(user.Name + " is preparing to use "
+                    + user.UsedAbility.Name + " next turn!");
+                yield return new WaitForSeconds(textDelay);
+                yield break;
+            }
+        }
+
+        //if user not currently Recharging and is using Recharge move, recharge next turn
+        if (user.UsedAbility.Recharge)
+        {
+            user.Recharging = true;
+        }
+        #endregion
+
+        //create AbilityData object to pass to Ability's UseAbility method
+        AbilityData data = new(user, target, turnNumber, dialogBox);
+
+        //update dialog with use text, then consume energy and update HUD for both
+        yield return dialogBox.DialogSet(user.Name + " used " + user.UsedAbility.Name + "!");
+        user.Energy -= user.UsedAbility.EnergyCost(user);
+        playerHud.SetHUD(currPlayer);
+        enemyHud.SetHUD(currEnemy);
+
+        //if hit target, do attack and after effects; else acknowledge miss
+        if (user.UsedAbility.CheckAccuracy(user, target))
+        {
+            //PLAY HIT ANIMATION
+
+            yield return user.UsedAbility.UseAbility(data);
+            yield return new WaitForSeconds(textDelay);
+
+            yield return DoAfterEffects(data);
+        }
+        else
+        {
+            //PLAY MISS ANIMATION
+
+            yield return dialogBox.DialogSet("The attack missed!");
+            yield return new WaitForSeconds(textDelay);
+        }
+    }
+    IEnumerator DoAfterEffects(AbilityData data)
+    {
+
+
+        yield break;
+    }
 
     IEnumerator EndOfTurnOperations()
     {
@@ -321,7 +454,7 @@ public class BattleSystem : MonoBehaviour
         if (currPlayer.Burned > 0)
         {
             yield return dialogBox.DialogSet(currPlayer.DoBurnedDamage());
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(textDelay);
         }
 
         //if currPlayer now at 0HP, don't check Burned status effect ending
@@ -331,7 +464,7 @@ public class BattleSystem : MonoBehaviour
             if (temp != "")
             {
                 yield return dialogBox.DialogSet(temp);
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(textDelay);
             }
         }
 
@@ -344,13 +477,14 @@ public class BattleSystem : MonoBehaviour
         }
 
         //CHECK HP HERE AND DO SWAP IF NECESSARY
+        yield return CheckHP();
 
 
         //active enemy BattleChar will print to dialog
         if (currEnemy.Burned > 0)
         {
             yield return dialogBox.DialogSet(currEnemy.DoBurnedDamage());
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(textDelay);
         }
 
         //if currEnemy now at 0HP, don't check Burned status effect ending
@@ -360,7 +494,7 @@ public class BattleSystem : MonoBehaviour
             if (temp != "")
             {
                 yield return dialogBox.DialogSet(temp);
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(textDelay);
             }
         }
 
@@ -372,6 +506,7 @@ public class BattleSystem : MonoBehaviour
         }
 
         //CHECK HP HERE AND DO SWAP IF NECESSARY
+        yield return CheckHP();
     }
     IEnumerator HandleTeamEffectOperations()
     {
@@ -385,11 +520,12 @@ public class BattleSystem : MonoBehaviour
             foreach (string text in teamEffectStrings)
             {
                 yield return dialogBox.DialogSet(text);
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(textDelay);
             }
         }
 
         //CHECK HP FOR ANY DAMAGE DEALT BEFORE DECREMENT
+        yield return CheckHP();
 
         //player team effect decrements
         teamEffectStrings = currPlayer.DecrementTeamEffects();
@@ -398,7 +534,7 @@ public class BattleSystem : MonoBehaviour
             foreach (string text in teamEffectStrings)
             {
                 yield return dialogBox.DialogSet(text);
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(textDelay);
             }
         }
 
@@ -411,11 +547,12 @@ public class BattleSystem : MonoBehaviour
             foreach (string text in teamEffectStrings)
             {
                 yield return dialogBox.DialogSet(text);
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(textDelay);
             }
         }
 
         //CHECK HP FOR ANY DAMAGE DEALT BEFORE DECREMENT
+        yield return CheckHP();
 
         //enemy team effect decrements
         teamEffectStrings = currEnemy.DecrementTeamEffects();
@@ -424,7 +561,7 @@ public class BattleSystem : MonoBehaviour
             foreach (string text in teamEffectStrings)
             {
                 yield return dialogBox.DialogSet(text);
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(textDelay);
             }
         }
     }
@@ -439,7 +576,7 @@ public class BattleSystem : MonoBehaviour
             foreach (string text in teamEffectStrings)
             {
                 yield return dialogBox.DialogSet(text);
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(textDelay);
             }
         }
 
@@ -451,7 +588,7 @@ public class BattleSystem : MonoBehaviour
             foreach (string text in teamEffectStrings)
             {
                 yield return dialogBox.DialogSet(text);
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(textDelay);
             }
         }
     }
@@ -467,11 +604,12 @@ public class BattleSystem : MonoBehaviour
             foreach (string text in fieldEffectStrings)
             {
                 yield return dialogBox.DialogSet(text);
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(textDelay);
             }
         }
 
         //CHECK HP FOR ANY DAMAGE DEALT BEFORE DECREMENT
+        yield return CheckHP();
 
 
         //enemy field effect actions
@@ -482,11 +620,12 @@ public class BattleSystem : MonoBehaviour
             foreach (string text in fieldEffectStrings)
             {
                 yield return dialogBox.DialogSet(text);
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(textDelay);
             }
         }
 
         //CHECK HP FOR ANY DAMAGE DEALT BEFORE DECREMENT
+        yield return CheckHP();
 
 
         //player field effect decrements, then enemy (ONLY PLAYER PRINTS DIALOG)
@@ -496,7 +635,7 @@ public class BattleSystem : MonoBehaviour
             foreach (string text in fieldEffectStrings)
             {
                 yield return dialogBox.DialogSet(text);
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(textDelay);
             }
         }
         currEnemy.DecrementFieldEffects();
@@ -504,9 +643,55 @@ public class BattleSystem : MonoBehaviour
 
     IEnumerator CheckHP()
     {
-        //
+        ///Checks HP of both currPlayer and currEnemy, forcing swap if at 0HP and
+        /// other teammates are > 0HP
 
-        yield break;
+        //track who needs to swap, then swap at same time (no bias)
+        bool enemySwap = false;
+        bool playerSwap = false;
+
+        //check enemy first so if player and enemy both lose at same time, player still wins
+        if (currEnemy.HP == 0)
+        {
+            if (GetRemaining(playerTeam: false) > 0)
+            {
+                enemySwapIndex = battleAI.ChooseSwapChar(enemyChars, currPlayer);
+                enemySwap = true;
+            }
+            else
+            {
+                //END BATTLE
+                Debug.Log("Player win.");
+                StopAllCoroutines();
+            }
+        }
+
+        if (currPlayer.HP == 0)
+        {
+            if (GetRemaining(playerTeam: true) > 0)
+            {
+                state = BattleState.WaitingChoice;
+                dialogBox.ShowPartyMenu(enabled, hideBackButton: true);
+                yield return new WaitUntil(() => state != BattleState.WaitingChoice);
+                playerSwap = true;
+            }
+            else
+            {
+                //END BATTLE
+                Debug.Log("Player lose.");
+                StopAllCoroutines();
+            }
+        }
+
+        //perform actual swaps after choices are made
+        if (enemySwap)
+        {
+            yield return PerformSwap(playerTeam: false);
+        }
+        if (playerSwap)
+        {
+            yield return PerformSwap(playerTeam: true);
+        }
     }
     
     IEnumerator NewTurnOperations()

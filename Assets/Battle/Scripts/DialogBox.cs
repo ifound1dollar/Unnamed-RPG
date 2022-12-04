@@ -113,7 +113,7 @@ public class DialogBox : MonoBehaviour
     /// Shows/hides PartyMenu, reloading party data if showing
     /// </summary>
     /// <param name="enable">Bool for whether to enable or disable menu</param>
-    public void ShowPartyMenu(bool enable)
+    public void ShowPartyMenu(bool enable, bool hideBackButton = false)
     {
         //if showing party menu, reload data then select first char show details
         if (enable)
@@ -129,6 +129,7 @@ public class DialogBox : MonoBehaviour
         }
 
         partyMenu.gameObject.SetActive(enable);
+        partyMenu.BackButton.enabled = !hideBackButton;
 
         //disable main buttons so the player cannot interact with them while party menu is open
         ShowMainButtons(!enable);
