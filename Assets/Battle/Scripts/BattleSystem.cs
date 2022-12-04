@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -67,6 +68,9 @@ public class BattleSystem : MonoBehaviour
         yield return new WaitForSeconds(1f);
         yield return dialogBox.DialogAppend("Test append.");
         yield return new WaitForSeconds(1f);
+
+        currEnemy.Energy = 0;
+
         //TEMP
 
         StartCoroutine(Loop());
@@ -115,6 +119,10 @@ public class BattleSystem : MonoBehaviour
             //enemy AI make choice and set enemyChoice
             GetEnemyChoice();
 
+            //TEMP
+            yield return new WaitForSeconds(1f);
+            //TEMP
+
             //set player and enemy UsedAbility to null if they did not Attack this turn (reset ConsecutiveUses first)
             if (playerChoice != BattleChoice.Attack && currPlayer.UsedAbility != null)
             {
@@ -143,13 +151,13 @@ public class BattleSystem : MonoBehaviour
             //  if both attack, check HP of both characters after FIRST ATTACK completes
             //      if either at 0HP, end attacking and handle 0HP (force swap of either/both
             //      or end battle)
-            currPlayer.TakeDamage(5);
-            playerHud.UpdateHUD(currPlayer);
-            yield return new WaitForSeconds(1f);
+            //currPlayer.TakeDamage(5);
+            //playerHud.UpdateHUD(currPlayer);
+            //yield return new WaitForSeconds(1f);
 
-            currEnemy.TakeDamage(5);
-            enemyHud.UpdateHUD(currEnemy);
-            yield return new WaitForSeconds(1f);
+            //currEnemy.TakeDamage(5);
+            //enemyHud.UpdateHUD(currEnemy);
+            //yield return new WaitForSeconds(1f);
 
             //perform end-of-turn operations like status effects, team effects, etc.
             yield return EndOfTurnOperations();
@@ -167,9 +175,41 @@ public class BattleSystem : MonoBehaviour
     }
     void GetEnemyChoice()
     {
+        //get chosen Ability and assign to temp variable, then find max Score of all
+        Ability tempAbility = battleAI.ChooseAbility(currEnemy, currPlayer);
+        int maxScore = currEnemy.Abilities.Max(x => x.Score);
+
+        //if null, then no Ability was chosen (must Swap or Pass)
+        if (tempAbility == null)
+        {
+            //if should swap, set swap index and choose Swap; else Pass this turn
+            if (battleAI.CheckShouldSwap(currEnemy, currPlayer, maxScore))
+            {
+                enemySwapIndex = battleAI.ChooseSwapChar(enemyChars, currPlayer);
+                enemyChoice = BattleChoice.Swap;
+            }
+            else
+            {
+                enemyChoice = BattleChoice.Pass;
+            }
+        }
+        else
+        {
+            //if should swap, set swap index and choose Swap; else use Ability
+            if (battleAI.CheckShouldSwap(currEnemy, currPlayer, maxScore))
+            {
+                enemySwapIndex = battleAI.ChooseSwapChar(enemyChars, currPlayer);
+                enemyChoice = BattleChoice.Swap;
+            }
+            else
+            {
+                currEnemy.UsedAbility = tempAbility;
+                enemyChoice = BattleChoice.Attack;
+            }
+        }
+
         //TEMP
-        currEnemy.UsedAbility = currEnemy.Abilities[0];
-        enemyChoice = BattleChoice.Attack;
+        StartCoroutine(dialogBox.DialogSet("Enemy " + enemyChoice.ToString()));
         //TEMP
     }
 
@@ -464,13 +504,85 @@ public class BattleSystem : MonoBehaviour
 
     IEnumerator CheckHP()
     {
+        //
+
         yield break;
     }
     
     IEnumerator NewTurnOperations()
     {
+        RegenerateEnergy();
+        playerHud.UpdateHUD(currPlayer);
+        enemyHud.UpdateHUD(currEnemy);
+
         yield return dialogBox.DialogSet("Starting new turn...");
         yield return new WaitForSeconds(2f);
+    }
+    void RegenerateEnergy()
+    {
+        ///Regenerate Energy of all BattleChars on each team that are > 0HP
+
+        foreach (BattleChar battleChar in playerChars)
+        {
+            if (battleChar == currPlayer)
+            {
+                //regenerate 25% if Pass, else 10% (Mathf.Max so can't regenerate 0)
+                if (playerChoice == BattleChoice.Pass)
+                {
+                    battleChar.Energy += Mathf.Max((int)Mathf.Round(battleChar.MaxEnergy / 3.99f), 1);
+                }
+                else
+                {
+                    battleChar.Energy += Mathf.Max((int)Mathf.Round(battleChar.MaxEnergy / 10.0f), 1);
+                }
+
+                //verify not greater than max
+                if (battleChar.Energy > battleChar.MaxEnergy)
+                {
+                    battleChar.Energy = battleChar.MaxEnergy;
+                }
+            }
+            else
+            {
+                battleChar.Energy += Mathf.Max((int)Mathf.Round(battleChar.MaxEnergy / 3.0f), 1);
+
+                //if now one less than max or greater than max, set to max (1/3 calculation errors)
+                if (battleChar.MaxEnergy - battleChar.Energy == 1 || battleChar.Energy > battleChar.MaxEnergy)
+                {
+                    battleChar.Energy = battleChar.MaxEnergy;
+                }
+            }
+        }
+
+        foreach (BattleChar battleChar in enemyChars)
+        {
+            if (battleChar == currEnemy)
+            {
+                if (enemyChoice == BattleChoice.Pass)
+                {
+                    battleChar.Energy += Mathf.Max((int)Mathf.Round(battleChar.MaxEnergy / 4.0f), 1);
+                }
+                else
+                {
+                    battleChar.Energy += Mathf.Max((int)Mathf.Round(battleChar.MaxEnergy / 10.0f), 1);
+                }
+
+                if (battleChar.Energy > battleChar.MaxEnergy)
+                {
+                    battleChar.Energy = battleChar.MaxEnergy;
+                }
+            }
+            else
+            {
+                battleChar.Energy += Mathf.Max((int)Mathf.Round(battleChar.MaxEnergy / 3.0f), 1);
+
+                //if now one less than max or greater than max, set to max (1/3 calculation errors)
+                if (battleChar.MaxEnergy - battleChar.Energy == 1 || battleChar.Energy > battleChar.MaxEnergy)
+                {
+                    battleChar.Energy = battleChar.MaxEnergy;
+                }
+            }
+        }
     }
 
 

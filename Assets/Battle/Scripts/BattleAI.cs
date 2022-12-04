@@ -43,95 +43,162 @@ public class BattleAI
             return null;
         }
     }
-    public int CheckShouldSwap(BattleChar currEnemy, BattleChar currPlayer, int maxScore = -1)
+    public bool CheckShouldSwap(BattleChar currEnemy, BattleChar currPlayer, int maxScore)
     {
-        //NOTE: maxScore is optional, -1 means has not been calculated yet (no argument)
+        ///Does calculation to determine if swapping is more preferable than attacking this
+        /// turn. Calculates preferability, and if it passes a threshold, rolls a chance
+        /// proportional to the preferability to swap instead of attack this turn.
+        ///The greater the number of non-preferable interactions (bad type interaction,
+        /// active negative status, negative modifiers (net), low energy), the more likely
+        /// the enemy is to swap. There is a strict threshold that must be passed, but
+        /// once it is passed, the chance is directly proportional to the number of non-
+        /// preferable interactions.
+        ///Preferability is hierarchical, most important to least important:
+        /// 1) Type interaction, 2) status effects & modifiers, 3) remaining Energy
 
-        //if only one remaining, only active for 1-2 turns, or Easy/Wild difficulty, do not swap
+        //if only one remaining, only active for 1-2 turns, or Easy difficulty, do not swap
         if (BattleSystemRef.GetRemaining(playerTeam: false) <= 1 || currEnemy.TurnsActive <= 2
-            || Difficulty == AIDifficulty.Easy || Difficulty == AIDifficulty.Wild)
+            || Difficulty == AIDifficulty.Easy)
         {
             //MUST ALSO CHECK FOR ATTRIBUTE THAT PREVENTS SWAPPING OUT OF BATTLE
-            return -1;
+            return false;
         }
 
-        ///MAYBE DON'T EVEN BOTHER CHECKING FOR SWAP BEFOREHAND???
-        ///GUARANTEED SWAP WITH HARD IS NOT FUN, AND IF ROLLING RANDOM WITH MEDIUM ANYWAY,
-        /// WHY NOT JUST DO IT ALL AT ONCE AFTER SCORES ARE CALCULATED?
-        ///STILL USE THRESHOLD, BUT MAKE MUCH SMALLER (BASICALLY GUARANTEE THAT IT WON'T
-        /// SWAP TOO EARLY, MAYBE SET THRESHOLD TO 3-5?)
 
         //get effectiveness of player vs enemy
         float mult1 = Effectiveness.GetMultiplier(currPlayer.SpeciesData.Type1, currEnemy.SpeciesData.Type1, currEnemy.SpeciesData.Type2);
         float mult2 = Effectiveness.GetMultiplier(currPlayer.SpeciesData.Type2, currEnemy.SpeciesData.Type1, currEnemy.SpeciesData.Type2);
         float typeMultiplier = mult1 * mult2;
 
-        if (maxScore == -1)
+        int score = 0;
+
+        //+2 points if active status that is NOT Berserk
+        if (currEnemy.HasActiveStatus() && currEnemy.Berserk == 0)
         {
-            int score = 0;
+            score += 2;
+        }
 
-            //+2 points if active status
-            if (currEnemy.HasActiveStatus())
+        //+-1 point per modifier (total magnitude, change by inverse)
+        score -= currEnemy.CountModifierTotal();
+
+        //+1 point if less than 50% Energy remaining, +2 if less than 25%
+        score += (currEnemy.MaxEnergy / currEnemy.Energy) / 2;
+
+        //multiplier calculation
+        score = (int)Mathf.Round(score * typeMultiplier);
+
+
+        //if maxScore >= 200 (likely lethal hit) OR score < 5 (not enough reason to swap)
+        if (maxScore >= 200 || score < 5)
+        {
+            return false;
+        }
+
+        //increase scope to be comparable with maxScore (ex. score now 30, maxScore 70)
+        score *= 5;
+
+        //Medium difficulty has only half chance to swap, while Hard and Boss have normal
+        if (Difficulty == AIDifficulty.Medium)
+        {
+            if (UnityEngine.Random.Range(0, score + maxScore) < score / 2)
             {
-                score += 2;
+                return true;
             }
-
-            //+-1 point per modifier (total magnitude, change by inverse)
-            score -= currEnemy.CountModifierTotal();
-
-            //+1 point if less than 50% Energy remaining, +2 if less than 25%
-            score += (currEnemy.MaxEnergy / currEnemy.Energy) / 2;
-
-            //if Medium, 50% chance once passing threshold; else Hard or Boss is guaranteed
-            if (score * typeMultiplier >= 10)
-            {
-                if (Difficulty == AIDifficulty.Medium)
-                {
-                    if (UnityEngine.Random.Range(0, 100) < 50)
-                    {
-                        //FIND BEST CHARACTER TO SWAP TO AND RETURN ITS INDEX
-                    }
-                }
-                else
-                {
-                    //FIND BEST CHARACTER TO SWAP TO AND RETURN ITS INDEX
-                }
-            }
-            
         }
         else
         {
-            //turn score from above into larger scope (multiply by 5)
-            //do same calculation as with checking for Pass, where if maxScore is greater
-            //  than 200, auto fail (because an attack is strongly preferred there)
-            //otherwise if not greater than 200, add score*5 + maxScore and do chance there
-            //again, medium will roll lower chance (less than score*5 / 2)
+            if (UnityEngine.Random.Range(0, score + maxScore) < score)
+            {
+                return true;
+            }
         }
 
-        ///If currEnemy is low(ish) Energy AND type(s) not preferable
-        ///Should calculate score based on interactions PER TYPE, +1 if bad interaction,
-        /// 0 for neutral, and -1 if good interaction
-        ///Chance to swap should be determined by above score, where the higher
-        /// the number of bad interactions, the more likely the choice to swap
-        ///The lower the number of turns active for currEnemy, the less likely
-        /// the choice to swap
-        ///If affected by a negative status effect, higher chance to swap
-        ///The greater the number of negative modifiers, the higher the chance
+        //if should not swap, return false
+        return false;
+    }
+    public int ChooseSwapChar(BattleChar[] enemyChars, BattleChar currPlayer)
+    {
+        ///Finds the most preferable character to swap to and chooses it, weighted
+        /// by difficulty.
 
-        ///Hierarchy: 1) types, 2) turns active, 3) negative modifiers & status effects, 4) energy
-        
-        ///this chance to swap WILL BE AFFECTED by AI difficulty:
-        /// NO CHANCE TO SWAP IF EASY
-        /// LOW CHANCE TO SWAP IF MEDIUM
-        /// NORMAL CHANCE TO SWAP IF HARD
+        //calculate best option and add to pool (Easy is equal score for each)
+        List<int> scoresPool = new();
+        for (int i = 0; i < enemyChars.Length; i++)
+        {
+            //if currEnemy or at 0HP, add 0 to pool and continue
+            if (BattleSystemRef.GetCurrBattleCharIndex(playerTeam: false) == i || enemyChars[i].HP == 0)
+            {
+                scoresPool.Add(0);
+                continue;
+            }
 
-        //if should not swap, return -1
-        return -1;
+            //get effectiveness of player vs enemy
+            float mult1 = Effectiveness.GetMultiplier(currPlayer.SpeciesData.Type1, enemyChars[i].SpeciesData.Type1, enemyChars[i].SpeciesData.Type2);
+            float mult2 = Effectiveness.GetMultiplier(currPlayer.SpeciesData.Type2, enemyChars[i].SpeciesData.Type1, enemyChars[i].SpeciesData.Type2);
+            float typeMultiplier = mult1 * mult2;
+
+            //make prelim score and modify slightly based on HP and Level difference
+            int score = 10;
+            if ((float)enemyChars[i].HP / enemyChars[i].MaxHP < 0.5f)
+            {
+                score -= 3;
+            }
+            if (enemyChars[i].Level - currPlayer.Level >= 3)
+            {
+                score += 3;
+            }
+
+            //Easy: same for all | Medium: multiplier*2 | Hard: multiplier^2 | Boss: multiplier^3
+            if (Difficulty == AIDifficulty.Easy)
+            {
+                score = 10;
+            }
+            else if (Difficulty == AIDifficulty.Medium)
+            {
+                //decent likelihood of selecting optimal character
+                if (typeMultiplier >= 1.0f)
+                {
+                    score = (int)Mathf.Round(score * (typeMultiplier * 2));
+                }
+                else
+                {
+                    score = (int)Mathf.Round(score * (typeMultiplier / 2));
+                }
+            }
+            else if (Difficulty == AIDifficulty.Hard)
+            {
+                //2x effective is same as Medium, but 3x effective is much more likely
+                score = (int)Mathf.Round(score * Mathf.Pow(typeMultiplier, 2));
+            }
+            else
+            {
+                //extremely high likelihood of selecting optimal character
+                score = (int)Mathf.Round(score * Mathf.Pow(typeMultiplier, 3));
+            }
+
+            //add score to pool
+            scoresPool.Add(score);
+        }
+
+        //get choice and find what index it landed on
+        int choice = UnityEngine.Random.Range(0, scoresPool.Sum());
+        for (int i = 0; i < scoresPool.Count; i++)
+        {
+            //subtract item added; if now NEGATIVE, then this is where choice landed
+            choice -= scoresPool[i];
+            if (choice < 0)
+            {
+                return i;
+            }
+        }
+
+        //will never be reached, but must be here for compilation
+        return 0;
     }
 
     void CalcAbilityScores(BattleChar currEnemy, BattleChar currPlayer)
     {
-        ///Calculate Score of each of enemy's Abilities
+        ///Calculates Score of each of enemy's Abilities
 
         //calculate Score for each ability
         foreach (Ability ability in currEnemy.Abilities)
@@ -166,6 +233,10 @@ public class BattleAI
         {
             MakePreferDamaging(currEnemy.Abilities);
         }
+
+        //TEMP
+        Debug.Log("Scores: " + currEnemy.Abilities[0].Score + " " + currEnemy.Abilities[1].Score + " "
+            + currEnemy.Abilities[2].Score + " " + currEnemy.Abilities[3].Score);
     }
     List<Ability> CreateAbilityPool(BattleChar currEnemy, BattleChar currPlayer, Ability[] abilities)
     {
@@ -233,27 +304,31 @@ public class BattleAI
         int totalValid = 0;
         foreach (Ability ability in currEnemy.Abilities)
         {
-            if (ability.EnergyCost(currEnemy) > currEnemy.Energy)
+            //don't count Abilities that cost too much Energy even at max
+            if (ability.EnergyCost(currEnemy) > currEnemy.Energy
+                && ability.EnergyCost(currEnemy) <= currEnemy.MaxEnergy)
             {
                 numUnusable++;
             }
-            if (ability.Name != "EMPTY" && ability.Name != "MISSING")
+            if (ability.Name != "EMPTY" && ability.Name != "MISSING"
+                && ability.EnergyCost(currEnemy) <= currEnemy.MaxEnergy)
             {
                 totalValid++;
             }
         }
 
-        //allow pass roll only if less than 25% Energy OR total unusable is at least 50% total
-        if (currEnemy.Energy <= currEnemy.MaxEnergy / 4.0f || (float)numUnusable / totalValid >= 0.49f)
+        //allow pass roll only if at least one Ability unusable and maxScore < 200
+        if ((float)numUnusable / totalValid > 0.0f && maxScore < 200)
         {
-            //if maxScore is greater than 200, should not pass
-            if (maxScore > 200)
-            {
-                return false;
-            }
+            //passScore is proportional to missing energy (one minus)
+            int passScore = Mathf.RoundToInt((1.0f - (float)currEnemy.Energy / currEnemy.MaxEnergy) * 75);
 
-            //if unusable is greater than 66%, should have slightly higher chance to pass
-            int passScore = ((float)numUnusable / totalValid >= 0.66f) ? 75 : 50;
+            //adjust passScore based on % of Abilities that are unusable (can't be 0% or 100%)
+            passScore = Mathf.RoundToInt(passScore * ((float)numUnusable / totalValid));
+            
+            //TEMP
+            Debug.Log("Pass score: " + passScore);
+            //TEMP
 
             //roll weighted chance to pass
             if (UnityEngine.Random.Range(0, passScore + maxScore) < passScore)
