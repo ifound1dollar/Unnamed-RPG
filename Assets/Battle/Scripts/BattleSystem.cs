@@ -158,6 +158,8 @@ public class BattleSystem : MonoBehaviour
             yield return NewTurnOperations();
         }
     }
+    
+    //WaitingChoice
     IEnumerator EnablePlayerAction()
     {
         yield return dialogBox.DialogSet("Player choice...");
@@ -201,6 +203,7 @@ public class BattleSystem : MonoBehaviour
         }
     }
 
+    //Preparing (swaps, status end early)
     IEnumerator CheckSwaps()
     {
         if (playerChoice == BattleChoice.Swap)
@@ -268,7 +271,6 @@ public class BattleSystem : MonoBehaviour
             }
         }
     }
-
     IEnumerator CheckStatusEndEarly()
     {
         string temp = currPlayer.CheckEffectEndEarly();
@@ -291,6 +293,7 @@ public class BattleSystem : MonoBehaviour
         state = BattleState.Attacking;
     }
 
+    //Attacking
     IEnumerator PerformAttacks()
     {
         ///Determine attack order and do attacks
@@ -432,11 +435,52 @@ public class BattleSystem : MonoBehaviour
     }
     IEnumerator DoAfterEffects(AbilityData data)
     {
+        ///Handles any attack after-effects (Thorns recoil, reflect Status Effect, etc)
 
+        //Thorns team effect
+        if (data.Target.Thorns > 0)
+        {
+            //deal 10% max HP damage if user's Attack made contact
+            if (data.User.UsedAbility.MakesContact)
+            {
+                data.User.TakeDamage(Mathf.RoundToInt(data.User.MaxHP / 10.0f));
+                yield return dialogBox.DialogSet(data.User.Name + " took damage from " +
+                    data.Target.Name + "'s Thorns!");
+                yield return new WaitForSeconds(textDelay);
+            }
+        }
+
+        //ReflectDamage turn effect
+        if (data.Target.ReflectDamage > 0)
+        {
+            //if damaging attack used on target, deal ReflectDamage (as percent) to user
+            if (data.User.UsedAbility.Category == Category.Physical
+                || data.User.UsedAbility.Category == Category.Magic)
+            {
+                data.User.TakeDamage(Mathf.RoundToInt(data.Damage * (data.Target.ReflectDamage / 100.0f)));
+                yield return dialogBox.DialogSet(data.Target.Name + " reflected damage back to "
+                    + data.User.Name + "!");
+                yield return new WaitForSeconds(textDelay);
+            }
+        }
+
+        //ReflectStatus turn effect
+        if (data.Target.ReflectStatus != "" && data.Target.ReflectStatus != "READY")
+        {
+            //if empty, is not active; if ready, is active but not used
+
+            //set status to user for 5 turns, status name stored in ReflectStatus
+            data.User.SetStatusEffect(data.Target.ReflectStatus, 5);
+
+            yield return dialogBox.DialogSet(data.User.Name + "'s attempt to apply "
+                    + data.Target.ReflectStatus + " to " + data.Target.Name + " rebounded!");
+            yield return new WaitForSeconds(textDelay);
+        }
 
         yield break;
     }
 
+    //EndingTurn
     IEnumerator EndOfTurnOperations()
     {
         //NOTE: this method will only ever be called when both current BattleChars are > 0HP
@@ -640,7 +684,6 @@ public class BattleSystem : MonoBehaviour
         }
         currEnemy.DecrementFieldEffects();
     }
-
     IEnumerator CheckHP()
     {
         ///Checks HP of both currPlayer and currEnemy, forcing swap if at 0HP and
@@ -694,6 +737,7 @@ public class BattleSystem : MonoBehaviour
         }
     }
     
+    //NewTurn
     IEnumerator NewTurnOperations()
     {
         RegenerateEnergy();
