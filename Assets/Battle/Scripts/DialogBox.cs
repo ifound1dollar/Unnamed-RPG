@@ -91,7 +91,21 @@ public class DialogBox : MonoBehaviour
         //if showing buttons, auto-select first Ability
         if (enable)
         {
-            abilityButtons[0].Select();
+            //select first interactable button; if none, select back button
+            bool validButton = false;
+            foreach (Button button in abilityButtons)
+            {
+                if (button.interactable)
+                {
+                    validButton = true;
+                    button.Select();
+                }
+            }
+            
+            if (!validButton)
+            {
+                abilityBackButton.Select();
+            }
         }
         //else back button pressed or Ability pressed, so auto select Attack button
         else

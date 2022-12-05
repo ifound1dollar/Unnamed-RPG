@@ -25,6 +25,8 @@ public class BattleSystem : MonoBehaviour
     BattleChar[] enemyChars;
     BattleChar currPlayer;
     BattleChar currEnemy;
+    List<Snapshot> playerSnaps;
+    List<Snapshot> enemySnaps;
     BattleAI battleAI;
     AIDifficulty difficulty;
     float textDelay = 1.5f;
@@ -110,6 +112,10 @@ public class BattleSystem : MonoBehaviour
     {
         while (state != BattleState.BattleEnded)
         {
+            //add new empty Snapshot for both player and enemy into respective lists
+            playerSnaps.Add(new(playerTeam: true));
+            enemySnaps.Add(new(playerTeam: false));
+
             //enable player input and wait until input gotten
             yield return EnablePlayerAction();
             yield return new WaitUntil(() => state != BattleState.WaitingChoice);
@@ -208,10 +214,12 @@ public class BattleSystem : MonoBehaviour
         if (playerChoice == BattleChoice.Swap)
         {
             yield return PerformSwap(playerTeam: true);
+            //PLAYER SNAPSHOT UPDATE HERE
         }
         if (enemyChoice == BattleChoice.Swap)
         {
             yield return PerformSwap(playerTeam: false);
+            //ENEMY SNAPSHOT UPDATE HERE
         }
 
         yield break;
@@ -423,6 +431,8 @@ public class BattleSystem : MonoBehaviour
             yield return new WaitForSeconds(textDelay);
 
             yield return DoAfterEffects(data);
+
+            //BOTH PLAYER AND ENEMY SNAPSHOT UPDATES HERE
         }
         else
         {
@@ -729,10 +739,12 @@ public class BattleSystem : MonoBehaviour
         if (enemySwap)
         {
             yield return PerformSwap(playerTeam: false);
+            //ENEMY SNAPSHOT UPDATE HERE
         }
         if (playerSwap)
         {
             yield return PerformSwap(playerTeam: true);
+            //PLAYER SNAPSHOT UPDATE HERE
         }
     }
     
@@ -743,8 +755,12 @@ public class BattleSystem : MonoBehaviour
         playerHud.UpdateHUD(currPlayer);
         enemyHud.UpdateHUD(currEnemy);
 
+        //BOTH SNAPSHOTS FINAL UPDATES HERE
+
         yield return dialogBox.DialogSet("Starting new turn...");
         yield return new WaitForSeconds(2f);
+
+        turnNumber++;
     }
     void RegenerateEnergy()
     {
@@ -813,8 +829,7 @@ public class BattleSystem : MonoBehaviour
         }
     }
     
-    //SNAPSHOTS
-    //END BATTLE
+    //BattleEnded
 
 
     //button presses
