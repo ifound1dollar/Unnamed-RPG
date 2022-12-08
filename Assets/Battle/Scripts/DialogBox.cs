@@ -57,9 +57,10 @@ public class DialogBox : MonoBehaviour
         {
             abilityNames[i].text = battleChar.Abilities[i].Name;
 
-            if (battleChar.Abilities[i].Name != "MISSING" && battleChar.Abilities[i].Name != "EMPTY")
+            if (battleChar.Abilities[i].Name != "MISSING" && battleChar.Abilities[i].Name != "EMPTY"
+                && battleChar.Abilities[i].EnergyCost(battleChar) <= battleChar.Energy)
             {
-                abilityButtons[i].interactable= true;
+                abilityButtons[i].interactable = true;
                 abilityEnergies[i].text = battleChar.Abilities[i].EnergyCost(battleChar).ToString();
             }
             else
@@ -99,6 +100,7 @@ public class DialogBox : MonoBehaviour
                 {
                     validButton = true;
                     button.Select();
+                    break;
                 }
             }
             
@@ -127,7 +129,7 @@ public class DialogBox : MonoBehaviour
     /// Shows/hides PartyMenu, reloading party data if showing
     /// </summary>
     /// <param name="enable">Bool for whether to enable or disable menu</param>
-    public void ShowPartyMenu(bool enable, bool hideBackButton = false)
+    public void ShowPartyMenu(bool enable)
     {
         //if showing party menu, reload data then select first char show details
         if (enable)
@@ -143,10 +145,14 @@ public class DialogBox : MonoBehaviour
         }
 
         partyMenu.gameObject.SetActive(enable);
-        partyMenu.BackButton.enabled = !hideBackButton;
+        partyMenu.BackButton.enabled = true;
 
         //disable main buttons so the player cannot interact with them while party menu is open
         ShowMainButtons(!enable);
+    }
+    public void HidePartyBackButton()
+    {
+        partyMenu.BackButton.enabled = false;
     }
 
 

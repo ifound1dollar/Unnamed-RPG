@@ -52,6 +52,8 @@ public class BattleSystem : MonoBehaviour
         InitEnemyParty();
         currPlayer = playerChars[0];
         currEnemy = enemyChars[0];
+        playerSnaps = new();
+        enemySnaps = new();
 
         //instantiate BattleAI object (WILL ACCESS DIFFICULTY SETTING LATER)
         difficulty = AIDifficulty.Easy;
@@ -340,6 +342,14 @@ public class BattleSystem : MonoBehaviour
                 yield return new WaitForSeconds(textDelay);
             }
             yield return DoAttack(currEnemy, currPlayer);
+        }
+        //else both swapped, so just acknowledge
+        else
+        {
+            yield return dialogBox.DialogSet(currPlayer.Name + " passed this turn.");
+            yield return new WaitForSeconds(textDelay);
+            yield return dialogBox.DialogSet(currEnemy.Name + " passed this turn.");
+            yield return new WaitForSeconds(textDelay);
         }
 
         //after attacks, set state to EndingTurn
@@ -723,7 +733,8 @@ public class BattleSystem : MonoBehaviour
             if (GetRemaining(playerTeam: true) > 0)
             {
                 state = BattleState.WaitingChoice;
-                dialogBox.ShowPartyMenu(enabled, hideBackButton: true);
+                dialogBox.ShowPartyMenu(enabled);
+                dialogBox.HidePartyBackButton();
                 yield return new WaitUntil(() => state != BattleState.WaitingChoice);
                 playerSwap = true;
             }
@@ -754,6 +765,7 @@ public class BattleSystem : MonoBehaviour
         RegenerateEnergy();
         playerHud.UpdateHUD(currPlayer);
         enemyHud.UpdateHUD(currEnemy);
+        dialogBox.SetAbilityButtons(currPlayer);
 
         //BOTH SNAPSHOTS FINAL UPDATES HERE
 
