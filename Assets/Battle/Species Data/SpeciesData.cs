@@ -11,6 +11,8 @@ public class SpeciesData : ScriptableObject
     [SerializeField] BattleType type1;
     [SerializeField] BattleType type2;
 
+    [SerializeField] float xpRatio = 1.0f;
+
     [SerializeField] Sprite backSprite;
     [SerializeField] Sprite frontSprite;
 
@@ -26,6 +28,7 @@ public class SpeciesData : ScriptableObject
     public string SpeciesName   { get { return speciesName; } }
     public BattleType Type1     { get { return type1; } }
     public BattleType Type2     { get { return type2; } }
+    public float XPRatio        { get { return xpRatio; } }
     public Sprite BackSprite    { get { return backSprite; } }
     public Sprite FrontSprite   { get { return frontSprite; } }
     public int HP               { get { return hp; } }

@@ -15,6 +15,7 @@ MonoBehaviour:
   speciesName: Ember Worg
   type1: 3
   type2: 11
+  xpRatio: 1
   backSprite: {fileID: 21300000, guid: c218da3920f09d845b74fda4cabb5461, type: 3}
   frontSprite: {fileID: 21300000, guid: c218da3920f09d845b74fda4cabb5461, type: 3}
   hp: 100
