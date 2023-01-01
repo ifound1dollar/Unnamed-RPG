@@ -424,29 +424,34 @@ public class BattleSystem : MonoBehaviour
         #endregion
 
         //create AbilityData object to pass to Ability's UseAbility method
-        AbilityData data = new(user, target, turnNumber, dialogBox);
+        AbilityData data = new(user, target, turnNumber, dialogBox, textDelay, playerHud, enemyHud);
 
-        //update dialog with use text, then consume energy and update HUD for both
+        //update dialog with use text and wait
         yield return dialogBox.DialogSet(user.Name + " used " + user.UsedAbility.Name + "!");
-        user.Energy -= user.UsedAbility.EnergyCost(user);
-        playerHud.SetHUD(currPlayer);
-        enemyHud.SetHUD(currEnemy);
+        yield return new WaitForSeconds(textDelay);
 
-        //if hit target, do attack and after effects; else acknowledge miss
+        //consume energy and update HUD, clear dialog, then progress to animation (seamlessly)
+        user.Energy -= user.UsedAbility.EnergyCost(user);
+        playerHud.UpdateHUD(currPlayer);
+        enemyHud.UpdateHUD(currEnemy);
+        yield return dialogBox.DialogSet("TEMP ANIMATION TEXT");
+
+        //if hit target, do attack and after effects; else acknowledge miss and continue
         if (user.UsedAbility.CheckAccuracy(user, target))
         {
-            //PLAY HIT ANIMATION
+            //PLAY HIT ANIMATION, DELAYING UNTIL COMPLETION
+            yield return new WaitForSeconds(1.5f);  //TEMP ANIMATION DELAY
 
+            //use Ability, then do after-effects like Thorns (dialog and delays handled in-method)
             yield return user.UsedAbility.UseAbility(data);
-            yield return new WaitForSeconds(textDelay);
-
             yield return DoAfterEffects(data);
 
             //BOTH PLAYER AND ENEMY SNAPSHOT UPDATES HERE
         }
         else
         {
-            //PLAY MISS ANIMATION
+            //PLAY MISS ANIMATION, DELAYING UNTIL COMPLETION
+            yield return new WaitForSeconds(1.5f);  //TEMP ANIMATION DELAY
 
             yield return dialogBox.DialogSet("The attack missed!");
             yield return new WaitForSeconds(textDelay);
@@ -454,7 +459,8 @@ public class BattleSystem : MonoBehaviour
     }
     IEnumerator DoAfterEffects(AbilityData data)
     {
-        ///Handles any attack after-effects (Thorns recoil, reflect Status Effect, etc)
+        ///Handles any attack after-effects (Thorns recoil, reflect Status Effect, etc).
+        ///Updates dialog and HUD immediately after each operation, if any.
 
         //Thorns team effect
         if (data.Target.Thorns > 0)
@@ -463,6 +469,9 @@ public class BattleSystem : MonoBehaviour
             if (data.User.UsedAbility.MakesContact)
             {
                 data.User.TakeDamage(Mathf.RoundToInt(data.User.MaxHP / 10.0f));
+                playerHud.UpdateHUD(currPlayer);
+                enemyHud.UpdateHUD(currEnemy);
+
                 yield return dialogBox.DialogSet(data.User.Name + " took damage from " +
                     data.Target.Name + "'s Thorns!");
                 yield return new WaitForSeconds(textDelay);
@@ -477,6 +486,9 @@ public class BattleSystem : MonoBehaviour
                 || data.User.UsedAbility.Category == Category.Magic)
             {
                 data.User.TakeDamage(Mathf.RoundToInt(data.Damage * (data.Target.ReflectDamage / 100.0f)));
+                playerHud.UpdateHUD(currPlayer);
+                enemyHud.UpdateHUD(currEnemy);
+
                 yield return dialogBox.DialogSet(data.Target.Name + " reflected damage back to "
                     + data.User.Name + "!");
                 yield return new WaitForSeconds(textDelay);
@@ -490,6 +502,8 @@ public class BattleSystem : MonoBehaviour
 
             //set status to user for 5 turns, status name stored in ReflectStatus
             data.User.SetStatusEffect(data.Target.ReflectStatus, 5);
+            playerHud.UpdateHUD(currPlayer);
+            enemyHud.UpdateHUD(currEnemy);
 
             yield return dialogBox.DialogSet(data.User.Name + "'s attempt to apply "
                     + data.Target.ReflectStatus + " to " + data.Target.Name + " rebounded!");

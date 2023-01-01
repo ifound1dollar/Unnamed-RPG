@@ -26,7 +26,7 @@ public abstract class Ability
     public abstract IEnumerator UseAbility(AbilityData data);
     protected abstract void CalcSpecificScore(BattleChar user, BattleChar target);
 
-    //PROTECTED damage calculators
+    //PROTECTED damage calculators and dialog/HUD update methods
     protected void CalcDamageToDeal(AbilityData data)
     {
         if (data.Target.Protected)
@@ -119,6 +119,52 @@ public abstract class Ability
         //FINALLY, return estimated damage value
         return Mathf.RoundToInt(damage);
     }
+    /// <summary>
+    /// Updates dialog with effectiveness and/or crit, else clears dialog
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
+    protected IEnumerator UpdateDialogUniversal(AbilityData data)
+    {
+        ///Ackowledges effectiveness or critical strike if applicable
+        ///OTHERWISE, effectively clears text
+
+        string text = "";
+
+        //effectiveness text (approximate because may not be exactly 1.0f)
+        if (!Mathf.Approximately(data.Effectiveness, 1.0f))
+        {
+            if (data.Effectiveness > 1.0f)
+            {
+                text += "Bonus damage! ";
+            }
+            else if (data.Effectiveness > 0.0f) //0.0f will always be exact
+            {
+                text += "Reduced damage! ";
+            }
+            else
+            {
+                text += "No damage! ";
+            }
+        }
+
+        //crit text
+        if (data.CriticalHit)
+        {
+            text += "Critical hit!";
+        }
+        
+        //update dialog even if empty (effectively clears dialog)
+        yield return data.DialogBox.DialogSet(text);
+    }
+    protected IEnumerator UpdateHudAndDelay(AbilityData data)
+    {
+        ///Updates HUD of player and enemy then delays
+
+        data.PlayerHud.UpdateHUD((data.User.PlayerTeam) ? data.User : data.Target);
+        data.EnemyHud.UpdateHUD((data.User.PlayerTeam) ? data.Target : data.User);
+        yield return new WaitForSeconds(data.TextDelay);
+    }
 
     //universal score calcuation
     public void CalcScore(BattleChar user, BattleChar target)
@@ -146,7 +192,7 @@ public abstract class Ability
             //Accuracy proportionally alters Score (ex. 90% Accuracy = 90% Score)
             Score = (int)Mathf.Round((Accuracy / 100f) * Score);
         }
-        else
+        else if (Category != Category.Self)
         {
             //if not Self category, is guaranteed hit and should increase Score
             Score += 10;

@@ -10,14 +10,12 @@ public class EnemyHud : MonoBehaviour
     public TMP_Text levelText;
     public Slider hpBackSlider;
     public Slider hpMainSlider;
-    public Slider enBackSlider;
-    public Slider enMainSlider;
+    public Slider enSlider;
 
     bool animating;
     int oldHP;
     int currHP;
     int maxHP;
-    int oldEN;
     int currEN;
     int maxEN;
 
@@ -29,13 +27,13 @@ public class EnemyHud : MonoBehaviour
 
         //set basic string data
         nameText.text = battleChar.Name;
-        levelText.text = ("Level " + battleChar.Level);
+        levelText.text = battleChar.Level.ToString();
 
         //set HP slider values
         hpBackSlider.value = hpMainSlider.value = (float)battleChar.HP / battleChar.MaxHP;
 
         //set EN slider values
-        enBackSlider.value = enMainSlider.value = (float)battleChar.Energy / battleChar.MaxEnergy;
+        enSlider.value = (float)battleChar.Energy / battleChar.MaxEnergy;
 
         //assign values that are used for animations (below)
         currHP = battleChar.HP;
@@ -50,16 +48,12 @@ public class EnemyHud : MonoBehaviour
         //store previous data in variables
         oldHP = currHP;
         currHP = battleChar.HP;
-        //oldEN = currEN;
         currEN = battleChar.Energy;
 
-
-        //verify back sliders at old value, then set main sliders to real current value
+        //verify back slider at old value, then set main slider to real current value
         hpBackSlider.value = (float)oldHP / maxHP;
         hpMainSlider.value = (float)currHP / maxHP;
-        //enBackSlider.value = (float)oldEN / maxEN;
-        enMainSlider.value = (float)currEN / maxEN;
-        enBackSlider.value = (float)currEN / maxEN; //TEMP? dont do energy bar animation
+        enSlider.value = (float)currEN / maxEN;
 
         //set animating bool, which tells Update() to animate bars until they are at correct values
         animating = true;
@@ -72,8 +66,8 @@ public class EnemyHud : MonoBehaviour
 
         if (delay < 0.2) { delay += Time.deltaTime; return; }
 
-        //move back slider down by difference in old and current HP, will take 1/2 of a second
-        hpBackSlider.value -= ((oldHP - currHP) * (Time.deltaTime * 2f)) / maxHP;
+        //move back slider down by difference in old and current HP, will take 2/3 of a second
+        hpBackSlider.value -= ((oldHP - currHP) * (Time.deltaTime * 1.5f)) / maxHP;
 
         //if taking damage, set animating to false once less than or equal to mainSlider
         if (oldHP - currHP >= 0)

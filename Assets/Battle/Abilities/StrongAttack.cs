@@ -19,6 +19,12 @@ public class StrongAttack : Ability
 
     public override IEnumerator UseAbility(AbilityData data)
     {
+        CalcDamageToDeal(data);
+        data.Target.TakeDamage(data.Damage);
+
+        yield return UpdateDialogUniversal(data);   //do not call this method with custom dialog
+        yield return UpdateHudAndDelay(data);       //call for all HUD updates and delays
+
         yield break;
     }
     protected override void CalcSpecificScore(BattleChar user, BattleChar target)

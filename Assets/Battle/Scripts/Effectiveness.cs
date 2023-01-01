@@ -156,7 +156,7 @@ public static class Effectiveness
         {
             case BattleType.Water: { return 2.0f; }
             case BattleType.Fire: { return 0.5f; }
-
+            case BattleType.Dark: { return 2.0f; }
         }
 
         return 1.0f;

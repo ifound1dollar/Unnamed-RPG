@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class BasicMove4 : Ability
 {
@@ -19,6 +20,12 @@ public class BasicMove4 : Ability
 
     public override IEnumerator UseAbility(AbilityData data)
     {
+        CalcDamageToDeal(data);
+        data.Target.TakeDamage(data.Damage);
+
+        yield return UpdateDialogUniversal(data);   //do not call this method with custom dialog
+        yield return UpdateHudAndDelay(data);       //call for all HUD updates and delays
+
         yield break;
     }
     protected override void CalcSpecificScore(BattleChar user, BattleChar target)

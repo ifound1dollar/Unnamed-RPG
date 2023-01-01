@@ -309,7 +309,7 @@ public class BattleAI
         /// DO POOL, MAKES PASS BASICALLY GUARANTEED IF ONLY AVAILABLE ABILITY HAS SCORE 1)
         /// 
         ///IMPORTANT: IF MAXSCORE IS VERY HIGH, THEN PASSING IS NATURALLY NOT PREFERABLE
-        /// (HIGH MAXSCORE IMPLIES BALLS-TO-THE-WALL WITH ATTACKING)
+        /// (HIGH MAXSCORE IMPLIES EXTREMELY FAVORABLE ATTACK CHOICE)
 
         //find number of Abilities without enough Energy to use AND total valid Abilities
         int numUnusable = 0;

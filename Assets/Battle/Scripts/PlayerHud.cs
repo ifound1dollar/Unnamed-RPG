@@ -9,17 +9,17 @@ public class PlayerHud : MonoBehaviour
     public TMP_Text nameText;
     public TMP_Text levelText;
     public TMP_Text hpText;
+    public TMP_Text maxHpText;
     public Slider hpBackSlider;
     public Slider hpMainSlider;
     public TMP_Text enText;
-    public Slider enBackSlider;
-    public Slider enMainSlider;
+    public TMP_Text maxEnText;
+    public Slider enSlider;
 
     bool animating;
     int oldHP;
     int currHP;
     int maxHP;
-    int oldEN;
     int currEN;
     int maxEN;
 
@@ -29,17 +29,21 @@ public class PlayerHud : MonoBehaviour
     {
         ///sets player HUD without any animations
 
+        ///IMPORTANT: MUST ALSO SET STATUS EFFECT VISUAL
+
         //set basic string data
         nameText.text = battleChar.Name;
-        levelText.text = ("Level " + battleChar.Level);
-        enText.text = (battleChar.Energy + " / " + battleChar.MaxEnergy);
-        hpText.text = (battleChar.HP + " / " + battleChar.MaxHP);
+        levelText.text = battleChar.Level.ToString();
+        hpText.text = battleChar.HP.ToString();
+        maxHpText.text = battleChar.MaxHP.ToString();
+        enText.text = battleChar.Energy.ToString();
+        maxEnText.text = battleChar.MaxEnergy.ToString();
 
         //set HP slider values
         hpBackSlider.value = hpMainSlider.value = (float)battleChar.HP / battleChar.MaxHP;
 
-        //set EN slider values
-        enBackSlider.value = enMainSlider.value = (float)battleChar.Energy / battleChar.MaxEnergy;
+        //set EN slider value
+        enSlider.value = (float)battleChar.Energy / battleChar.MaxEnergy;
 
         //assign values that are used for animations (below)
         currHP = battleChar.HP;
@@ -51,25 +55,22 @@ public class PlayerHud : MonoBehaviour
     {
         ///updates player HUD with animations
         
-        ///IMPORTANT: MUST ALSO UPDATE STATUS EFFECT ICON
+        ///IMPORTANT: MUST ALSO UPDATE STATUS EFFECT VISUAL
 
         //store previous data in variables and update HP and EN text right away
         oldHP = currHP;
         currHP = battleChar.HP;
-        //oldEN = currEN;
         currEN = battleChar.Energy;
 
-        hpText.text = (currHP + " / " + maxHP);
-        enText.text = (currEN + " / " + maxEN);
+        hpText.text = currHP.ToString();
+        enText.text = currEN.ToString();
 
-        //verify back sliders at old value, then set main sliders to real current value
+        //verify back slider at old value, then set main slider to real current value
         hpBackSlider.value = (float)oldHP / maxHP;
         hpMainSlider.value = (float)currHP / maxHP;
-        //enBackSlider.value = (float)oldEN / maxEN;
-        enMainSlider.value = (float)currEN / maxEN;
-        enBackSlider.value = (float)currEN / maxEN; //TEMP? dont do energy bar animation
+        enSlider.value = (float)currEN / maxEN;
 
-        //set animating bool, which tells Update() to animate bars until they are at correct values
+        //set animating bool, which tells Update() to animate HP bar until at correct value
         animating = true;
     }
 
@@ -80,8 +81,8 @@ public class PlayerHud : MonoBehaviour
 
         if (delay < 0.2) { delay += Time.deltaTime; return; }
 
-        //move back slider down by difference in old and current HP, will take 1/2 of a second
-        hpBackSlider.value -= ((oldHP - currHP) * (Time.deltaTime * 2f)) / maxHP;
+        //move back slider down by difference in old and current HP, will take 2/3 of a second
+        hpBackSlider.value -= ((oldHP - currHP) * (Time.deltaTime * 1.5f)) / maxHP;
 
         //if taking damage, set animating to false once less than or equal to mainSlider
         if (oldHP - currHP >= 0)
