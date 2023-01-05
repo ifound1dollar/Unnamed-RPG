@@ -20,6 +20,7 @@ public abstract class Ability
     public bool Recharge { get; set; }
 
     public int ConsecutiveUses { get; set; }
+    public int TotalUses { get; set; }
     public bool Blocked { get; set; }
     public int Score { get; set; }
 
@@ -274,6 +275,7 @@ public abstract class Ability
         /// tracking data.
 
         ConsecutiveUses = 0;
+        TotalUses = 0;
         Blocked = false;
     }
 }

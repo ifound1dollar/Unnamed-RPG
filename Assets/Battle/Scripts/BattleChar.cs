@@ -473,6 +473,7 @@ public class BattleChar
         return "";
     }
 
+
     //RESETS
     public void ResetModifiers()
     {
@@ -533,6 +534,7 @@ public class BattleChar
         TurnsActive = 0;
     }
 
+
     //TRANSFERS
     public void TransferTeamEffectsToNew(BattleChar newChar)
     {
@@ -567,6 +569,7 @@ public class BattleChar
         TransferFieldEffectsToNew(newChar);
         TransferTrapsToNew(newChar);
     }
+
 
     //STATUS EFFECT OPERATIONS
     public string DoBurnedDamage()
@@ -621,6 +624,7 @@ public class BattleChar
         return "";
     }
 
+
     //TEAM EFFECT OPERATIONS
     public List<string> DoTeamEffects()
     {
@@ -667,6 +671,7 @@ public class BattleChar
         return dialog;  //empty list indicates no team effects ended
     }
 
+
     //FIELD EFFECT OPERATIONS
     public List<string> DoFieldEffects()
     {
@@ -688,6 +693,7 @@ public class BattleChar
 
         return dialog;  //empty list indicates no field effects ended
     }
+
 
     //TRAP OPERATIONS
     public List<string> DoTrapsHit()

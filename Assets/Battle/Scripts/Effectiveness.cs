@@ -39,7 +39,7 @@ public static class Effectiveness
         {
             BattleType.Toxic, new Dictionary<BattleType, float>()
             {
-                { BattleType.Vital, 2.0f }, { BattleType.Void, 2.0f },
+                { BattleType.Nature, 2.0f }, { BattleType.Vital, 2.0f }, { BattleType.Void, 2.0f },
                 { BattleType.Earth, 0.5f }, { BattleType.Metal, 0.5f }, { BattleType.Light, 0.5f }
             }
         },
@@ -81,7 +81,7 @@ public static class Effectiveness
         {
             BattleType.Ice, new Dictionary<BattleType, float>()
             {
-                { BattleType.Nature, 2.0f }, { BattleType.Air, 2.0f }, { BattleType.Vital, 2.0f },
+                { BattleType.Air, 2.0f }, { BattleType.Vital, 2.0f }, { BattleType.Mystic, 2.0f },
                 { BattleType.Void, 2.0f },
                 { BattleType.Water, 0.5f }, { BattleType.Fire, 0.5f }, { BattleType.Metal, 0.5f }
             }
