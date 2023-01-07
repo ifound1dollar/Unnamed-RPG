@@ -367,7 +367,7 @@ public class BattleSystem : MonoBehaviour
         }
 
         //if user Stunned, acknowledge and do not attack (interrupt Delaying and Recharging)
-        if (user.Stunned > 0)
+        if (user.StatusActive == StatusEffect.Stunned)
         {
             user.Delaying = false;
             user.Recharging = false;
@@ -377,7 +377,7 @@ public class BattleSystem : MonoBehaviour
         }
 
         //if user Frozen, 33% chance to be unable to attack this turn (does same as Stunned)
-        if (user.Frozen > 0)
+        if (user.StatusActive == StatusEffect.Frozen)
         {
             if (UnityEngine.Random.Range(0, 100) < 33)
             {
@@ -496,12 +496,12 @@ public class BattleSystem : MonoBehaviour
         }
 
         //ReflectStatus turn effect
-        if (data.Target.ReflectStatus != "" && data.Target.ReflectStatus != "READY")
+        if (data.Target.ReflectStatus != null && data.Target.ReflectStatus != StatusEffect.None)
         {
             //if empty, is not active; if ready, is active but not used
 
-            //set status to user for 5 turns, status name stored in ReflectStatus
-            data.User.SetStatusEffect(data.Target.ReflectStatus, 5);
+            //set status to user for 5 turns, status stored in ReflectStatus (CANNOT BE NULL)
+            data.User.SetStatusEffect((StatusEffect)data.Target.ReflectStatus, 5);
             playerHud.UpdateHUD(currPlayer);
             enemyHud.UpdateHUD(currEnemy);
 
@@ -528,7 +528,7 @@ public class BattleSystem : MonoBehaviour
     IEnumerator HandleStatusEffectOperations()
     {
         //active player BattleChar will print to dialog
-        if (currPlayer.Burned > 0)
+        if (currPlayer.StatusActive == StatusEffect.Burned)
         {
             yield return dialogBox.DialogSet(currPlayer.DoBurnedDamage());
             yield return new WaitForSeconds(textDelay);
@@ -558,7 +558,7 @@ public class BattleSystem : MonoBehaviour
 
 
         //active enemy BattleChar will print to dialog
-        if (currEnemy.Burned > 0)
+        if (currEnemy.StatusActive == StatusEffect.Burned)
         {
             yield return dialogBox.DialogSet(currEnemy.DoBurnedDamage());
             yield return new WaitForSeconds(textDelay);
@@ -777,6 +777,7 @@ public class BattleSystem : MonoBehaviour
     IEnumerator NewTurnOperations()
     {
         RegenerateEnergy();
+        ResetTurnEffects();
         playerHud.UpdateHUD(currPlayer);
         enemyHud.UpdateHUD(currEnemy);
         dialogBox.SetAbilityButtons(currPlayer);
@@ -853,6 +854,11 @@ public class BattleSystem : MonoBehaviour
                 }
             }
         }
+    }
+    void ResetTurnEffects()
+    {
+        currPlayer.ResetTurnEffects();
+        currEnemy.ResetTurnEffects();
     }
     
     //BattleEnded

@@ -258,7 +258,7 @@ public abstract class Ability
         ///Returns Energy cost of this Ability, can be overridden for custom behaviors
 
         //double Energy cost if user is Cursed
-        return (battleChar.Cursed > 0) ? Energy * 2 : Energy;
+        return (battleChar.StatusActive == StatusEffect.Cursed) ? Energy * 2 : Energy;
     }
     public virtual bool IsUsable(BattleChar battleChar)
     {

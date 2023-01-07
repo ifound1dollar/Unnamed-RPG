@@ -73,7 +73,7 @@ public class BattleAI
         int score = 0;
 
         //+2 points if active status that is NOT Berserk
-        if (currEnemy.HasActiveStatus() && currEnemy.Berserk == 0)
+        if (currEnemy.HasActiveStatus() && currEnemy.StatusActive != StatusEffect.Berserk)
         {
             score += 2;
         }

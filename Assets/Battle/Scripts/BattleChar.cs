@@ -5,6 +5,7 @@ using System.Reflection;
 using UnityEngine;
 
 public enum SpecialtyStat { Undefined, HP, Strength, Mastery, Armor, Resistance, Agility }
+public enum StatusEffect { None, Frozen, Burned, Poisoned, Infected, Cursed, Stunned, Berserk }
 
 public class BattleChar
 {
@@ -49,19 +50,14 @@ public class BattleChar
     public int CrtMod   { get; set; }
 
     //status effects
-    public int Frozen   { get; set; }
-    public int Burned   { get; set; }
-    public int Poisoned { get; set; }
-    public int Infected { get; set; }
-    public int Cursed   { get; set; }
-    public int Stunned  { get; set; }
-    public int Berserk  { get; set; }
+    public StatusEffect StatusActive    { get; set; }
+    public int StatusDuration           { get; set; }
 
     //single-turn effects
-    public bool Protected       { get; set; }
-    public bool ImmuneStatus    { get; set; }
-    public string ReflectStatus { get; set; } = "";
-    public int ReflectDamage    { get; set; }
+    public bool Protected               { get; set; }
+    public bool ImmuneStatus            { get; set; }
+    public StatusEffect? ReflectStatus  { get; set; }   //null when not ready, None when ready
+    public int ReflectDamage            { get; set; }
 
     //team effects
     public int HealingMist      { get; set; }
@@ -266,7 +262,7 @@ public class BattleChar
 
     public void TakeDamage(int damage)
     {
-        if (damage < 0 && Cursed > 0)
+        if (damage < 0 && StatusActive == StatusEffect.Cursed)
         {
             //if damage is negative (heal) and Cursed is active, reduce healing by 50%
             damage /= 2;
@@ -287,64 +283,22 @@ public class BattleChar
 
     public bool HasActiveStatus()
     {
-        if (Frozen > 0)         { return true; }
-        else if (Burned > 0)    { return true; }
-        else if (Poisoned > 0)  { return true; }
-        else if (Infected > 0)  { return true; }
-        else if (Cursed > 0)    { return true; }
-        else if (Stunned > 0)   { return true; }
-        else if (Berserk > 0)   { return true; }
-        
-        return false;
+        return (StatusActive != StatusEffect.None);
     }
-    public bool SetStatusEffect(string effectName, int numTurns)
+    public bool SetStatusEffect(StatusEffect effect, int duration)
     {
-        if (HP == 0) { return false; }
+        if (HP == 0 || HasActiveStatus() || ImmuneStatus || Protected) { return false; }
 
-        if (ReflectStatus != "") { ReflectStatus = effectName; }
-
-        //check for these AFTER ReflectStatus
-        if (HasActiveStatus() || ImmuneStatus || Protected) { return false; }
-
-        //handle new status effect
-        if (effectName == "Frozen" && Frozen == 0)
+        //check ReflectStatus ONLY IF a real attempt was made (as if rebounded)
+        if (ReflectStatus != StatusEffect.None) //will be None only when ready, else null
         {
-            Frozen = numTurns;
-            return true;
-        }
-        else if (effectName == "Burned" && Burned == 0)
-        {
-            Burned = numTurns;
-            return true;
-        }
-        else if (effectName == "Poisoned" && Poisoned == 0)
-        {
-            Poisoned = numTurns;
-            return true;
-        }
-        else if (effectName == "Infected" && Infected == 0)
-        {
-            Infected = numTurns;
-            return true;
-        }
-        else if (effectName == "Cursed" && Cursed == 0)
-        {
-            Cursed = numTurns;
-            return true;
-        }
-        else if (effectName == "Stunned" && Stunned == 0)
-        {
-            Stunned = numTurns;
-            return true;
-        }
-        else if (effectName == "Berserk" && Berserk == 0)
-        {
-            Berserk = numTurns;
-            return true;
+            ReflectStatus = effect;
+            return false;
         }
 
-        //if did not return above, then failed to apply
-        return false;
+        StatusActive = effect;
+        StatusDuration = duration;
+        return true;
     }
     public int CountModifierTotal()
     {
@@ -419,58 +373,62 @@ public class BattleChar
     }
     public string CheckEffectEndEarly()
     {
-        //if NEGATIVE status effect has 1-2 turns remaining, 25% chance to end early
-        if (Frozen > 0 && Frozen <= 2)
+        ///If NEGATIVE status effect has 1 or 2 turns remaining, 25% chance to end early
+
+        string text = "";
+        if (StatusDuration == 1 || StatusDuration == 2)
         {
-            if (UnityEngine.Random.Range(0, 100) < 25)
+            //return (fail) if not between 0-24, 25% chance to be successful
+            if (UnityEngine.Random.Range(0, 100) >= 25)
             {
-                Frozen = 0;
-                return (Name + " is no longer Frozen!");
+                //returning empty string means no effect ended early
+                return "";
             }
-        }
-        else if (Burned > 0 && Burned <= 2)
-        {
-            if (UnityEngine.Random.Range(0, 100) < 25)
+
+            switch (StatusActive)
             {
-                Burned = 0;
-                return (Name + " is no longer Burned!");
-            }
-        }
-        else if (Poisoned > 0 && Poisoned <= 2)
-        {
-            if (UnityEngine.Random.Range(0, 100) < 25)
-            {
-                Poisoned = 0;
-                return (Name + " is no longer Poisoned!");
-            }
-        }
-        else if (Infected > 0 && Infected <= 2)
-        {
-            if (UnityEngine.Random.Range(0, 100) < 25)
-            {
-                Infected = 0;
-                return (Name + " is no longer Infected!");
-            }
-        }
-        else if (Cursed > 0 && Cursed <= 2)
-        {
-            if (UnityEngine.Random.Range(0, 100) < 25)
-            {
-                Cursed = 0;
-                return (Name + " is no longer Cursed!");
-            }
-        }
-        else if (Stunned > 0 && Stunned <= 2)
-        {
-            if (UnityEngine.Random.Range(0, 100) < 25)
-            {
-                Stunned = 0;
-                return (Name + " is no longer Stunned!");
+                case StatusEffect.Frozen:
+                    {
+                        text = (Name + " is no longer Frozen!");
+                        break;
+                    }
+                case StatusEffect.Burned:
+                    {
+                        text = (Name + " is no longer Burned!");
+                        break;
+                    }
+                case StatusEffect.Poisoned:
+                    {
+                        text = (Name + " is no longer Poisoned!");
+                        break;
+                    }
+                case StatusEffect.Infected:
+                    {
+                        text = (Name + " is no longer Infected!");
+                        break;
+                    }
+                case StatusEffect.Cursed:
+                    {
+                        text = (Name + " is no longer Cursed!");
+                        break;
+                    }
+                case StatusEffect.Stunned:
+                    {
+                        text = (Name + " is no longer Stunned!");
+                        break;
+                    }
+                default:    //equivalent to StatusEffect.None
+                    {
+                        text = "WARNING: Attempted to end None.";
+                        break;
+                    }
             }
         }
 
-        //returning empty string indicates that no effect ended early
-        return "";
+        //reset duration to 0 and effect enum to None, then return text
+        StatusDuration = 0;
+        StatusActive = StatusEffect.None;
+        return text;
     }
 
 
@@ -490,15 +448,10 @@ public class BattleChar
     }
     public void ResetStatusEffects()
     {
-        //reset all status effects to 0 without bias
+        //reset any active status effect to duration 0
 
-        Frozen = 0;
-        Burned = 0;
-        Infected = 0;
-        Poisoned = 0;
-        Cursed = 0;
-        Stunned = 0;
-        Berserk = 0;
+        StatusDuration = 0;
+        StatusActive = StatusEffect.None;
     }
     public void ResetTurnEffects()
     {
@@ -582,46 +535,61 @@ public class BattleChar
     }
     public string DecrementStatusEffect()
     {
-        //do action of and decrement any active status effect, returning dialog string
+        ///Do action of and decrement any active status effect, returning dialog string
 
-        if (Frozen > 0)
+        if (StatusDuration <= 0)
         {
-            Frozen--;
-            if (Frozen == 0) { return Name + " is no longer Frozen!"; }
-        }
-        else if (Burned > 0)
-        {
-            Burned--;
-            if (Burned == 0) { return Name + " is no longer Burned!"; }
-        }
-        else if (Poisoned > 0)
-        {
-            Poisoned--;
-            if (Poisoned == 0) { return Name + " is no longer Poisoned!"; }
-        }
-        else if (Infected > 0)
-        {
-            Infected--;
-            if (Infected == 0) { return Name + " is no longer Infected!"; }
-        }
-        else if (Cursed > 0)
-        {
-            Cursed--;
-            if (Cursed == 0) { return Name + " is no longer Cursed!"; }
-        }
-        else if (Stunned > 0)
-        {
-            Stunned--;
-            if (Stunned == 0) { return Name + " is no longer Stunned!"; }
-        }
-        else if (Berserk > 0)
-        {
-            Berserk--;
-            if (Berserk == 0) { return Name + " is no longer Berserk!"; }
+            //empty string indicates that no status effect ended
+            return "";
         }
 
-        //return empty string if did not return above (nothing ended)
-        return "";
+        string text = "";
+        if (StatusDuration == 1)    //1 means this was last turn, will decrement below
+        {
+            switch (StatusActive)
+            {
+                case StatusEffect.Frozen:
+                    {
+                        text = (Name + " is no longer Frozen!");
+                        break;
+                    }
+                case StatusEffect.Burned:
+                    {
+                        text = (Name + " is no longer Burned!");
+                        break;
+                    }
+                case StatusEffect.Poisoned:
+                    {
+                        text = (Name + " is no longer Poisoned!");
+                        break;
+                    }
+                case StatusEffect.Infected:
+                    {
+                        text = (Name + " is no longer Infected!");
+                        break;
+                    }
+                case StatusEffect.Cursed:
+                    {
+                        text = (Name + " is no longer Cursed!");
+                        break;
+                    }
+                case StatusEffect.Stunned:
+                    {
+                        text = (Name + " is no longer Stunned!");
+                        break;
+                    }
+                default:    //equivalent to StatusEffect.None
+                    {
+                        text = "WARNING: Attempted to end None.";
+                        break;
+                    }
+            }
+        }
+
+        //reset duration to 0, active enum to None, then return text
+        StatusDuration = 0;
+        StatusActive = StatusEffect.None;
+        return text;
     }
 
 
