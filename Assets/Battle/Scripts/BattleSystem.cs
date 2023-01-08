@@ -15,8 +15,6 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] DialogBox dialogBox;
     [SerializeField] Image playerImage;
     [SerializeField] Image enemyImage;
-    [SerializeField] SpeciesData playerSpecies;
-    [SerializeField] SpeciesData enemySpecies;
 
     [SerializeField] BattleParty playerParty;
     [SerializeField] BattleParty enemyParty;
