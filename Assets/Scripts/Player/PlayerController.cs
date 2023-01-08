@@ -32,8 +32,8 @@ public class PlayerController : MonoBehaviour
             inputPos.x = Input.GetAxisRaw("Horizontal");
             inputPos.y = Input.GetAxisRaw("Vertical");
 
-            //disable diagonal movement (prioritize y)
-            if (inputPos.y != 0) { inputPos.x = 0; }
+            //disable diagonal movement (prioritize x)
+            if (inputPos.x != 0) { inputPos.y = 0; }
 
             //if there is actual input
             if (inputPos != Vector2.zero)
@@ -194,12 +194,14 @@ public class PlayerController : MonoBehaviour
             if (targetPos.x == transform.position.x)
             {
                 targetPos.y += (targetPos.y > transform.position.y) ? 0.5f : -0.5f;
-                Vector3Int targetPosInt = new((int)targetPos.x, Mathf.RoundToInt(targetPos.y), (int)targetPos.z);
-                if (terrainTilemap.GetTile(targetPosInt) is CustomTile)
-                {
-                    //if CustomTile, then valid because standing between two stairs
-                    return true;
-                }
+                
+                //WITH STAIRS IN THE MIDDLE, DO NOT CHECK CUSTOM, JUST CHECK COLLISION BELOW
+                //Vector3Int targetPosInt = new((int)targetPos.x, Mathf.RoundToInt(targetPos.y), (int)targetPos.z);
+                //if (terrainTilemap.GetTile(targetPosInt) is CustomTile)
+                //{
+                //    //if CustomTile, then valid because standing between two stairs
+                //    return true;
+                //}
             }
             //else moving left/right, so move y +- 1.5 to align with corresponding stair tile
             else
