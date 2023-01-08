@@ -6,8 +6,11 @@ using UnityEngine.Tilemaps;
 [CreateAssetMenu(menuName = "Overworld/Custom Tile")]
 public class CustomTile : Tile
 {
-    [Header("Custom Tile Attributes")]
-    [SerializeField] int testInt;
+    public enum StairType { None, Right, Left }
 
-    public int TestInt { get => testInt; }
+
+    [Header("Custom Tile Attributes")]
+    [SerializeField] StairType stairs;
+
+    public StairType Stairs { get => stairs; }
 }

@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5efc8402ec225454294c5cc0a9e11d46, type: 3}
-  m_Name: New Custom Tile
+  m_Name: Stairs left_2
   m_EditorClassIdentifier: 
-  m_Sprite: {fileID: 21300000, guid: 01fc82f578383594eb53a72d2363e957, type: 3}
+  m_Sprite: {fileID: 2004061152, guid: 506b5820553052e4a9b7564e6208c3ec, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1

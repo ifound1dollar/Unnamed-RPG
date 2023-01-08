@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: 1 Filler Ability
   m_EditorClassIdentifier: 
   level: 1
-  abilityName: FILLER ABILITY NAME
+  abilityName: StrongAttack
