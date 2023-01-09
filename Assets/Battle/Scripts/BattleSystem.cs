@@ -727,6 +727,9 @@ public class BattleSystem : MonoBehaviour
         //check enemy first so if player and enemy both lose at same time, player still wins
         if (currEnemy.HP == 0)
         {
+            yield return dialogBox.DialogSet($"Enemy's {currEnemy.Name} was slain!");
+            yield return new WaitForSeconds(textDelay);
+
             if (GetRemaining(playerTeam: false) > 0)
             {
                 enemySwapIndex = battleAI.ChooseSwapChar(enemyChars, currPlayer);
@@ -735,13 +738,16 @@ public class BattleSystem : MonoBehaviour
             else
             {
                 //END BATTLE
-                Debug.Log("Player win.");
+                yield return dialogBox.DialogSet("Player win.");
                 StopAllCoroutines();
             }
         }
 
         if (currPlayer.HP == 0)
         {
+            yield return dialogBox.DialogSet($"Player's {currPlayer.Name} was slain!");
+            yield return new WaitForSeconds(textDelay);
+
             if (GetRemaining(playerTeam: true) > 0)
             {
                 state = BattleState.WaitingChoice;
@@ -753,7 +759,7 @@ public class BattleSystem : MonoBehaviour
             else
             {
                 //END BATTLE
-                Debug.Log("Player lose.");
+                yield return dialogBox.DialogSet("Player lose.");
                 StopAllCoroutines();
             }
         }
