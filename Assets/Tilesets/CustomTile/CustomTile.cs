@@ -7,10 +7,13 @@ using UnityEngine.Tilemaps;
 public class CustomTile : Tile
 {
     public enum StairType { None, Right, Left }
+    public enum EnterDirection { Both, Right, Left }
 
 
     [Header("Custom Tile Attributes")]
-    [SerializeField] StairType stairs;
+    [SerializeField] StairType stairDirection;
+    [SerializeField] EnterDirection fromDirection;
 
-    public StairType Stairs { get => stairs; }
+    public StairType StairDirection { get => stairDirection; }
+    public EnterDirection FromDirection { get => fromDirection;}
 }

@@ -73,20 +73,22 @@ public class PlayerController : MonoBehaviour
         animator.SetBool("isMoving", isMoving);        
     }
 
-    IEnumerator Move(Vector3 targetPos, bool resetIsMoving = true)
+    IEnumerator Move(Vector3 targetPos, bool resetIsMoving = true, bool moveSlower = false)
     {
         isMoving = true;
+
+        float localMoveSpeed = (moveSlower) ? moveSpeed * 0.75f : moveSpeed;
 
         //if the difference between targetPos and player position is greater than tiny value
         while ((targetPos - transform.position).sqrMagnitude > Mathf.Epsilon)
         {
             //move player position toward targetPos by moveSpeed * elasped (delta) time (SMALL AMOUNT)
-            transform.position = Vector3.MoveTowards(transform.position, targetPos, moveSpeed * Time.deltaTime);
+            transform.position = Vector3.MoveTowards(transform.position, targetPos, localMoveSpeed * Time.deltaTime);
 
             //move camera position toward x and y (along with player x and y movement), not adjusting z
             playerCamera.transform.position = Vector3.MoveTowards(playerCamera.transform.position,
                 new Vector3(transform.position.x, transform.position.y, playerCamera.transform.position.z),
-                moveSpeed * Time.deltaTime);
+                localMoveSpeed * Time.deltaTime);
 
             //only performs single movement, then waits until next Update() call (frame) to move further
             yield return null;
@@ -109,7 +111,7 @@ public class PlayerController : MonoBehaviour
         {
             //FIRST, if standing on stairs, should adjust targetTile since 0.5 rounding errors
             float yToCheck = targetPos.y;
-            if (tilePlr.Stairs == CustomTile.StairType.Right)
+            if (tilePlr.StairDirection == CustomTile.StairType.Right)
             {
                 yToCheck += (targetPos.x > transform.position.x) ? 0.4f : -0.4f;
             }
@@ -123,7 +125,7 @@ public class PlayerController : MonoBehaviour
             //CURRENT AND TARGET ARE STAIRS
             if (terrainTilemap.GetTile(targetPosInt) is CustomTile tileTar)
             {
-                if (tileTar.Stairs == CustomTile.StairType.Right)
+                if (tileTar.StairDirection == CustomTile.StairType.Right)
                 {
                     //if also moving right, move up; else move down
                     targetPos.y += (xMovement == 1.0f) ? 1.0f : -1.0f;
@@ -133,14 +135,14 @@ public class PlayerController : MonoBehaviour
                     //if NOT also moving left, move down; else move up
                     targetPos.y += (xMovement == 1.0f) ? -1.0f : 1.0f;
                 }
-                StartCoroutine(Move(targetPos));
+                StartCoroutine(Move(targetPos, moveSlower: true));
             }
             //ONLY CURRENT IS STAIRS
             else
             {
-                //first, move only halfway to x and up/down 0.5 y (wait for completion)
+                //FIRST, move only halfway to x and up/down 0.5 y (wait for completion)
                 targetPos.x -= xMovement / 2;
-                if (tilePlr.Stairs == CustomTile.StairType.Right)
+                if (tilePlr.StairDirection == CustomTile.StairType.Right)
                 {
                     //if also moving right, move up; else move down
                     targetPos.y += (xMovement == 1.0f) ? 0.5f : -0.5f;
@@ -150,9 +152,9 @@ public class PlayerController : MonoBehaviour
                     //if NOT also moving left, move down; else move up
                     targetPos.y += (xMovement == 1.0f) ? -0.5f : 0.5f;
                 }
-                yield return Move(targetPos, resetIsMoving: false);
+                yield return Move(targetPos, resetIsMoving: false, moveSlower: true);
 
-                //second, set target to rest of the way to x, then move and auto reset IsMoving
+                //SECOND, set target to rest of the way to x, then move and auto reset IsMoving
                 targetPos.x += xMovement / 2;
                 StartCoroutine(Move(targetPos));
             }
@@ -160,12 +162,25 @@ public class PlayerController : MonoBehaviour
         //ELSE ONLY TARGET IS STAIRS
         else if (terrainTilemap.GetTile(targetPosInt) is CustomTile tileTar)
         {
-            //first, move only halfway to x and don't move y yet (wait for completion)
+            //FIRST, ensure that player is trying to enter from valid direction
+            if (playerPosInt.x < targetPosInt.x)
+            {
+                //player moving to right, ensure not left-only from direction
+                if (tileTar.FromDirection == CustomTile.EnterDirection.Left) { yield break; }
+            }
+            else
+            {
+                //else player moving to left, so ensure not right-only from direction
+                if (tileTar.FromDirection == CustomTile.EnterDirection.Right) { yield break; }
+            }
+
+
+            //SECOND, move only halfway to x and don't move y yet (wait for completion)
             targetPos.x -= xMovement / 2;
             yield return Move(targetPos, resetIsMoving: false);
 
-            //second, move other half of x and up/down 0.5 y
-            if (tileTar.Stairs == CustomTile.StairType.Right)
+            //THIRD, move other half of x and up/down 0.5 y
+            if (tileTar.StairDirection == CustomTile.StairType.Right)
             {
                 //stairs right & move right, so move up
                 targetPos.y += (xMovement == 1.0f) ? 0.5f : -0.5f;
@@ -176,7 +191,7 @@ public class PlayerController : MonoBehaviour
                 targetPos.y += (xMovement == 1.0f) ? -0.5f : 0.5f;
             }
             targetPos.x += xMovement / 2;
-            StartCoroutine(Move(targetPos));
+            StartCoroutine(Move(targetPos, moveSlower: true));
         }
     }
 
@@ -190,33 +205,25 @@ public class PlayerController : MonoBehaviour
             Vector3Int playerPosInt = new((int)transform.position.x,
                 (int)transform.position.y, (int)targetPos.z);
 
-            //if ONLY moving up/down, check y +- 0.5 to see if is CustomTile
+            //if ONLY moving up/down, adjust y +- 0.5 to check collision without rounding errors
             if (targetPos.x == transform.position.x)
             {
                 targetPos.y += (targetPos.y > transform.position.y) ? 0.5f : -0.5f;
-                
-                //WITH STAIRS IN THE MIDDLE, DO NOT CHECK CUSTOM, JUST CHECK COLLISION BELOW
-                //Vector3Int targetPosInt = new((int)targetPos.x, Mathf.RoundToInt(targetPos.y), (int)targetPos.z);
-                //if (terrainTilemap.GetTile(targetPosInt) is CustomTile)
-                //{
-                //    //if CustomTile, then valid because standing between two stairs
-                //    return true;
-                //}
             }
-            //else moving left/right, so move y +- 1.5 to align with corresponding stair tile
+            //else moving left/right, so move y +- 0.5 to align with corresponding stair tile
             else
             {
                 if (terrainTilemap.GetTile(playerPosInt) is CustomTile tilePlr)
                 {
-                    if (tilePlr.Stairs == CustomTile.StairType.Right)
+                    if (tilePlr.StairDirection == CustomTile.StairType.Right)
                     {
                         //if both RIGHT, move y up; else move down
-                        targetPos.y += (targetPos.x > transform.position.x) ? 1.5f : -1.5f;
+                        targetPos.y += (targetPos.x > transform.position.x) ? 0.5f : -0.5f;
                     }
                     else
                     {
                         //if both LEFT, move y up; else move down
-                        targetPos.y += (targetPos.x < transform.position.x) ? 1.5f : -1.5f;
+                        targetPos.y += (targetPos.x < transform.position.x) ? 0.5f : -0.5f;
                     }
                 }
             }
