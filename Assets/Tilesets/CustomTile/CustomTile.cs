@@ -6,7 +6,7 @@ using UnityEngine.Tilemaps;
 [CreateAssetMenu(menuName = "Overworld/Custom Tile")]
 public class CustomTile : Tile
 {
-    public enum StairType { None, Right, Left }
+    public enum StairType { UNDEFINED, Right, Left, UpOrDown }
     public enum EnterDirection { Both, Right, Left }
 
 
