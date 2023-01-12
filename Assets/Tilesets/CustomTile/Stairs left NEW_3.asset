@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5efc8402ec225454294c5cc0a9e11d46, type: 3}
   m_Name: Stairs left NEW_3
   m_EditorClassIdentifier: 
-  m_Sprite: {fileID: -1668219544, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  m_Sprite: {fileID: 1265138998, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_Transform:
     e00: 1

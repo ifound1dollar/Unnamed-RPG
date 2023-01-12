@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 3ca457ad156294347ac48673c62ac1d6
+guid: 87a6932a8b275fe46bc5e7e734a1f7e8
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -105,133 +105,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Stairs left NEW_0
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 128
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 70e764794c1374840b5c6a56ff75f0c0
-      internalID: -1356561608
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Stairs left NEW_1
-      rect:
-        serializedVersion: 2
-        x: 32
-        y: 128
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 8c6392c85a670ee489736a00a67c2106
-      internalID: -633342569
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Stairs left NEW_2
-      rect:
-        serializedVersion: 2
-        x: 64
-        y: 128
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 5412e78f073c2284fbade0687b161128
-      internalID: 1588112429
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Stairs left NEW_3
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 96
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 07eda8d42cabfae4b96860ddba976c57
-      internalID: 1265138998
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Stairs left NEW_4
-      rect:
-        serializedVersion: 2
-        x: 32
-        y: 96
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 9f9e263daf19e704389b7decb957b678
-      internalID: 1488009099
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Stairs left NEW_5
-      rect:
-        serializedVersion: 2
-        x: 64
-        y: 96
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: aff75411eb73a804baccfced51ece325
-      internalID: 1107886686
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Stairs left NEW_6
+      name: Stairs up_0
       rect:
         serializedVersion: 2
         x: 0
@@ -245,14 +119,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b2e07437cd8e3204b9760ef0e7241659
-      internalID: -646635742
+      spriteID: dd7c78bd1596e5542b4a072cffc97dfa
+      internalID: -1555160883
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs left NEW_7
+      name: Stairs up_1
       rect:
         serializedVersion: 2
         x: 32
@@ -266,14 +140,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 56efd4c63bf041c43a0c95247f471a09
-      internalID: 1581502914
+      spriteID: 780b1bdacce05e34ca402c0b4ef3e292
+      internalID: -744875585
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs left NEW_8
+      name: Stairs up_2
       rect:
         serializedVersion: 2
         x: 64
@@ -287,14 +161,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 669e98afc3aba1640ac83324dce16304
-      internalID: 2038792207
+      spriteID: cca5eedce6d86444eb68cd8bc0a245f2
+      internalID: -1428131672
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs left NEW_9
+      name: Stairs up_3
       rect:
         serializedVersion: 2
         x: 0
@@ -308,14 +182,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: fad8b631f6b04d74fbab68fde3b75025
-      internalID: -518793607
+      spriteID: 910f4f19c45e31b49a0d4a1bd9c547a5
+      internalID: 1451493553
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs left NEW_10
+      name: Stairs up_4
       rect:
         serializedVersion: 2
         x: 32
@@ -329,14 +203,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 825aedab0a659ec4fa911c25f7ea974f
-      internalID: 55341572
+      spriteID: 967147f8771f8dd4f89d85321218ff60
+      internalID: -1972281456
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs left NEW_11
+      name: Stairs up_5
       rect:
         serializedVersion: 2
         x: 64
@@ -350,14 +224,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7f9b3d97bad070a49846e751b32235fe
-      internalID: -677168850
+      spriteID: 83d89e4a2e26e424cbfe2d6811087236
+      internalID: 1447989735
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs left NEW_12
+      name: Stairs up_6
       rect:
         serializedVersion: 2
         x: 0
@@ -371,14 +245,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: dc719244c6af99c489af5ed0ab570e05
-      internalID: -812851393
+      spriteID: 7550ebbc656f4fd4b9c1bdf11a5e25f3
+      internalID: 1021282875
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs left NEW_13
+      name: Stairs up_7
       rect:
         serializedVersion: 2
         x: 32
@@ -392,14 +266,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f378144ded30a3e4fb7e516afa6d19ee
-      internalID: -509587567
+      spriteID: c6ad5b0edc19f7c439d046158dd520f7
+      internalID: 717898190
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs left NEW_14
+      name: Stairs up_8
       rect:
         serializedVersion: 2
         x: 64
@@ -413,8 +287,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5feba3b71868ab747941d7ae7b32ff27
-      internalID: -132715572
+      spriteID: 1443c1206798b7a48a3605ddf6525324
+      internalID: 1122486916
       vertices: []
       indices: 
       edges: []
@@ -430,21 +304,15 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Stairs left NEW_6: -646635742
-      Stairs left NEW_1: -633342569
-      Stairs left NEW_9: -518793607
-      Stairs left NEW_8: 2038792207
-      Stairs left NEW_13: -509587567
-      Stairs left NEW_14: -132715572
-      Stairs left NEW_11: -677168850
-      Stairs left NEW_5: 1107886686
-      Stairs left NEW_7: 1581502914
-      Stairs left NEW_2: 1588112429
-      Stairs left NEW_12: -812851393
-      Stairs left NEW_0: -1356561608
-      Stairs left NEW_4: 1488009099
-      Stairs left NEW_3: 1265138998
-      Stairs left NEW_10: 55341572
+      Stairs up_7: 717898190
+      Stairs up_6: 1021282875
+      Stairs up_1: -744875585
+      Stairs up_5: 1447989735
+      Stairs up_4: -1972281456
+      Stairs up_8: 1122486916
+      Stairs up_2: -1428131672
+      Stairs up_3: 1451493553
+      Stairs up_0: -1555160883
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

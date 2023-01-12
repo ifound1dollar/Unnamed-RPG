@@ -57,6 +57,7 @@ SpriteAtlas:
     - {fileID: 2800000, guid: b835a93df505829488ffdeb1e4976d59, type: 3}
     - {fileID: 2800000, guid: f947a8684e95a6c4aa16300430f3781b, type: 3}
     - {fileID: 2800000, guid: 01fc82f578383594eb53a72d2363e957, type: 3}
+    - {fileID: 2800000, guid: 87a6932a8b275fe46bc5e7e734a1f7e8, type: 3}
     bindAsDefault: 1
     isAtlasV2: 0
     cachedData: {fileID: 0}
@@ -69,24 +70,33 @@ SpriteAtlas:
   - {fileID: 576887447, guid: 5ec7ebe83aef8084eb40ec6ba0fc2a51, type: 3}
   - {fileID: -1762169779, guid: 5ec7ebe83aef8084eb40ec6ba0fc2a51, type: 3}
   - {fileID: 21300000, guid: c218da3920f09d845b74fda4cabb5461, type: 3}
+  - {fileID: 1447989735, guid: 87a6932a8b275fe46bc5e7e734a1f7e8, type: 3}
+  - {fileID: -1972281456, guid: 87a6932a8b275fe46bc5e7e734a1f7e8, type: 3}
+  - {fileID: 717898190, guid: 87a6932a8b275fe46bc5e7e734a1f7e8, type: 3}
+  - {fileID: 1021282875, guid: 87a6932a8b275fe46bc5e7e734a1f7e8, type: 3}
+  - {fileID: -744875585, guid: 87a6932a8b275fe46bc5e7e734a1f7e8, type: 3}
+  - {fileID: -1555160883, guid: 87a6932a8b275fe46bc5e7e734a1f7e8, type: 3}
+  - {fileID: 1451493553, guid: 87a6932a8b275fe46bc5e7e734a1f7e8, type: 3}
+  - {fileID: -1428131672, guid: 87a6932a8b275fe46bc5e7e734a1f7e8, type: 3}
+  - {fileID: 1122486916, guid: 87a6932a8b275fe46bc5e7e734a1f7e8, type: 3}
   - {fileID: 21300000, guid: 5b91906bd66ae9645bfd9f9c5430bfd2, type: 3}
   - {fileID: 21300000, guid: 02c7461c08fea694191be2cd27f93bee, type: 3}
   - {fileID: 21300000, guid: b835a93df505829488ffdeb1e4976d59, type: 3}
-  - {fileID: 682459656, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
-  - {fileID: 1517409015, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
-  - {fileID: -1668219544, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
-  - {fileID: 1287197003, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
-  - {fileID: 74662560, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
-  - {fileID: 422814876, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
-  - {fileID: 1930139492, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
-  - {fileID: -405566316, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
-  - {fileID: -310224658, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
-  - {fileID: -1294977040, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
-  - {fileID: 1725631744, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
-  - {fileID: -1519604218, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
-  - {fileID: -541526036, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
-  - {fileID: 274921468, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
-  - {fileID: 672920749, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  - {fileID: -518793607, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  - {fileID: 2038792207, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  - {fileID: 1265138998, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  - {fileID: 1588112429, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  - {fileID: -633342569, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  - {fileID: -1356561608, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  - {fileID: 1581502914, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  - {fileID: -646635742, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  - {fileID: 1107886686, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  - {fileID: 1488009099, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  - {fileID: -132715572, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  - {fileID: -812851393, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  - {fileID: -509587567, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  - {fileID: 55341572, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
+  - {fileID: -677168850, guid: 3ca457ad156294347ac48673c62ac1d6, type: 3}
   - {fileID: 21300000, guid: 2a7cc12e9f5564f458bfb030b0cefc27, type: 3}
   - {fileID: 1453384329, guid: 251ef5eed6d4d144da2c90873bb51854, type: 3}
   - {fileID: 1731147, guid: 251ef5eed6d4d144da2c90873bb51854, type: 3}
@@ -106,6 +116,15 @@ SpriteAtlas:
   - TEMP permissions_0
   - TEMP permissions_1
   - TEMP Grass
+  - Stairs up_5
+  - Stairs up_4
+  - Stairs up_7
+  - Stairs up_6
+  - Stairs up_1
+  - Stairs up_0
+  - Stairs up_3
+  - Stairs up_2
+  - Stairs up_8
   - TEMP Player left
   - TEMP Player move right
   - TEMP Player right

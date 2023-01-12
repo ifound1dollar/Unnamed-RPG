@@ -189,13 +189,13 @@ public class PlayerController : MonoBehaviour
                 //FIRST, ensure that player is trying to enter from valid direction
                 if (playerPosInt.x < targetPosInt.x)
                 {
-                    //if player moving to right, ensure not left-only from direction
-                    if (tileTar.FromDirection == CustomTile.EnterDirection.Left) { yield break; }
+                    //if player moving from left, ensure not right-only from direction
+                    if (tileTar.FromDirection == CustomTile.EnterDirection.Right) { yield break; }
                 }
                 else if (playerPosInt.x > targetPosInt.x)
                 {
-                    //else if player moving to left, ensure not right-only from direction
-                    if (tileTar.FromDirection == CustomTile.EnterDirection.Right) { yield break; }
+                    //else if player moving from right, ensure not left-only from direction
+                    if (tileTar.FromDirection == CustomTile.EnterDirection.Left) { yield break; }
                 }
 
                 //move halfway to x but NOT y yet, at normal speed
