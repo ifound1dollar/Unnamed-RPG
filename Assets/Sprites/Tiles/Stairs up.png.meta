@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 87a6932a8b275fe46bc5e7e734a1f7e8
+guid: 0a9fbc72e97401546b2e96612c566264
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -105,7 +105,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Stairs up_0
+      name: Stairs up 1_0
       rect:
         serializedVersion: 2
         x: 0
@@ -119,14 +119,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: dd7c78bd1596e5542b4a072cffc97dfa
-      internalID: -1555160883
+      spriteID: 370a4f0b59a64414bb35ca943917927c
+      internalID: -718704386
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs up_1
+      name: Stairs up 1_1
       rect:
         serializedVersion: 2
         x: 32
@@ -140,14 +140,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 780b1bdacce05e34ca402c0b4ef3e292
-      internalID: -744875585
+      spriteID: 56f9b55521ef48f4aba5c4b044e5201d
+      internalID: 1772802957
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs up_2
+      name: Stairs up 1_2
       rect:
         serializedVersion: 2
         x: 64
@@ -161,14 +161,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: cca5eedce6d86444eb68cd8bc0a245f2
-      internalID: -1428131672
+      spriteID: e0044b850ef9169449025ecd9c0c6818
+      internalID: -435702645
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs up_3
+      name: Stairs up 1_3
       rect:
         serializedVersion: 2
         x: 0
@@ -182,14 +182,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 910f4f19c45e31b49a0d4a1bd9c547a5
-      internalID: 1451493553
+      spriteID: b538fc739b8093d4991610570adf2c45
+      internalID: -200833365
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs up_4
+      name: Stairs up 1_4
       rect:
         serializedVersion: 2
         x: 32
@@ -203,14 +203,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 967147f8771f8dd4f89d85321218ff60
-      internalID: -1972281456
+      spriteID: 22517d253ace8f741b53e9d75e2ce2f6
+      internalID: 258616065
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs up_5
+      name: Stairs up 1_5
       rect:
         serializedVersion: 2
         x: 64
@@ -224,14 +224,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 83d89e4a2e26e424cbfe2d6811087236
-      internalID: 1447989735
+      spriteID: 8a9758d8eed5d3d4d99d28f5358420b0
+      internalID: 1899756740
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs up_6
+      name: Stairs up 1_6
       rect:
         serializedVersion: 2
         x: 0
@@ -245,14 +245,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7550ebbc656f4fd4b9c1bdf11a5e25f3
-      internalID: 1021282875
+      spriteID: 49baed23807c84349a80ad647dbb735b
+      internalID: 1049619302
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs up_7
+      name: Stairs up 1_7
       rect:
         serializedVersion: 2
         x: 32
@@ -266,14 +266,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: c6ad5b0edc19f7c439d046158dd520f7
-      internalID: 717898190
+      spriteID: 111605f2af9f5f146b33701b5533d7a8
+      internalID: 1956947260
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Stairs up_8
+      name: Stairs up 1_8
       rect:
         serializedVersion: 2
         x: 64
@@ -287,8 +287,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 1443c1206798b7a48a3605ddf6525324
-      internalID: 1122486916
+      spriteID: 52eb62e8004c69d43b8f7a83c2619a1e
+      internalID: -271968406
       vertices: []
       indices: 
       edges: []
@@ -304,15 +304,15 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Stairs up_7: 717898190
-      Stairs up_6: 1021282875
-      Stairs up_1: -744875585
-      Stairs up_5: 1447989735
-      Stairs up_4: -1972281456
-      Stairs up_8: 1122486916
-      Stairs up_2: -1428131672
-      Stairs up_3: 1451493553
-      Stairs up_0: -1555160883
+      Stairs up 1_0: -718704386
+      Stairs up 1_3: -200833365
+      Stairs up 1_5: 1899756740
+      Stairs up 1_1: 1772802957
+      Stairs up 1_8: -271968406
+      Stairs up 1_7: 1956947260
+      Stairs up 1_2: -435702645
+      Stairs up 1_4: 258616065
+      Stairs up 1_6: 1049619302
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0
