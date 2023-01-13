@@ -76,7 +76,7 @@ public class BattleChar
     public bool WasActive       { get; set; }
 
 
-    public BattleChar(ScriptableBattleChar data, AIDifficulty difficulty, bool playerTeam)
+    public BattleChar(ScriptableBattleChar data, AIDifficulty difficulty, bool playerTeam, int argLevel = 0)
     {
         SpeciesData = data.SpeciesData;
 
@@ -94,8 +94,8 @@ public class BattleChar
         MaxEnergy = (data.MaxEnergy == 0) ? (int)(Level * 0.5) + 10 : data.MaxEnergy;
         Energy = MaxEnergy;
 
-        //level
-        Level = data.Level;
+        //level from data if undefined, else from argument
+        Level = (argLevel == 0) ? data.Level : argLevel;
 
         //abilities
         string[] abilityNames = data.GetAbilitiesAsArray(difficulty);
@@ -115,6 +115,21 @@ public class BattleChar
             catch
             {
                 Abilities[i] = new BadAbility();
+            }
+        }
+
+        //impossible ability, has 1% chance to replace fourth ability (if defined)
+        if (data.ImpossibleAbility != "" && UnityEngine.Random.Range(0, 100) == 0)
+        {
+            //if replacement fails, return to original fourth ability
+            Ability origAbility = Abilities[3];
+            try
+            {
+                Abilities[3] = Activator.CreateInstance(Type.GetType(data.ImpossibleAbility)) as Ability;
+            }
+            catch
+            {
+                Abilities[3] = origAbility;
             }
         }
 

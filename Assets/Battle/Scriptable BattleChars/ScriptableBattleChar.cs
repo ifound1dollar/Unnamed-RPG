@@ -27,6 +27,9 @@ public class ScriptableBattleChar : ScriptableObject
     [SerializeField] string hAbility3;
     [SerializeField] string hAbility4;
 
+    [Header("Impossible Ability - can be empty, chance to replace Ability 4")]
+    [SerializeField] string impossibleAbility;
+
 
     [Header("- OPTIONAL DATA -")]
     [SerializeField] string nickname;
@@ -57,6 +60,7 @@ public class ScriptableBattleChar : ScriptableObject
 
     public SpeciesData SpeciesData { get { return speciesData; } }
     public int Level { get { return level; } }
+    public string ImpossibleAbility { get { return impossibleAbility; } }
     public string Nickname { get { return nickname; } }
     public int MaxEnergy { get { return maxEnergy; } }
 

@@ -19,6 +19,8 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] BattleParty playerParty;
     [SerializeField] BattleParty enemyParty;
 
+
+
     BattleChar[] playerChars;
     BattleChar[] enemyChars;
     BattleChar currPlayer;
@@ -46,16 +48,16 @@ public class BattleSystem : MonoBehaviour
     }
     IEnumerator Setup()
     {
+        //instantiate BattleAI object (WILL ACCESS DIFFICULTY SETTING LATER)
+        difficulty = AIDifficulty.Easy;
+        battleAI = new(this, difficulty);
+
         InitPlayerParty();
         InitEnemyParty();
         currPlayer = playerChars[0];
         currEnemy = enemyChars[0];
         playerSnaps = new();
         enemySnaps = new();
-
-        //instantiate BattleAI object (WILL ACCESS DIFFICULTY SETTING LATER)
-        difficulty = AIDifficulty.Easy;
-        battleAI = new(this, difficulty);
 
         //load player and enemy sprites from BattleChar's species data
         playerImage.sprite = currPlayer.SpeciesData.BackSprite;
@@ -94,10 +96,14 @@ public class BattleSystem : MonoBehaviour
     }
     void InitEnemyParty()
     {
+        int targetLevel = CalcEnemyLevel();
+
         enemyChars = new BattleChar[enemyParty.Team.Length];
         for (int i = 0; i < enemyParty.Team.Length; i++)
         {
-            enemyChars[i] = new BattleChar(enemyParty.Team[i], difficulty, playerTeam: false);
+            //calculate new level within 5% deviation range of targetLevel, then initialize
+            int level = Mathf.RoundToInt(UnityEngine.Random.Range(0.95f, 1.05f) * targetLevel);
+            enemyChars[i] = new BattleChar(enemyParty.Team[i], difficulty, playerTeam: false, argLevel: level);
         }
 
         //find first BattleChar in array with >0HP to make currPlayer
@@ -105,6 +111,51 @@ public class BattleSystem : MonoBehaviour
         {
             if (battleChar.HP > 0) { currEnemy = battleChar; }
         }
+    }
+    int CalcEnemyLevel()
+    {
+        //TEMP
+        int minLevel = 1;
+        int maxLevel = 10;
+        //TEMP
+
+        //calculate average and max levels of player chars, then set prelim targetLevel
+        int playerAvg = Mathf.RoundToInt(playerChars.Sum(x => x.Level) / (float)playerChars.Length);
+        int playerMax = playerChars.Max(x => x.Level);
+        int targetLevel = playerAvg;
+
+        //different behavior for wild/easy, normal, and hard/boss
+        if (difficulty == AIDifficulty.Easy || difficulty == AIDifficulty.Wild)
+        {
+            //if easy or wild, set to 4% below player average
+            targetLevel = Mathf.RoundToInt(playerAvg * 0.96f);
+
+            //force targetLevel to be at minimum 8% below player max (TOTAL 4-8% BELOW)
+            targetLevel = Mathf.Max(targetLevel, Mathf.RoundToInt(playerMax * 0.92f));
+        }
+        else if (difficulty == AIDifficulty.Medium)
+        {
+            //if normal, keep equal to player average
+
+            //force targetLevel to be at minimum 4% below player max (TOTAL 0-4% BELOW)
+            targetLevel = Mathf.Max(targetLevel, Mathf.RoundToInt(playerMax * 0.96f));
+        }
+        else if (difficulty == AIDifficulty.Hard || difficulty == AIDifficulty.Boss)
+        {
+            //if hard or boss, set to 4% above player average
+            targetLevel = Mathf.RoundToInt(playerAvg * 1.04f);
+
+            //force targetLevel to be at minimum equal to player max (TOTAL 0-4% ABOVE)
+            targetLevel = Mathf.Max(targetLevel, playerMax);
+        }
+
+        //finally, verify that targetLevel is within min and max range ONLY IF NOT BOSS
+        if (difficulty != AIDifficulty.Boss)
+        {
+            targetLevel = Mathf.Clamp(targetLevel, minLevel, maxLevel);
+        }
+
+        return targetLevel;
     }
 
 
