@@ -63,6 +63,10 @@ public class BattleSystem : MonoBehaviour
         playerImage.sprite = currPlayer.SpeciesData.BackSprite;
         enemyImage.sprite = currEnemy.SpeciesData.FrontSprite;
 
+        //TEMP
+        currEnemy.Energy = 0;
+        //TEMP
+
         //set hud for each
         playerHud.SetHUD(currPlayer);
         enemyHud.SetHUD(currEnemy);
@@ -74,8 +78,6 @@ public class BattleSystem : MonoBehaviour
         yield return new WaitForSeconds(textDelay);
         yield return dialogBox.DialogAppend("Test append.");
         yield return new WaitForSeconds(textDelay);
-
-        currEnemy.Energy = 0;
         //TEMP
 
         StartCoroutine(Loop());
@@ -192,7 +194,7 @@ public class BattleSystem : MonoBehaviour
             //check if player flee/forfeit
             if (playerChoice == BattleChoice.FleeForfeit)
             {
-                //CALL END BATTLE METHOD
+                EndBattle();
             }
 
             //check swaps, performing any chosen swaps by player or enemy and resetting swapIndex for either/both
@@ -283,6 +285,7 @@ public class BattleSystem : MonoBehaviour
             currPlayer.ResetAll();
             currPlayer.TransferAllToNew(playerChars[playerSwapIndex]);
             currPlayer = playerChars[playerSwapIndex];
+            currPlayer.WasActive = true;
 
             //update sprite, hud, and button data
             playerImage.sprite = currPlayer.SpeciesData.BackSprite;
@@ -310,6 +313,7 @@ public class BattleSystem : MonoBehaviour
             currEnemy.ResetAll();
             currEnemy.TransferAllToNew(enemyChars[enemySwapIndex]);
             currEnemy = enemyChars[enemySwapIndex];
+            currEnemy.WasActive = true;
 
             enemyImage.sprite = currEnemy.SpeciesData.FrontSprite;
             enemyHud.SetHUD(currEnemy);
@@ -917,7 +921,10 @@ public class BattleSystem : MonoBehaviour
     }
     
     //BattleEnded
+    void EndBattle()
+    {
 
+    }
 
     //button presses
     public void OnAbilityButtonPress(int abilityIndex)
