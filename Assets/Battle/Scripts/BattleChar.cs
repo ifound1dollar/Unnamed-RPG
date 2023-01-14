@@ -16,6 +16,7 @@ public class BattleChar
     public string Name      { get; set; }
     public bool PlayerTeam  { get; set; }
     public int Level        { get; set; }
+    public int XP           { get; set; }
     public int Energy       { get; set; }
     public int MaxEnergy    { get; set; }
     public int HP           { get; set; }
@@ -737,6 +738,53 @@ public class BattleChar
         }
 
         return dialog;  //returning empty list indicates that no traps wore off
+    }
+
+
+    //XP IGNORE ALL, HANDLE IN BATTLE SYSTEM
+    public void AddXP(int xp)
+    {
+        //add XP, then ensure is not greater than maximum at this xp ratio (1,000,000 base)
+        XP += xp;
+        XP = Mathf.RoundToInt(Mathf.Min(XP, 1000000 * SpeciesData.XPRatio));
+    }
+    public string LevelUp()
+    {
+        ///Returns name of Ability if one is trying to be learned at new level
+
+        //store all old CALCULATED stat values so stats can be increased by difference
+        float oldRawMaxHP = CalcRawFromBase(SpeciesData.HP, isHP: true);
+        float oldRawStrength = CalcRawFromBase(SpeciesData.Strength);
+        float oldRawMastery = CalcRawFromBase(SpeciesData.Mastery);
+        float oldRawArmor = CalcRawFromBase(SpeciesData.Armor);
+        float oldRawResistance = CalcRawFromBase(SpeciesData.Resistance);
+        float oldRawAgility = CalcRawFromBase(SpeciesData.Agility);
+        int oldMaxHP = MaxHP;   //also store old HP so it can be increased with level
+
+        Level++;
+
+        //recalculate stats at new level, then add difference to actual raw stats
+        RawMaxHP += (CalcRawFromBase(SpeciesData.HP, isHP: true) - oldRawMaxHP);
+        RawStrength += (CalcRawFromBase(SpeciesData.Strength) - oldRawStrength);
+        RawMastery += (CalcRawFromBase(SpeciesData.Mastery) - oldRawMastery);
+        RawArmor += (CalcRawFromBase(SpeciesData.Armor) - oldRawArmor);
+        RawResistance += (CalcRawFromBase(SpeciesData.Resistance) - oldRawResistance);
+        RawAgility += (CalcRawFromBase(SpeciesData.Agility) - oldRawAgility);
+
+        //if not 0HP, increase HP by difference from old to new MaxHP
+        HP += (HP > 0) ? (MaxHP - oldMaxHP) : 0;
+
+        //if found LearnedAbility matching this level, return its name
+        foreach (LearnedAbility lAbility in SpeciesData.LearnedAbilities)
+        {
+            if (lAbility.Level == Level)
+            {
+                return lAbility.Name;
+            }
+        }
+
+        //if no learned ability, return empty string
+        return "";
     }
 
 

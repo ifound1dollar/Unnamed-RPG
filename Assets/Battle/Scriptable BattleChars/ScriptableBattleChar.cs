@@ -72,6 +72,10 @@ public class ScriptableBattleChar : ScriptableObject
     public SpecialtyStat SpecialtyDown  { get { return specialtyDown; } }
 
 
+    //HIDDEN FROM EDITOR, ONLY FOR PLAYER CHARACTER STORAGE
+    public int XP { get; set; }
+
+
     //constructor for making save character
     public ScriptableBattleChar(BattleChar battleChar)
     {
@@ -96,6 +100,8 @@ public class ScriptableBattleChar : ScriptableObject
 
         specialtyUp = battleChar.SpecialtyUp;
         specialtyDown = battleChar.SpecialtyDown;
+
+        XP = battleChar.XP;
     }
     public string[] GetAbilitiesAsArray(AIDifficulty difficulty)
     {

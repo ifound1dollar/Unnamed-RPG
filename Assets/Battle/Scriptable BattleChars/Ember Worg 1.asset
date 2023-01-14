@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speciesData: {fileID: 11400000, guid: a94234871811a79408aedd9b49842782, type: 2}
   level: 1
-  eAbility1: StrongAttack
+  eAbility1: 
   eAbility2: BasicMove4
   eAbility3: 
   eAbility4: 
   nAbility1: BasicMove4
-  nAbility2: StrongAttack
+  nAbility2: 
   nAbility3: 
   nAbility4: 
   hAbility1: BasicMove4
-  hAbility2: StrongAttack
+  hAbility2: 
   hAbility3: 
   hAbility4: 
   nickname: nickname

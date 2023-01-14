@@ -204,7 +204,7 @@ public class BattleSystem : MonoBehaviour
             //check if player flee/forfeit
             if (playerChoice == BattleChoice.FleeForfeit)
             {
-                EndBattle();
+                EndBattle(playerWin: false);
             }
 
             //check swaps, performing any chosen swaps by player or enemy and resetting swapIndex for either/both
@@ -804,7 +804,8 @@ public class BattleSystem : MonoBehaviour
             {
                 //END BATTLE
                 yield return dialogBox.DialogSet("Player win.");
-                StopAllCoroutines();
+                yield return new WaitForSeconds(textDelay);
+                yield return EndBattle(playerWin: true);
             }
         }
 
@@ -825,7 +826,8 @@ public class BattleSystem : MonoBehaviour
             {
                 //END BATTLE
                 yield return dialogBox.DialogSet("Player lose.");
-                StopAllCoroutines();
+                yield return new WaitForSeconds(textDelay);
+                yield return EndBattle(playerWin: false);
             }
         }
 
@@ -842,6 +844,7 @@ public class BattleSystem : MonoBehaviour
         }
     }
     
+
     //NewTurn
     IEnumerator NewTurnOperations()
     {
@@ -930,11 +933,105 @@ public class BattleSystem : MonoBehaviour
         currEnemy.ResetTurnEffects();
     }
     
-    //BattleEnded
-    void EndBattle()
-    {
 
+    //BattleEnded
+    IEnumerator EndBattle(bool playerWin)
+    {
+        int[] playerTeamXP = new int[playerChars.Length];
+        int participants = 0;
+
+        //count number of player chars that participated and < level 100
+        foreach (BattleChar player in playerChars)
+        {
+            participants += (player.WasActive && player.Level < 100) ? 1 : 0;
+        }
+
+        //calculate XP yield of any slain enemy character and add to array
+        foreach (BattleChar enemy in enemyChars)
+        {
+            if (enemy.HP == 0)
+            {
+                //calculate specific XP yield for this playerchar
+                for (int i = 0; i < playerChars.Length; i++)
+                {
+                    playerTeamXP[i] = CalculateXPYield(enemy, playerChars[i], participants);
+                }
+            }
+        }
+
+        //add XP to each player, handling any level ups and learning Abilities
+        for (int i = 0; i < playerChars.Length; i++)
+        {
+            BattleChar player = playerChars[i];
+            player.AddXP(playerTeamXP[i]);
+
+            while (player.XP >= XPTable.GetXpToNextLevel(player.Level, player.SpeciesData.XPRatio))
+            {
+                yield return HandleLevelUp(player);
+            }
+        }
+
+        //CONVERT PLAYER CHARACTERS TO SCRIPTABLE AND STORE WHEREVER NECESSARY
+
+        //hide this gameObject (entire BattleSystem) then stop all coroutines
+        gameObject.SetActive(false);
+        StopAllCoroutines();
     }
+    int CalculateXPYield(BattleChar enemy, BattleChar player, int participants)
+    {
+        //calculate xp ratio, is 5% per level difference (absolute value, then add 1)
+        float ratio = Mathf.Abs((enemy.Level - player.Level) / 20.0f) + 1;
+
+        //if enemy is >= player, multiply by ratio, else divide (base yield 10 per level)
+        float xp = (enemy.Level >= player.Level)
+            ? (enemy.Level * 10) * ratio : (enemy.Level * 10) / ratio;
+
+        //return xp value, divided by number of participants then rounded to int
+        return Mathf.RoundToInt(xp / participants);
+    }
+    IEnumerator HandleLevelUp(BattleChar player)
+    {
+        yield return dialogBox.DialogSet($"{player.Name} leveled up to {player.Level + 1}!");
+        yield return new WaitForSeconds(textDelay);
+
+        //if LevelUp returns not empty, then an Ability is trying to be learned
+        string abilityName = player.LevelUp();
+        if (abilityName != "")
+        {
+            Ability newAbility;
+            try
+            {
+                newAbility = Activator.CreateInstance(Type.GetType(abilityName)) as Ability;
+            }
+            catch
+            {
+                newAbility = new BadAbility();
+            }
+
+            //search for first available index, if any
+            int availableIndex = -1;
+            for (int i = 0; i < player.Abilities.Length; i++)
+            {
+                if (player.Abilities[i] is EmptyAbility)
+                {
+                    availableIndex = i;
+                    break;
+                }
+            }
+
+            //if valid index, can insert new Ability in new location
+            if (availableIndex != -1)
+            {
+                player.Abilities[availableIndex] = newAbility;
+                yield return dialogBox.DialogSet($"{player.Name} learned {player.Abilities[availableIndex].Name}!");
+                yield return new WaitForSeconds(textDelay);
+                yield break;
+            }
+
+            //HANDLE MENU TO REPLACE OLD ABILITY HERE, REACHES HERE IF NO VALID INDEX
+        }
+    }
+
 
     //button presses
     public void OnAbilityButtonPress(int abilityIndex)
