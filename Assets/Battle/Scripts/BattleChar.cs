@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-public enum SpecialtyStat { Undefined, HP, Strength, Mastery, Armor, Resistance, Agility }
+public enum SpecialtyStat { UNDEFINED, HP, Strength, Mastery, Armor, Resistance, Agility }
 public enum StatusEffect { None, Frozen, Burned, Poisoned, Infected, Cursed, Stunned, Berserk }
 
 public class BattleChar
@@ -12,6 +12,7 @@ public class BattleChar
     public SpeciesData SpeciesData { get; }
 
     public Ability[] Abilities { get; set; } = new Ability[4];
+    public string SpecialAbility { get; set; }
     public string Name      { get; set; }
     public bool PlayerTeam  { get; set; }
     public int Level        { get; set; }
@@ -118,10 +119,10 @@ public class BattleChar
             }
         }
 
-        //impossible ability, has 1% chance to replace fourth ability (if defined)
+        //impossible ability, if defined
         if (data.ImpossibleAbility != "" && UnityEngine.Random.Range(0, 100) == 0)
         {
-            //if replacement fails, return to original fourth ability
+            //has 1% chance to replace fourth ability, store old ability in case of failure
             Ability origAbility = Abilities[3];
             try
             {
@@ -129,8 +130,22 @@ public class BattleChar
             }
             catch
             {
+                //if replacement fails, return to original fourth ability
                 Abilities[3] = origAbility;
             }
+        }
+
+        //special ability
+        if (data.SpecialAbility == "")
+        {
+            //if not defined, choose one of three from SpeciesData at random
+            SpecialAbility = data.SpeciesData.SpecialAbilities[
+                UnityEngine.Random.Range(0, data.SpeciesData.SpecialAbilities.Count)];
+        }
+        else
+        {
+            //else defined, so directly assign
+            SpecialAbility = data.SpecialAbility;
         }
 
         //team
@@ -145,7 +160,7 @@ public class BattleChar
         RawAgility = (data.RawAgility == 0) ? CalcRawFromBase(SpeciesData.Agility) : data.RawAgility;
 
         //specialty stats
-        if (data.SpecialtyUp == SpecialtyStat.Undefined)
+        if (data.SpecialtyUp == SpecialtyStat.UNDEFINED)
         {
             //get random specialty stat, but don't allow to be the same as SpecialtyDown
             do
@@ -154,7 +169,7 @@ public class BattleChar
                 SpecialtyUp = (SpecialtyStat)rand;
             } while (SpecialtyUp == SpecialtyDown);
         }
-        if (data.SpecialtyDown == SpecialtyStat.Undefined)
+        if (data.SpecialtyDown == SpecialtyStat.UNDEFINED)
         {
             do
             {
@@ -724,4 +739,10 @@ public class BattleChar
         return dialog;  //returning empty list indicates that no traps wore off
     }
 
+
+    //CONVERSION
+    public ScriptableBattleChar ConvertToScriptable()
+    {
+        return new(this);
+    }
 }

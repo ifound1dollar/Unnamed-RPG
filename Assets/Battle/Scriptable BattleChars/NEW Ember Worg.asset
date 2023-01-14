@@ -14,22 +14,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speciesData: {fileID: 11400000, guid: a94234871811a79408aedd9b49842782, type: 2}
   level: 4
-  eAbility1: StrongAttack
-  eAbility2: BasicMove4
+  eAbility1: BasicMove4
+  eAbility2: StrongAttack
   eAbility3: 
   eAbility4: 
-  mAbility1: StrongAttack
-  mAbility2: BasicMove4
-  mAbility3: 
-  mAbility4: 
+  nAbility1: BasicMove4
+  nAbility2: StrongAttack
+  nAbility3: 
+  nAbility4: 
   hAbility1: BasicMove4
   hAbility2: StrongAttack
   hAbility3: 
   hAbility4: 
-  impossibleAbility: 
   nickname: player's thing
   maxEnergy: 0
   actualHP: -1
+  specialAbility: 
+  impossibleAbility: 
   rawMaxHP: 0
   rawStrength: 0
   rawMastery: 0

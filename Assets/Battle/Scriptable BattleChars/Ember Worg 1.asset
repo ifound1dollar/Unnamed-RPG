@@ -18,10 +18,10 @@ MonoBehaviour:
   eAbility2: BasicMove4
   eAbility3: 
   eAbility4: 
-  mAbility1: StrongAttack
-  mAbility2: BasicMove4
-  mAbility3: 
-  mAbility4: 
+  nAbility1: BasicMove4
+  nAbility2: StrongAttack
+  nAbility3: 
+  nAbility4: 
   hAbility1: BasicMove4
   hAbility2: StrongAttack
   hAbility3: 
@@ -29,6 +29,8 @@ MonoBehaviour:
   nickname: nickname
   maxEnergy: 0
   actualHP: -1
+  specialAbility: 
+  impossibleAbility: 
   rawMaxHP: 0
   rawStrength: 0
   rawMastery: 0

@@ -9,26 +9,23 @@ public class ScriptableBattleChar : ScriptableObject
     [SerializeField] SpeciesData speciesData;
     [SerializeField] int level;
 
-    [Header("Easy Abilities - at least one")]
+    [Header("Easy Abilities - minimum 1")]
     [SerializeField] string eAbility1;
     [SerializeField] string eAbility2;
     [SerializeField] string eAbility3;
     [SerializeField] string eAbility4;
 
-    [Header("Medium Abilities - at least one")]
-    [SerializeField] string mAbility1;
-    [SerializeField] string mAbility2;
-    [SerializeField] string mAbility3;
-    [SerializeField] string mAbility4;
+    [Header("Normal Abilities - minimum 1")]
+    [SerializeField] string nAbility1;
+    [SerializeField] string nAbility2;
+    [SerializeField] string nAbility3;
+    [SerializeField] string nAbility4;
 
-    [Header("Hard Abilities - at least one")]
+    [Header("Hard Abilities - minimum 1")]
     [SerializeField] string hAbility1;
     [SerializeField] string hAbility2;
     [SerializeField] string hAbility3;
     [SerializeField] string hAbility4;
-
-    [Header("Impossible Ability - can be empty, chance to replace Ability 4")]
-    [SerializeField] string impossibleAbility;
 
 
     [Header("- OPTIONAL DATA -")]
@@ -37,52 +34,69 @@ public class ScriptableBattleChar : ScriptableObject
     [Tooltip("Value of -1 implies that it was left unchanged (0 could mean actual 0HP)")]
     [SerializeField] int actualHP = -1;
 
+    [Tooltip("Passive Ability is assigned by species data if undefined")]
+    [SerializeField] string specialAbility;
+    [Tooltip("Impossible Ability cannot normally be learned, but has a chance to replace Ability 4")]
+    [SerializeField] string impossibleAbility;
 
-    [Header("Raw stat overrides")]
-    [SerializeField] int rawMaxHP;
-    [SerializeField] int rawStrength;
-    [SerializeField] int rawMastery;
-    [SerializeField] int rawArmor;
-    [SerializeField] int rawResistance;
-    [SerializeField] int rawAgility;
+    [Header("Raw stat overrides (float)")]
+    [SerializeField] float rawMaxHP;
+    [SerializeField] float rawStrength;
+    [SerializeField] float rawMastery;
+    [SerializeField] float rawArmor;
+    [SerializeField] float rawResistance;
+    [SerializeField] float rawAgility;
 
     [Header("Specialty stats (natures), must be different")]
     [SerializeField] SpecialtyStat specialtyUp;
     [SerializeField] SpecialtyStat specialtyDown;
 
-    //[Header("Base stat overrides")]
-    //[SerializeField] int baseMaxHP;
-    //[SerializeField] int baseStrength;
-    //[SerializeField] int baseMastery;
-    //[SerializeField] int baseArmor;
-    //[SerializeField] int baseResistance;
-    //[SerializeField] int baseAgility;
 
-    public SpeciesData SpeciesData { get { return speciesData; } }
-    public int Level { get { return level; } }
+    public SpeciesData SpeciesData  { get { return speciesData; } }
+    public int Level                { get { return level; } }
+    public string Nickname          { get { return nickname; } }
+    public int MaxEnergy            { get { return maxEnergy; } }
+    public int ActualHP             { get { return actualHP; } }
+
+    public string SpecialAbility    { get { return specialAbility; } }
     public string ImpossibleAbility { get { return impossibleAbility; } }
-    public string Nickname { get { return nickname; } }
-    public int MaxEnergy { get { return maxEnergy; } }
 
-    public int ActualHP { get { return actualHP; } }
-    public int RawMaxHP { get { return rawMaxHP; } }
-    public int RawStrength { get { return rawStrength; } }
-    public int RawMastery { get { return rawMastery; } }
-    public int RawArmor { get { return rawArmor; } }
-    public int RawResistance { get { return rawResistance; } }
-    public int RawAgility { get { return rawAgility; } }
+    public float RawMaxHP         { get { return rawMaxHP; } }
+    public float RawStrength      { get { return rawStrength; } }
+    public float RawMastery       { get { return rawMastery; } }
+    public float RawArmor         { get { return rawArmor; } }
+    public float RawResistance    { get { return rawResistance; } }
+    public float RawAgility       { get { return rawAgility; } }
 
-    public SpecialtyStat SpecialtyUp { get { return specialtyUp; } }
-    public SpecialtyStat SpecialtyDown { get { return specialtyDown; } }
-
-    //public int BaseMaxHP { get { return baseMaxHP; } }
-    //public int BaseStrength { get { return baseStrength; } }
-    //public int BaseMastery { get { return baseMastery; } }
-    //public int BaseArmor { get { return BaseArmor; } }
-    //public int BaseResistance { get { return baseResistance; } }
-    //public int BaseAgility { get { return baseAgility; } }
+    public SpecialtyStat SpecialtyUp    { get { return specialtyUp; } }
+    public SpecialtyStat SpecialtyDown  { get { return specialtyDown; } }
 
 
+    //constructor for making save character
+    public ScriptableBattleChar(BattleChar battleChar)
+    {
+        speciesData = battleChar.SpeciesData;
+        nickname = battleChar.Name;
+        level = battleChar.Level;
+        //DO NOT DO MAX ENERGY ATM
+        actualHP = battleChar.HP;
+
+        eAbility1 = nAbility1 = hAbility1 = battleChar.Abilities[0].ToString();
+        eAbility2 = nAbility2 = hAbility2 = battleChar.Abilities[1].ToString();
+        eAbility3 = nAbility3 = hAbility3 = battleChar.Abilities[2].ToString();
+        eAbility4 = nAbility4 = hAbility4 = battleChar.Abilities[3].ToString();
+        specialAbility = battleChar.SpecialAbility;
+
+        rawMaxHP = battleChar.RawMaxHP;
+        rawStrength = battleChar.RawStrength;
+        rawMastery = battleChar.RawMastery;
+        rawArmor = battleChar.RawArmor;
+        rawResistance = battleChar.RawResistance;
+        rawAgility = battleChar.RawAgility;
+
+        specialtyUp = battleChar.SpecialtyUp;
+        specialtyDown = battleChar.SpecialtyDown;
+    }
     public string[] GetAbilitiesAsArray(AIDifficulty difficulty)
     {
         if (difficulty == AIDifficulty.Easy || difficulty == AIDifficulty.Wild)
@@ -91,7 +105,7 @@ public class ScriptableBattleChar : ScriptableObject
         }
         else if (difficulty == AIDifficulty.Medium)
         {
-            return new string[4] { mAbility1, mAbility2, mAbility3, mAbility4 };
+            return new string[4] { nAbility1, nAbility2, nAbility3, nAbility4 };
         }
         else
         {

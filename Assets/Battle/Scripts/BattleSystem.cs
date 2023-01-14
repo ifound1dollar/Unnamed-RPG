@@ -93,7 +93,12 @@ public class BattleSystem : MonoBehaviour
         //find first BattleChar in array with >0HP to make currPlayer
         foreach (BattleChar battleChar in playerChars)
         {
-            if (battleChar.HP > 0) { currPlayer = battleChar; }
+            if (battleChar.HP > 0)
+            {
+                currPlayer = battleChar;
+                currPlayer.WasActive = true;
+                break;
+            }
         }
     }
     void InitEnemyParty()
@@ -111,7 +116,12 @@ public class BattleSystem : MonoBehaviour
         //find first BattleChar in array with >0HP to make currPlayer
         foreach (BattleChar battleChar in enemyChars)
         {
-            if (battleChar.HP > 0) { currEnemy = battleChar; }
+            if (battleChar.HP > 0)
+            {
+                currEnemy = battleChar;
+                currEnemy.WasActive = true;
+                break;
+            }
         }
     }
     int CalcEnemyLevel()

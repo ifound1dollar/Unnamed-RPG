@@ -16,8 +16,8 @@ MonoBehaviour:
   type1: 4
   type2: 12
   xpRatio: 1
-  backSprite: {fileID: 21300000, guid: c218da3920f09d845b74fda4cabb5461, type: 3}
   frontSprite: {fileID: 21300000, guid: c218da3920f09d845b74fda4cabb5461, type: 3}
+  backSprite: {fileID: 21300000, guid: c218da3920f09d845b74fda4cabb5461, type: 3}
   hp: 100
   strength: 100
   mastery: 100
@@ -26,3 +26,7 @@ MonoBehaviour:
   agility: 100
   learnedAbilities:
   - {fileID: 11400000, guid: 1b9285fec09795f42982beabb496cae6, type: 2}
+  specialAbilities:
+  - one
+  - two
+  - three
