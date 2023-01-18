@@ -37,6 +37,8 @@ public class DialogBox : MonoBehaviour
     {
         this.battleSystem = battleSystem;
         partyMenu.SetPlayerCharsReference(battleSystem.PlayerChars);
+        partyMenu.SetDialogBoxReference(this);
+        partyMenu.SetBattleSystemReference(battleSystem);
     }
 
     /// <summary>
@@ -136,7 +138,6 @@ public class DialogBox : MonoBehaviour
         {
             partyMenu.LoadPartyChars(currPlayerIndex: battleSystem.GetCurrBattleCharIndex(playerTeam: true));
             partyMenu.CharButtons[0].Select();
-            partyMenu.ShowDetails(0);
         }
         //else if hiding, auto select Party button
         else
@@ -227,22 +228,8 @@ public class DialogBox : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            //if partyMenu's BackButton is active, invoke its onClick event
-            if (partyMenu.gameObject.activeSelf)
-            {
-                //if details panel is focused, back out of details only
-                if (partyMenu.DetailsFocused)
-                {
-                    partyMenu.DetailsBackButtonPress();
-                }
-                //else back out of entire party menu IF BACK BUTTON IS VALID
-                else if (partyMenu.BackButton.gameObject.activeSelf)
-                {
-                    partyMenu.BackButton.onClick.Invoke();
-                }
-            }
-            //else if abilityOverlay is active
-            else if (abilityOverlay.activeSelf)
+            //invoke ability back button only if ability overlay is shown
+            if (abilityOverlay.activeSelf)
             {
                 abilityBackButton.onClick.Invoke();
             }

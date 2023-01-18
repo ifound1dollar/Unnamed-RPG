@@ -12,23 +12,41 @@ public class PartyMenu : MonoBehaviour
     [SerializeField] Button[] charButtons;
     [SerializeField] Button backButton;
 
+    [Header("SelectOptions")]
+    [SerializeField] PartySelectOptions inBattleOptions;
+    [SerializeField] PartySelectOptions inBattleNoSwapOptions;
+    [SerializeField] PartySelectOptions outOfBattleOptions;
+
     [Header("Details")]
     [SerializeField] GameObject detailsPanel;
-    [SerializeField] Button detailsSwapButton;
+    [SerializeField] GameObject detailsOverlay;
+    [SerializeField] Button[] detailsCharButtons;
     [SerializeField] Button detailsBackButton;
     [SerializeField] TMP_Text detailsName;
     [SerializeField] TMP_Text specUp;
     [SerializeField] TMP_Text specDown;
+
+    [Header("Abilities")]
+    [SerializeField] Button[] abilityButtons;
+    [SerializeField] Button abilityBackButton;
     
 
+    //MAKE BOTH OF THESE METHODS, FUCK PUBLIC PROPERTIES HERE
     public Button[] CharButtons { get { return charButtons; } }
     public Button BackButton { get { return backButton; } }
 
+
+    public bool AbilitiesFocused { get; private set; }
     public bool DetailsFocused { get; private set; }
-    public int CurrentIndex { get; private set; }
+    public int CurrButtonIndex { get; set; }
+    public bool BackButtonJumped { get; private set; }
 
     BattleChar[] playerChars;
-    int currPlayerIndex;
+    DialogBox dialogBox;
+    BattleSystem battleSystem;
+    int currPlayerIndex = 0;
+
+
 
     /// <summary>
     /// Sets the local reference to the playerChars array
@@ -40,7 +58,28 @@ public class PartyMenu : MonoBehaviour
     }
 
     /// <summary>
-    /// Loads BattleChar info into party buttons on right side, also sets currPlayerIndex from argument
+    /// Sets reference to DialogBox, used in battle when hiding PartyMenu
+    /// </summary>
+    /// <param name="dialogBox">Reference to DialogBox object</param>
+    public void SetDialogBoxReference(DialogBox dialogBox)
+    {
+        this.dialogBox = dialogBox;
+    }
+
+    /// <summary>
+    /// Sets local reference to active BattleSystem
+    /// </summary>
+    /// <param name="battleSystem"></param>
+    public void SetBattleSystemReference(BattleSystem battleSystem)
+    {
+        this.battleSystem = battleSystem;
+    }
+
+
+
+
+    /// <summary>
+    /// Loads BattleChar info into party buttons and sets currPlayerIndex from argument
     /// </summary>
     /// <param name="currPlayerIndex">Index of currPlayer in playerChars[]</param>
     public void LoadPartyChars(int currPlayerIndex = -1)
@@ -57,109 +96,225 @@ public class PartyMenu : MonoBehaviour
             {
                 partyChars[i].Name.text = "EMPTY";
                 charButtons[i].interactable = false;
+                detailsCharButtons[i].interactable = false;
             }
         }
         this.currPlayerIndex = currPlayerIndex;
     }
 
     /// <summary>
+    /// Hides PartyMenu when back button is pressed
+    /// </summary>
+    public void HidePartyMenu()
+    {
+        CurrButtonIndex = 0;
+        BackButtonJumped = false;
+
+        //if dialogBox is not null, call its function to auto-select main Party button
+        if (dialogBox != null)
+        {
+            dialogBox.ShowPartyMenu(false);
+        }
+    }
+
+
+
+
+    /// <summary>
+    /// Shows menu options when selecting a PartyButton
+    /// </summary>
+    public void ShowSelectOptions()
+    {
+        //if valid (not -1), then is in battle; else is out of battle
+        if (currPlayerIndex != -1)
+        {
+            if (currPlayerIndex == CurrButtonIndex)
+            {
+                inBattleNoSwapOptions.gameObject.SetActive(true);
+                inBattleNoSwapOptions.DetailsButton.Select();
+            }
+            else
+            {
+                inBattleOptions.gameObject.SetActive(true);
+                inBattleOptions.SwapInButton.Select();
+            }
+        }
+        else
+        {
+            outOfBattleOptions.gameObject.SetActive(true);
+            outOfBattleOptions.DetailsButton.Select();
+        }
+    }
+
+    /// <summary>
+    /// Hides menu options after selecting a PartyButton
+    /// </summary>
+    public void HideSelectOptions()
+    {
+        //hide all select options and reselect original party button
+        inBattleOptions.gameObject.SetActive(false);
+        inBattleNoSwapOptions.gameObject.SetActive(false);
+        outOfBattleOptions.gameObject.SetActive(false);
+        charButtons[CurrButtonIndex].Select();
+    }
+
+
+
+
+    /// <summary>
     /// Shows details of the selected party button's corresponding BattleChar
     /// </summary>
     /// <param name="index">Index of selected BattleChar</param>
-    public void ShowDetails(int index)
+    public void ShowDetails()
     {
-        //store index of selected button for use when back button pressed
-        CurrentIndex = index;
+        detailsOverlay.SetActive(false);
+        int index = CurrButtonIndex;
 
         //SHOW DATA
         detailsName.text = playerChars[index].Name;
         specUp.text = "Spec up: " + playerChars[index].SpecialtyUp.ToString();
         specDown.text = "Spec down: " + playerChars[index].SpecialtyDown.ToString();
 
+
+
+        //set active and select current detailsCharButton
+        DetailsFocused = true;
         detailsPanel.SetActive(true);
+        detailsCharButtons[index].Select();
     }
 
     /// <summary>
-    /// Hides details panel, intended only for when PartyMenu's back button is selected
+    /// Temporarily covers up details pane while back button is selected
+    /// </summary>
+    public void CoverDetails()
+    {
+        //SHOW SOME OVERLAY HERE
+        detailsOverlay.SetActive(true);
+    }
+
+    /// <summary>
+    /// Hides details panel and re-focuses calling Button
     /// </summary>
     public void HideDetails()
     {
-        CurrentIndex = 0;
+        HideSelectOptions();
+
+        //select button from current details panel character
+        charButtons[CurrButtonIndex].Select();
+        DetailsFocused = false;
+        BackButtonJumped = false;
+
         detailsPanel.SetActive(false);
     }
 
+
+
+
     /// <summary>
-    /// Focuses on the details panel, showing local swap button if valid BattleSystem
+    /// Focuses in on details panel, showing detailed Ability info
     /// </summary>
-    public void FocusDetails()
+    public void ShowAbilityInfo()
     {
-        DetailsFocused = true;
-        detailsBackButton.gameObject.SetActive(true);
+        //will be called when player presses Submit button while details are shown
+        //will allow viewing details of Abilities
+        //pressing Escape here will keep details shown but not Abilities focused
 
-        EnableOtherButtons(false);
-
-        //if currPlayerIndex is -1, then there is no active BattleSystem
-        if (currPlayerIndex == -1)
-        {
-            //disable swap button and auto-select back button
-            detailsSwapButton.gameObject.SetActive(false);
-            detailsBackButton.Select();
-        }
-        else
-        {
-            detailsSwapButton.gameObject.SetActive(true);
-
-            //make swap button non-interactable if is current BattleChar
-            if (currPlayerIndex == CurrentIndex)
-            {
-                detailsSwapButton.interactable = false;
-                detailsBackButton.Select();
-            }
-            else
-            {
-                detailsSwapButton.interactable = true;
-                detailsSwapButton.Select();
-            }
-        }
-        
+        AbilitiesFocused = true;
+        abilityBackButton.Select();
     }
+    /// <summary>
+    /// Hides Ability detailed info
+    /// </summary>
+    public void HideAbilityInfo()
+    {
+        AbilitiesFocused = false;
+        detailsCharButtons[CurrButtonIndex].Select();
+    }
+
+
+
 
     /// <summary>
     /// Takes BattleSystem reference and calls its OnSwapButtonPress method
     /// </summary>
     /// <param name="battleSystem">Reference to active BattleSystem (in-battle only)</param>
-    public void OnSwapButtonPressed(BattleSystem battleSystem)
+    public void OnSwapButtonPressed()
     {
-        //call battleSystem's OnSwapButtonPressed method with currentIndex
-        battleSystem.OnSwapButtonPress(CurrentIndex);
-    }
-
-    /// <summary>
-    /// De-focuses details panel and hides local swap and back buttons
-    /// </summary>
-    public void DetailsBackButtonPress()
-    {
-        EnableOtherButtons(true);
-
-        //select button from current details panel character
-        charButtons[CurrentIndex].Select();
-        DetailsFocused = false;
-
-        detailsSwapButton.gameObject.SetActive(false);
-        detailsBackButton.gameObject.SetActive(false);
-    }
-
-    /// <summary>
-    /// Enables or disables interaction with party buttons and main back button
-    /// </summary>
-    /// <param name="enable">Bool for whether to enable or disable button interaction</param>
-    void EnableOtherButtons(bool enable)
-    {
-        //only enable charButtons that correspond to an actual playerChar
-        for (int i = 0; i < playerChars.Length; i++)
+        if (battleSystem != null)
         {
-            charButtons[i].interactable = enable;
+            HideSelectOptions();
+
+            //call battleSystem's OnSwapButtonPressed method with currentIndex
+            battleSystem.OnSwapButtonPress(CurrButtonIndex);
         }
-        backButton.interactable = enable;
+    }
+
+
+
+
+    /// <summary>
+    /// Selects last available CharButton and sets CurrButtonIndex
+    /// </summary>
+    public void SelectLastCharButton()
+    {
+        if (detailsPanel.activeSelf)
+        {
+            detailsCharButtons[playerChars.Length - 1].Select();
+        }
+        else
+        {
+            charButtons[playerChars.Length - 1].Select();
+        }
+        CurrButtonIndex = playerChars.Length - 1;
+        BackButtonJumped = false;
+    }
+
+    /// <summary>
+    /// Selects either the main or details back button, based on context
+    /// </summary>
+    public void SelectCorrectBackButton()
+    {
+        if (detailsPanel.activeSelf)
+        {
+            detailsBackButton.Select();
+
+            //if selecting details back button, should cover up details temporarily
+        }
+        else
+        {
+            backButton.Select();
+        }
+        BackButtonJumped = true;
+    }
+
+
+
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            //if DetailsFocused (ability info is focused)
+            if (AbilitiesFocused)
+            {
+                HideAbilityInfo();
+            }
+            //else if details panel is focused, and abilities not
+            else if (DetailsFocused)
+            {
+                HideDetails();
+            }
+            //else if select options are shown
+            else if (inBattleOptions.gameObject.activeSelf || inBattleNoSwapOptions.gameObject.activeSelf
+                || outOfBattleOptions.gameObject.activeSelf)
+            {
+                HideSelectOptions();
+            }
+            //else back out of entire PartyMenu IF BUTTON IS VALID
+            else if (backButton.gameObject.activeSelf)
+            {
+                HidePartyMenu();
+            }
+        }
     }
 }
