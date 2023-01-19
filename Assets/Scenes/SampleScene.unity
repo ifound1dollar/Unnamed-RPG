@@ -12377,14 +12377,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 155498105}
     m_Modifications:
-    - target: {fileID: 4302171178416124061, guid: 1a1950df91c6e5a47b4732d80f305d0b, type: 3}
-      propertyPath: m_Interactable
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4302171178416124062, guid: 1a1950df91c6e5a47b4732d80f305d0b, type: 3}
-      propertyPath: m_FillCenter
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 4302171179868934346, guid: 1a1950df91c6e5a47b4732d80f305d0b, type: 3}
       propertyPath: m_Name
       value: PartyMenu

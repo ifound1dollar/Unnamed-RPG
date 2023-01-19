@@ -10,26 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e0cb0e5bea0a261478e9c119dbd64088, type: 3}
-  m_Name: Ember Worg
+  m_Name: Fiery Worg
   m_EditorClassIdentifier: 
-  speciesName: Ember Worg
+  speciesName: Fiery Worg
   type1: 4
   type2: 12
   xpRatio: 1
-  frontSprite: {fileID: 21300000, guid: c218da3920f09d845b74fda4cabb5461, type: 3}
-  backSprite: {fileID: 21300000, guid: c218da3920f09d845b74fda4cabb5461, type: 3}
-  hp: 100
-  strength: 100
-  mastery: 100
+  frontSprite: {fileID: 21300000, guid: 2b2a95926af0cf5419fad87528b918e4, type: 3}
+  backSprite: {fileID: 21300000, guid: 2b2a95926af0cf5419fad87528b918e4, type: 3}
+  hp: 110
+  strength: 120
+  mastery: 90
   armor: 100
   resistance: 100
-  agility: 100
+  agility: 130
   learnedAbilities:
   - {fileID: 11400000, guid: 36f014c0772ff994f810fbfd736d4d9e, type: 2}
   specialAbilities:
   - one
   - two
   - three
-  evolutionStage: 1
-  evolutions:
-  - {fileID: 11400000, guid: 58b2ada6b665e6c48881072ef4fe7bc8, type: 2}
+  evolutionStage: 2
+  evolutions: []

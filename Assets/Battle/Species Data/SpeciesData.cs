@@ -28,6 +28,10 @@ public class SpeciesData : ScriptableObject
     [Header("Exactly 3 possible Special Abilities")]
     [SerializeField] List<string> specialAbilities;
 
+    [Header("Evolution data")]
+    [SerializeField] int evolutionStage = 1;
+    [SerializeField] List<EvolutionData> evolutions;
+
 
     public string SpeciesName   { get { return speciesName; } }
     public BattleType Type1     { get { return type1; } }
@@ -46,5 +50,9 @@ public class SpeciesData : ScriptableObject
     public int Agility          { get { return agility; } }
 
     public List<LearnedAbility> LearnedAbilities { get { return learnedAbilities; } }
+
+    public int EvolutionStage { get { return evolutionStage; } }
+    public List<EvolutionData> Evolutions { get { return evolutions; } }
+
     public List<string> SpecialAbilities { get { return specialAbilities; } }
 }

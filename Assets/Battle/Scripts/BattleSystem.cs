@@ -971,7 +971,11 @@ public class BattleSystem : MonoBehaviour
             }
         }
 
+
+
         //CONVERT PLAYER CHARACTERS TO SCRIPTABLE AND STORE WHEREVER NECESSARY
+
+
 
         //hide this gameObject (entire BattleSystem) then stop all coroutines
         gameObject.SetActive(false);
@@ -985,6 +989,12 @@ public class BattleSystem : MonoBehaviour
         //if enemy is >= player, multiply by ratio, else divide (base yield 10 per level)
         float xp = (enemy.Level >= player.Level)
             ? (enemy.Level * 10) * ratio : (enemy.Level * 10) / ratio;
+
+        //increase yield by flat 25% per evolution stage above 1
+        if (enemy.SpeciesData.EvolutionStage > 1)
+        {
+            xp *= (enemy.SpeciesData.EvolutionStage == 2) ? 1.25f : 1.5f;
+        }
 
         //return xp value, divided by number of participants then rounded to int
         return Mathf.RoundToInt(xp / participants);
@@ -1027,6 +1037,8 @@ public class BattleSystem : MonoBehaviour
                 yield return new WaitForSeconds(textDelay);
                 yield break;
             }
+
+
 
             //HANDLE MENU TO REPLACE OLD ABILITY HERE, REACHES HERE IF NO VALID INDEX
         }
