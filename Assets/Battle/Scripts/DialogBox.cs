@@ -137,23 +137,28 @@ public class DialogBox : MonoBehaviour
         if (enable)
         {
             partyMenu.LoadPartyChars(currPlayerIndex: battleSystem.GetCurrBattleCharIndex(playerTeam: true));
-            partyMenu.CharButtons[0].Select();
+            partyMenu.SelectCurrPlayerButton();
+            partyMenu.ShowPartyMenu();
         }
         //else if hiding, auto select Party button
         else
         {
             partyButton.Select();
+            partyMenu.HidePartyMenu();
         }
-
-        partyMenu.gameObject.SetActive(enable);
-        partyMenu.BackButton.enabled = true;
-
-        //disable main buttons so the player cannot interact with them while party menu is open
-        ShowMainButtons(!enable);
     }
     public void HidePartyBackButton()
     {
-        partyMenu.BackButton.enabled = false;
+        partyMenu.ShowPartyMenu(showBackButton: false);
+    }
+
+    /// <summary>
+    /// Shows main buttons and auto-selects PartyButton
+    /// </summary>
+    public void FocusMainPartyButton()
+    {
+        ShowMainButtons(true);
+        partyButton.Select();
     }
 
 

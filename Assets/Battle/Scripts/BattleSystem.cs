@@ -1040,9 +1040,15 @@ public class BattleSystem : MonoBehaviour
                 yield break;
             }
 
+            //handle teaching ability, waiting until not Busy to move on
+            yield return dialogBox.DialogSet($"{player.Name} is trying to learn an Ability...");
+            yield return new WaitForSeconds(textDelay);
+            state = BattleState.Busy;
+            dialogBox.PartyMenu.BeginTeachAbility(newAbility, Array.IndexOf(playerChars, player));
+            yield return new WaitUntil(() => state != BattleState.Busy);
 
-
-            //HANDLE MENU TO REPLACE OLD ABILITY HERE, REACHES HERE IF NO VALID INDEX
+            yield return dialogBox.DialogSet("MESSAGE AFTER TEACH");
+            yield return new WaitForSeconds(textDelay);
         }
     }
 

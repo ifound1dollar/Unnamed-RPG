@@ -20,6 +20,8 @@ public class AbilityButton : MonoBehaviour, ISelectHandler
         }
         else
         {
+            partyMenu.CurrAbilityIndex = buttonIndex;
+
             //if back button, temporarily cover ability info; else show ability info
             if (buttonIndex == -1)
             {
@@ -27,7 +29,7 @@ public class AbilityButton : MonoBehaviour, ISelectHandler
             }
             else
             {
-                partyMenu.ShowAbilityInfo(buttonIndex);
+                partyMenu.ShowAbilityInfo();
             }
         }
     }

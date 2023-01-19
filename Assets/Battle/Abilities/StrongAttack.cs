@@ -22,8 +22,8 @@ public class StrongAttack : Ability
         CalcDamageToDeal(data);
         data.Target.TakeDamage(data.Damage);
 
-        yield return UpdateDialogUniversal(data);   //do not call this method with custom dialog
         yield return UpdateHudAndDelay(data);       //call for all HUD updates and delays
+        yield return UpdateDialogUniversal(data);   //do not call this method with custom dialog
 
         yield break;
     }

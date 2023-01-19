@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a63c78cf79b10d14a9e18e9ac8ee113c, type: 3}
-  m_Name: P Fiery Worg
+  m_Name: P Ember Worg
   m_EditorClassIdentifier: 
-  speciesData: {fileID: 11400000, guid: 8fa4c4fa07f62764a9ebe582632e676a, type: 2}
+  speciesData: {fileID: 11400000, guid: a94234871811a79408aedd9b49842782, type: 2}
   level: 1
-  eAbility1: somethin strange
+  eAbility1: 
   eAbility2: BasicMove4
-  eAbility3: IS BAD
-  eAbility4: BasicMove4
+  eAbility3: 
+  eAbility4: 
   nAbility1: BasicMove4
   nAbility2: 
   nAbility3: 
@@ -26,7 +26,7 @@ MonoBehaviour:
   hAbility2: 
   hAbility3: 
   hAbility4: 
-  nickname: player's thing
+  nickname: p ember worg
   maxEnergy: 0
   actualHP: -1
   specialAbility: 

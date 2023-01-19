@@ -30,6 +30,8 @@ public class PartyMenu : MonoBehaviour
     [SerializeField] Button[] abilityButtons;
     [SerializeField] TMP_Text[] abilityTexts;
     [SerializeField] Button abilityBackButton;
+    [SerializeField] AbilitySelectOptions abilityReorderOption;
+    [SerializeField] AbilitySelectOptions abilityRemoveOption;
     [SerializeField] GameObject abilityInfoOverlay;
     [SerializeField] TMP_Text abilityName;
     [SerializeField] TMP_Text abilityType;
@@ -39,15 +41,25 @@ public class PartyMenu : MonoBehaviour
     [SerializeField] TMP_Text abilityPower;
     [SerializeField] TMP_Text abilityAccuracy;
 
-
-    //MAKE BOTH OF THESE METHODS, FUCK PUBLIC PROPERTIES HERE
-    public Button[] CharButtons { get { return charButtons; } }
-    public Button BackButton { get { return backButton; } }
+    [Header("Teach Ability")]
+    [SerializeField] GameObject teachAbilityOverlay;
+    [SerializeField] GameObject teachWarningOverlay;
+    [SerializeField] TMP_Text teachAbilityName;
+    [SerializeField] TMP_Text teachAbilityType;
+    [SerializeField] TMP_Text teachAbilityCategory;
+    [SerializeField] TMP_Text teachAbilityContact;
+    [SerializeField] TMP_Text teachAbilityEnergy;
+    [SerializeField] TMP_Text teachAbilityPower;
+    [SerializeField] TMP_Text teachAbilityAccuracy;
 
 
     public bool AbilitiesFocused { get; private set; }
     public bool DetailsFocused { get; private set; }
     public int CurrButtonIndex { get; set; }
+    public int CharReorderIndex { get; set; } = -1;
+    public int CurrAbilityIndex { get; set; }
+    public int AbilityReorderIndex { get; set; } = -1;
+    public Ability TeachAbility { get; set; }
     public bool BackButtonJumped { get; private set; }
 
     BattleChar[] playerChars;
@@ -113,17 +125,35 @@ public class PartyMenu : MonoBehaviour
     }
 
     /// <summary>
+    /// Select button corresponding to CurrPlayerIndex
+    /// </summary>
+    public void SelectCurrPlayerButton()
+    {
+        charButtons[currPlayerIndex].Select();
+    }
+
+    /// <summary>
+    /// Shows party menu, optionally hiding back button
+    /// </summary>
+    public void ShowPartyMenu(bool showBackButton = true)
+    {
+        gameObject.SetActive(true);
+        backButton.enabled = showBackButton;
+    }
+
+    /// <summary>
     /// Hides PartyMenu when back button is pressed
     /// </summary>
     public void HidePartyMenu()
     {
         CurrButtonIndex = 0;
         BackButtonJumped = false;
+        gameObject.SetActive(false);
 
         //if dialogBox is not null, call its function to auto-select main Party button
         if (dialogBox != null)
         {
-            dialogBox.ShowPartyMenu(false);
+            dialogBox.FocusMainPartyButton();
         }
     }
 
@@ -135,6 +165,13 @@ public class PartyMenu : MonoBehaviour
     /// </summary>
     public void ShowSelectOptions()
     {
+        //if CharReorderIndex is NOT -1, then is in Reorder mode
+        if (CharReorderIndex != -1)
+        {
+            HandleCharReorder();
+            return;
+        }
+
         //if valid (not -1), then is in battle; else is out of battle
         if (currPlayerIndex != -1)
         {
@@ -202,6 +239,10 @@ public class PartyMenu : MonoBehaviour
                 //MISSING should remain interactable
                 abilityButtons[i].interactable = false;
             }
+            else
+            {
+                abilityButtons[i].interactable = true;
+            }
         }
 
         //find and store last Ability button index for quick access
@@ -258,9 +299,9 @@ public class PartyMenu : MonoBehaviour
     /// <summary>
     /// Shows detailed Ability info at provided index (when hovering button)
     /// </summary>
-    public void ShowAbilityInfo(int index)
+    public void ShowAbilityInfo()
     {
-        Ability ability = playerChars[CurrButtonIndex].Abilities[index];
+        Ability ability = playerChars[CurrButtonIndex].Abilities[CurrAbilityIndex];
 
         abilityName.text = ability.Name;
         abilityType.text = "Type: " + ability.AbilityType.ToString();
@@ -270,6 +311,7 @@ public class PartyMenu : MonoBehaviour
         abilityPower.text = "Power: " + ability.Power.ToString();
         abilityAccuracy.text = "Accuracy: " + ability.Accuracy.ToString();
 
+        teachWarningOverlay.SetActive(false);
         abilityInfoOverlay.SetActive(true);
         AbilitiesFocused = true;
     }
@@ -280,6 +322,12 @@ public class PartyMenu : MonoBehaviour
     public void CoverAbilityInfo()
     {
         abilityInfoOverlay.SetActive(false);
+
+        //if TeachAbility not null, then is teaching, so show warning
+        if (TeachAbility != null)
+        {
+            teachWarningOverlay.SetActive(true);
+        }
     }
 
     /// <summary>
@@ -287,10 +335,20 @@ public class PartyMenu : MonoBehaviour
     /// </summary>
     public void HideAbilityInfo()
     {
+        //if TeachAbility not null, then cancelling must CancelAbilityRemove
+        if (TeachAbility != null)
+        {
+            CancelAbilityRemove();
+            return;
+        }
+
+        teachWarningOverlay.SetActive(false);
         abilityInfoOverlay.SetActive(false);
         AbilitiesFocused = false;
         BackButtonJumped = false;
         detailsCharButtons[CurrButtonIndex].Select();
+
+        CurrAbilityIndex = -1;
     }
 
 
@@ -309,6 +367,196 @@ public class PartyMenu : MonoBehaviour
             //call battleSystem's OnSwapButtonPressed method with currentIndex
             battleSystem.OnSwapButtonPress(CurrButtonIndex);
         }
+    }
+
+
+
+
+    /// <summary>
+    /// Starts reordering process, hiding select options and storing initial reorder button
+    /// </summary>
+    public void OnCharReorderButtonPressed()
+    {
+        CharReorderIndex = CurrButtonIndex;
+        HideSelectOptions();
+        backButton.gameObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// Does reordering operation, swapping BattleChars, reloading, then ending reorder mode
+    /// </summary>
+    void HandleCharReorder()
+    {
+        //reorder actual playerChars
+        (playerChars[CurrButtonIndex], playerChars[CharReorderIndex])
+            = (playerChars[CharReorderIndex], playerChars[CurrButtonIndex]);
+
+        LoadPartyChars();
+        CancelCharReorder();
+    }
+
+    /// <summary>
+    /// Cancel reorder mode, resetting CharReorderIndex and showing BackButton again
+    /// </summary>
+    void CancelCharReorder()
+    {
+        CharReorderIndex = -1;
+        backButton.gameObject.SetActive(true);
+    }
+
+
+
+
+    /// <summary>
+    /// Shows correct AbilityOption panel and auto-selects based on context
+    /// </summary>
+    public void ShowAbilityOption()
+    {
+        //if AbilityReorderIndex is NOT -1, then is in Reorder mode
+        if (AbilityReorderIndex != -1)
+        {
+            HandleAbilityReorder();
+            return;
+        }
+
+        //if learning, only allow remove option
+        if (TeachAbility != null)
+        {
+            abilityRemoveOption.gameObject.SetActive(true);
+            abilityRemoveOption.RemoveButton.Select();
+        }
+        else
+        {
+            //only show reorder option if out of battle
+            if (currPlayerIndex != -1)
+            {
+                abilityReorderOption.gameObject.SetActive(true);
+                abilityReorderOption.ReorderButton.Select();
+            }
+        }
+    }
+
+    public void HideAbilityOption()
+    {
+        abilityReorderOption.gameObject.SetActive(false);
+        abilityRemoveOption.gameObject.SetActive(false);
+        abilityButtons[CurrAbilityIndex].Select();
+    }
+
+    /// <summary>
+    /// Sets TeachAbility reference and display info, then loads entire PartyMenu interface
+    /// </summary>
+    /// <param name="ability">Ability to teach</param>
+    /// <param name="charIndex">Index of player character being taught</param>
+    public void BeginTeachAbility(Ability ability, int charIndex)
+    {
+        TeachAbility = ability;
+
+        teachAbilityName.text = ability.Name;
+        teachAbilityType.text = "Type: " + ability.AbilityType.ToString();
+        teachAbilityCategory.text = "Category: " + ability.Category.ToString();
+        teachAbilityContact.text = (ability.MakesContact) ? "Contact: Yes" : "Contact: No";
+        teachAbilityEnergy.text = "Energy: " + ability.Energy.ToString();
+        teachAbilityPower.text = "Power: " + ability.Power.ToString();
+        teachAbilityAccuracy.text = "Accuracy: " + ability.Accuracy.ToString();
+
+        //this method must show EVERYTHING necessary since PartyMenu will not be open when this is called
+        LoadPartyChars();
+        ShowPartyMenu();
+        detailsPanel.SetActive(true);
+        CurrButtonIndex = charIndex;
+        ShowDetails();
+
+        //focus panel and show TeachAbility info
+        FocusAbilityPanel();
+        teachAbilityOverlay.SetActive(true);
+    }
+
+    /// <summary>
+    /// Called when button pressed, handling Ability removal (or replacement)
+    /// </summary>
+    public void OnAbilityRemoveButtonPressed()
+    {
+        abilityRemoveOption.gameObject.SetActive(false);
+        HandleAbilityRemove();
+    }
+
+    /// <summary>
+    /// Removes Ability at CurrAbilityIndex and possibly replaces with TeachAbility
+    /// </summary>
+    void HandleAbilityRemove()
+    {
+        BattleChar player = playerChars[CurrButtonIndex];
+        if (TeachAbility != null)
+        {
+            //replace ability at selected index with TeachAbility
+            player.Abilities[CurrAbilityIndex] = TeachAbility;
+        }
+        else
+        {
+            //replace with EmptyAbility (remove), then move it to end
+            player.Abilities[CurrAbilityIndex] = new EmptyAbility();
+            for (int i = CurrAbilityIndex; i < 3; i++)
+            {
+                //if next Ability is legitimate, swap locations
+                if (player.Abilities[i + 1].Name != "EMPTY")
+                {
+                    (player.Abilities[i], player.Abilities[i + 1])
+                        = (player.Abilities[i + 1], player.Abilities[i]);
+                }
+            }
+        }
+
+        CancelAbilityRemove();
+    }
+
+    /// <summary>
+    /// Resets TeachAbility, hides its data, and completely hides PartyMenu
+    /// </summary>
+    void CancelAbilityRemove()
+    {
+        TeachAbility = null;
+        teachAbilityOverlay.SetActive(false);
+        HideAbilityInfo();
+        HideDetails();
+        HidePartyMenu();
+    }
+
+
+
+
+    /// <summary>
+    /// Begins reordering process, setting AbilityReorderIndex and hiding back button
+    /// </summary>
+    public void OnAbilityReorderButtonPressed()
+    {
+        AbilityReorderIndex = CurrAbilityIndex;
+        abilityReorderOption.gameObject.SetActive(false);
+        abilityBackButton.gameObject.SetActive(false);
+        abilityButtons[CurrAbilityIndex].Select();
+    }
+
+    /// <summary>
+    /// Performs Ability swap, reloads details panel, then resets reorder data
+    /// </summary>
+    void HandleAbilityReorder()
+    {
+        //swap Abilities in array
+        BattleChar player = playerChars[CurrButtonIndex];
+        (player.Abilities[AbilityReorderIndex], player.Abilities[CurrAbilityIndex])
+            = (player.Abilities[CurrAbilityIndex], player.Abilities[AbilityReorderIndex]);
+
+        ShowDetails();
+        CancelAbilityReorder();
+    }
+
+    /// <summary>
+    /// Resets AbilityReorderIndex and shows back button again
+    /// </summary>
+    void CancelAbilityReorder()
+    {
+        AbilityReorderIndex = -1;
+        abilityBackButton.gameObject.SetActive(true);
     }
 
 
@@ -343,7 +591,15 @@ public class PartyMenu : MonoBehaviour
     {
         if (AbilitiesFocused)
         {
-            abilityBackButton.Select();
+            if (abilityBackButton.gameObject.activeSelf)
+            {
+                abilityBackButton.Select();
+            }
+            else
+            {
+                //if ability back button not visible, reselect last CharButton
+                SelectCorrectNormalButton();
+            }
         }
         else if (DetailsFocused)
         {
@@ -351,7 +607,15 @@ public class PartyMenu : MonoBehaviour
         }
         else
         {
-            backButton.Select();
+            if (backButton.gameObject.activeSelf)
+            {
+                backButton.Select();
+            }
+            else
+            {
+                //if back button not visible, reselect last CharButton
+                SelectCorrectNormalButton();
+            }
         }
         BackButtonJumped = true;
     }
@@ -363,10 +627,36 @@ public class PartyMenu : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            //if DetailsFocused (ability info is focused)
+            //if ability info is focused
             if (AbilitiesFocused)
             {
-                HideAbilityInfo();
+                //in reorder mode
+                if (AbilityReorderIndex != -1)
+                {
+                    CancelAbilityReorder();
+                }
+                //else if either AbilityOption is active
+                else if (abilityReorderOption.gameObject.activeSelf || abilityRemoveOption.gameObject.activeSelf)
+                {
+                    HideAbilityOption();
+                }
+                //if not null, then is teaching
+                else if (TeachAbility != null)
+                {
+                    //if abilityBackButton is selected, else Ability button selected
+                    if (CurrAbilityIndex == -1)
+                    {
+                        CancelAbilityRemove();
+                    }
+                    else
+                    {
+                        abilityBackButton.Select();
+                    }
+                }
+                else
+                {
+                    HideAbilityInfo();
+                }
             }
             //else if details panel is focused, and abilities not
             else if (DetailsFocused)
@@ -383,6 +673,11 @@ public class PartyMenu : MonoBehaviour
             else if (backButton.gameObject.activeSelf)
             {
                 HidePartyMenu();
+            }
+            //else if not -1, then is in reorder mode
+            else if (CharReorderIndex != -1)
+            {
+                CancelCharReorder();
             }
         }
     }

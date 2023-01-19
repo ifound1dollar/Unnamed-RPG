@@ -157,6 +157,7 @@ public abstract class Ability
         
         //update dialog even if empty (effectively clears dialog)
         yield return data.DialogBox.DialogSet(text);
+        yield return new WaitForSeconds(data.TextDelay);
     }
     protected IEnumerator UpdateHudAndDelay(AbilityData data)
     {
@@ -164,7 +165,7 @@ public abstract class Ability
 
         data.PlayerHud.UpdateHUD((data.User.PlayerTeam) ? data.User : data.Target);
         data.EnemyHud.UpdateHUD((data.User.PlayerTeam) ? data.Target : data.User);
-        yield return new WaitForSeconds(data.TextDelay);
+        yield return new WaitForSeconds(1.0f);  //1 second is roughly duration of HUD animation
     }
 
     //universal score calcuation
