@@ -28,8 +28,17 @@ public class PartyMenu : MonoBehaviour
 
     [Header("Abilities")]
     [SerializeField] Button[] abilityButtons;
+    [SerializeField] TMP_Text[] abilityTexts;
     [SerializeField] Button abilityBackButton;
-    
+    [SerializeField] GameObject abilityInfoOverlay;
+    [SerializeField] TMP_Text abilityName;
+    [SerializeField] TMP_Text abilityType;
+    [SerializeField] TMP_Text abilityCategory;
+    [SerializeField] TMP_Text abilityContact;
+    [SerializeField] TMP_Text abilityEnergy;
+    [SerializeField] TMP_Text abilityPower;
+    [SerializeField] TMP_Text abilityAccuracy;
+
 
     //MAKE BOTH OF THESE METHODS, FUCK PUBLIC PROPERTIES HERE
     public Button[] CharButtons { get { return charButtons; } }
@@ -45,6 +54,7 @@ public class PartyMenu : MonoBehaviour
     DialogBox dialogBox;
     BattleSystem battleSystem;
     int currPlayerIndex = 0;
+    int lastAbilityIndex = 0;
 
 
 
@@ -162,25 +172,52 @@ public class PartyMenu : MonoBehaviour
 
 
     /// <summary>
+    /// Focuses details panel, setting active and auto-selecing first DetailsCharButton
+    /// </summary>
+    public void FocusDetailsPanel()
+    {
+        DetailsFocused = true;
+        detailsPanel.SetActive(true);
+        detailsCharButtons[CurrButtonIndex].Select();
+    }
+
+    /// <summary>
     /// Shows details of the selected party button's corresponding BattleChar
     /// </summary>
     /// <param name="index">Index of selected BattleChar</param>
     public void ShowDetails()
     {
-        detailsOverlay.SetActive(false);
-        int index = CurrButtonIndex;
+        BattleChar player = playerChars[CurrButtonIndex];
 
         //SHOW DATA
-        detailsName.text = playerChars[index].Name;
-        specUp.text = "Spec up: " + playerChars[index].SpecialtyUp.ToString();
-        specDown.text = "Spec down: " + playerChars[index].SpecialtyDown.ToString();
+        detailsName.text = player.Name;
+        specUp.text = "Spec up: " + player.SpecialtyUp.ToString();
+        specDown.text = "Spec down: " + player.SpecialtyDown.ToString();
 
+        for (int i = 0; i < player.Abilities.Length; i++)
+        {
+            abilityTexts[i].text = player.Abilities[i].Name;
+            if (player.Abilities[i].Name == "EMPTY")
+            {
+                //MISSING should remain interactable
+                abilityButtons[i].interactable = false;
+            }
+        }
 
+        //find and store last Ability button index for quick access
+        for (int i = 0; i < player.Abilities.Length; i++)
+        {
+            if (player.Abilities[i].Name == "EMPTY")
+            {
+                //set to index just before first found EMPTY Ability
+                lastAbilityIndex = i - 1;
+                break;
+            }
+        }
 
         //set active and select current detailsCharButton
+        detailsOverlay.SetActive(false);
         DetailsFocused = true;
-        detailsPanel.SetActive(true);
-        detailsCharButtons[index].Select();
     }
 
     /// <summary>
@@ -188,7 +225,6 @@ public class PartyMenu : MonoBehaviour
     /// </summary>
     public void CoverDetails()
     {
-        //SHOW SOME OVERLAY HERE
         detailsOverlay.SetActive(true);
     }
 
@@ -211,23 +247,49 @@ public class PartyMenu : MonoBehaviour
 
 
     /// <summary>
-    /// Focuses in on details panel, showing detailed Ability info
+    /// Focuses Ability panel, auto-selecting first Ability
     /// </summary>
-    public void ShowAbilityInfo()
+    public void FocusAbilityPanel()
     {
-        //will be called when player presses Submit button while details are shown
-        //will allow viewing details of Abilities
-        //pressing Escape here will keep details shown but not Abilities focused
-
         AbilitiesFocused = true;
-        abilityBackButton.Select();
+        abilityButtons[0].Select();
     }
+
     /// <summary>
-    /// Hides Ability detailed info
+    /// Shows detailed Ability info at provided index (when hovering button)
+    /// </summary>
+    public void ShowAbilityInfo(int index)
+    {
+        Ability ability = playerChars[CurrButtonIndex].Abilities[index];
+
+        abilityName.text = ability.Name;
+        abilityType.text = "Type: " + ability.AbilityType.ToString();
+        abilityCategory.text = "Category: " + ability.Category.ToString();
+        abilityContact.text = (ability.MakesContact) ? "Contact: Yes" : "Contact: No";
+        abilityEnergy.text = "Energy: " + ability.Energy.ToString();
+        abilityPower.text = "Power: " + ability.Power.ToString();
+        abilityAccuracy.text = "Accuracy: " + ability.Accuracy.ToString();
+
+        abilityInfoOverlay.SetActive(true);
+        AbilitiesFocused = true;
+    }
+
+    /// <summary>
+    /// Temporarily covers Ability info overlay while back button is hovered
+    /// </summary>
+    public void CoverAbilityInfo()
+    {
+        abilityInfoOverlay.SetActive(false);
+    }
+
+    /// <summary>
+    /// Hides Ability info overlay and auto-selects current DetailsCharButton
     /// </summary>
     public void HideAbilityInfo()
     {
+        abilityInfoOverlay.SetActive(false);
         AbilitiesFocused = false;
+        BackButtonJumped = false;
         detailsCharButtons[CurrButtonIndex].Select();
     }
 
@@ -253,32 +315,39 @@ public class PartyMenu : MonoBehaviour
 
 
     /// <summary>
-    /// Selects last available CharButton and sets CurrButtonIndex
+    /// Selects last available CharButton or AbilityButton, based on context
     /// </summary>
-    public void SelectLastCharButton()
+    public void SelectCorrectNormalButton()
     {
-        if (detailsPanel.activeSelf)
+        if (AbilitiesFocused)
+        {
+            abilityButtons[lastAbilityIndex].Select();
+        }
+        else if (DetailsFocused)
         {
             detailsCharButtons[playerChars.Length - 1].Select();
+            CurrButtonIndex = playerChars.Length - 1;
         }
         else
         {
             charButtons[playerChars.Length - 1].Select();
+            CurrButtonIndex = playerChars.Length - 1;
         }
-        CurrButtonIndex = playerChars.Length - 1;
         BackButtonJumped = false;
     }
 
     /// <summary>
-    /// Selects either the main or details back button, based on context
+    /// Selects relevant back button, based on context
     /// </summary>
     public void SelectCorrectBackButton()
     {
-        if (detailsPanel.activeSelf)
+        if (AbilitiesFocused)
+        {
+            abilityBackButton.Select();
+        }
+        else if (DetailsFocused)
         {
             detailsBackButton.Select();
-
-            //if selecting details back button, should cover up details temporarily
         }
         else
         {

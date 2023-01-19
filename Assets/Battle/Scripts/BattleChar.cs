@@ -99,7 +99,7 @@ public class BattleChar
         //level from data if undefined, else from argument
         Level = (argLevel == 0) ? data.Level : argLevel;
 
-        //abilities
+        //abilities, NOW IN ORDER WITH EMPTY AT THE END
         string[] abilityNames = data.GetAbilitiesAsArray(difficulty);
         for (int i = 0; i < 4; i++)
         {

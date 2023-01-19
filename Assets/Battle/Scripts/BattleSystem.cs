@@ -227,6 +227,7 @@ public class BattleSystem : MonoBehaviour
         }
     }
     
+
     //WaitingChoice
     IEnumerator EnablePlayerAction()
     {
@@ -270,6 +271,7 @@ public class BattleSystem : MonoBehaviour
             }
         }
     }
+
 
     //Preparing (swaps, status end early)
     IEnumerator CheckSwaps()

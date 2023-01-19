@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class PartyButton : MonoBehaviour, ISelectHandler
+public class AbilityButton : MonoBehaviour, ISelectHandler
 {
     [SerializeField] PartyMenu partyMenu;
     [SerializeField] Button parentButton;
@@ -20,19 +20,14 @@ public class PartyButton : MonoBehaviour, ISelectHandler
         }
         else
         {
+            //if back button, temporarily cover ability info; else show ability info
             if (buttonIndex == -1)
             {
-                partyMenu.CoverDetails();
+                partyMenu.CoverAbilityInfo();
             }
             else
             {
-                partyMenu.CurrButtonIndex = buttonIndex;
-
-                //if details focused already, also show details of this character
-                if (partyMenu.DetailsFocused)
-                {
-                    partyMenu.ShowDetails();
-                }
+                partyMenu.ShowAbilityInfo(buttonIndex);
             }
         }
     }

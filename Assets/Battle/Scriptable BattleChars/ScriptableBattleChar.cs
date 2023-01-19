@@ -103,19 +103,45 @@ public class ScriptableBattleChar : ScriptableObject
 
         XP = battleChar.XP;
     }
+
+    /// <summary>
+    /// Returns Abilities as string array of fixed length 4, depending on Difficulty
+    /// </summary>
+    /// <param name="difficulty">Difficulty determining which Abilities to return</param>
+    /// <returns></returns>
     public string[] GetAbilitiesAsArray(AIDifficulty difficulty)
     {
+        //add to List in order ONLY IF not empty
+        List<string> list = new();
         if (difficulty == AIDifficulty.Easy || difficulty == AIDifficulty.Wild)
         {
-            return new string[4] { eAbility1, eAbility2, eAbility3, eAbility4 };
+            //add in order only if not empty
+            if (eAbility1 != "") { list.Add(eAbility1); }
+            if (eAbility2 != "") { list.Add(eAbility2); }
+            if (eAbility3 != "") { list.Add(eAbility3); }
+            if (eAbility4 != "") { list.Add(eAbility4); }
         }
         else if (difficulty == AIDifficulty.Medium)
         {
-            return new string[4] { nAbility1, nAbility2, nAbility3, nAbility4 };
+            if (nAbility1 != "") { list.Add(nAbility1); }
+            if (nAbility2 != "") { list.Add(nAbility2); }
+            if (nAbility3 != "") { list.Add(nAbility3); }
+            if (nAbility4 != "") { list.Add(nAbility4); }
         }
         else
         {
-            return new string[4] { hAbility1, hAbility2, hAbility3, hAbility4 };
+            if (hAbility1 != "") { list.Add(hAbility1); }
+            if (hAbility2 != "") { list.Add(hAbility2); }
+            if (hAbility3 != "") { list.Add(hAbility3); }
+            if (hAbility4 != "") { list.Add(hAbility4); }
         }
+
+        //replace empty strings in array with ordered list items, then return array
+        string[] strings = new string[4] { "", "", "", "" };
+        for (int i = 0; i < list.Count; i++)
+        {
+            strings[i] = list[i];
+        }
+        return strings;
     }
 }
