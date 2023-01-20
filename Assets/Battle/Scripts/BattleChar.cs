@@ -61,6 +61,9 @@ public class BattleChar
     public StatusEffect? ReflectStatus  { get; set; }   //null when not ready, None when ready
     public int ReflectDamage            { get; set; }
 
+    //multi-turn effects
+    public int Trapped          { get; set; }
+
     //team effects
     public int HealingMist      { get; set; }
     public int Thorns           { get; set; }
@@ -72,6 +75,7 @@ public class BattleChar
 
     //tracking and operational
     public Ability UsedAbility  { get; set; }
+    public int MultiTurnAbility { get; set; }
     public bool Recharging      { get; set; }
     public bool Delaying        { get; set; }
     public int TurnsActive      { get; set; }
@@ -277,18 +281,26 @@ public class BattleChar
     }
     int CalcAgility()
     {
+        if (Trapped > 0)
+        {
+            return -2000;   //interpret as if static priority of -2, only goes before when -3/3
+        }
+
+        float value = 0.0f;
         if (SpecialtyUp == SpecialtyStat.Agility)
         {
-            return (int)Mathf.Round(RawAgility * 1.1f);
+            value = RawAgility * 1.1f;
         }
         else if (SpecialtyDown == SpecialtyStat.Agility)
         {
-            return (int)Mathf.Round(RawAgility * 0.9f);
+            value = RawAgility * 0.9f;
         }
         else
         {
-            return (int)Mathf.Round(RawAgility);
+            value = RawAgility;
         }
+
+        return Mathf.RoundToInt(value);
     }
 
     public void TakeDamage(int damage)
@@ -461,6 +473,14 @@ public class BattleChar
         StatusActive = StatusEffect.None;
         return text;
     }
+    public bool CheckCanSwap()
+    {
+        if (Trapped > 0)
+        {
+            return false;
+        }
+        return true;
+    }
 
 
     //RESETS
@@ -484,15 +504,17 @@ public class BattleChar
         StatusDuration = 0;
         StatusActive = StatusEffect.None;
     }
-    public void ResetTurnEffects()
+    public void ResetSingleTurnEffects()
     {
-        //reset all turn effects
-
         Protected = false;
         ImmuneStatus = false;
         //ImmuneModifier = false;
         ReflectStatus = null;
-        ReflectDamage = 0;
+        ReflectDamage = 0;        
+    }
+    public void ResetMultiTurnEffects()
+    {
+        Trapped = 0;
     }
     public void ResetAbilities()
     {
@@ -510,12 +532,24 @@ public class BattleChar
 
         ResetModifiers();
         ResetStatusEffects();
-        ResetTurnEffects();
+        ResetSingleTurnEffects();
+        ResetMultiTurnEffects();
         ResetAbilities();
 
         Recharging = false;
         Delaying = false;
         TurnsActive = 0;
+        MultiTurnAbility = 0;
+    }
+
+
+    //MULTI TURN EFFECT OPERATIONS
+    public void DecrementMultiTurnEffects()
+    {
+        if (Trapped > 0)
+        {
+            Trapped--;
+        }
     }
 
 
@@ -741,7 +775,7 @@ public class BattleChar
     }
 
 
-    //XP IGNORE ALL, HANDLE IN BATTLE SYSTEM
+    //XP
     public void AddXP(int xp)
     {
         //add XP, then ensure is not greater than maximum at this xp ratio (1,000,000 base)

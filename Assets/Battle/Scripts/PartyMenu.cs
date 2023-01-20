@@ -175,11 +175,13 @@ public class PartyMenu : MonoBehaviour
         //if valid (not -1), then is in battle; else is out of battle
         if (currPlayerIndex != -1)
         {
-            if (currPlayerIndex == CurrButtonIndex)
+            //if is currPlayer or currPlayer cannot swap
+            if (currPlayerIndex == CurrButtonIndex || !playerChars[currPlayerIndex].CheckCanSwap())
             {
                 inBattleNoSwapOptions.gameObject.SetActive(true);
                 inBattleNoSwapOptions.DetailsButton.Select();
             }
+            //else can swap so show normal options
             else
             {
                 inBattleOptions.gameObject.SetActive(true);

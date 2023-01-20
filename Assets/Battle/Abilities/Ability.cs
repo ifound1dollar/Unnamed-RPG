@@ -24,8 +24,10 @@ public abstract class Ability
     public bool Blocked { get; set; }
     public int Score { get; set; }
 
+
     public abstract IEnumerator UseAbility(AbilityData data);
-    protected abstract void CalcSpecificScore(BattleChar user, BattleChar target);
+    protected abstract void CalcSpecificScore(BattleAI.AIContextObject aiContext);
+
 
     //PROTECTED damage calculators and dialog/HUD update methods
     protected void CalcDamageToDeal(AbilityData data)
@@ -168,12 +170,13 @@ public abstract class Ability
         yield return new WaitForSeconds(1.0f);  //1 second is roughly duration of HUD animation
     }
 
-    //universal score calcuation
-    public void CalcScore(BattleChar user, BattleChar target)
-    {
-        ///Calculates this Ability's Score in the context of this turn and user/target
 
-        if (!IsUsable(user))
+    //universal score calcuation (only called by EnemyAI)
+    public void CalcScore(BattleAI.AIContextObject aiContext)
+    {
+        ///Calculates this Ability's Score in the context of this turn and enemy/player
+
+        if (!IsUsable(aiContext.Enemy))
         {
             Score = 0;
             return;
@@ -183,7 +186,19 @@ public abstract class Ability
         Score = 1;
 
         //main Score calculation is handled in CalcSpecificScore
-        CalcSpecificScore(user, target);
+        CalcSpecificScore(aiContext);
+
+        //delayed/recharge Score reduction
+        if (Delayed)
+        {
+            //not 50% because one extra turn to regenerate Energy
+            Score = Mathf.RoundToInt(Score * 0.60f);
+        }
+        if (Recharge)
+        {
+            //damage is instant with one extra turn to regenerate Energy
+            Score = Mathf.RoundToInt(Score * 0.75f);
+        }
 
         //if Score now 0 or 1, then is completely unusable or a last resort
         if (Score <= 1) { return; }
@@ -192,32 +207,28 @@ public abstract class Ability
         if (Accuracy > 0)
         {
             //Accuracy proportionally alters Score (ex. 90% Accuracy = 90% Score)
-            Score = (int)Mathf.Round((Accuracy / 100f) * Score);
+            Score = Mathf.RoundToInt((Accuracy / 100f) * Score);
         }
         else if (Category != Category.Self)
         {
             //if not Self category, is guaranteed hit and should increase Score
-            Score += 10;
+            Score = Mathf.RoundToInt(Score * 1.10f);
         }
 
-        //energy cost modification (increase based on efficiency, 10% cost = 90% / 3 = +30 Score)
-        float percentCost = (float)EnergyCost(user) / user.Energy;
-        Score += (int)Mathf.Round(((1 - percentCost) / 3) * 100);
+        //energy cost modification (increase based on efficiency, 10% cost = 90% / 3 = +30% Score)
+        float inverse = (1 - ((float)EnergyCost(aiContext.Enemy) / aiContext.Enemy.Energy));
+        Score = Mathf.RoundToInt((1 + (inverse / 3)) * Score);
 
-        //delayed/recharge modification
-        if (Delayed)
+        //if not Easy, do conditional Score adjustments
+        if (aiContext.Difficulty != AIDifficulty.Easy)
         {
-            Score -= 30;
-        }
-        if (Recharge)
-        {
-            Score -= 20;
+            ConditionalScoreChecks(aiContext);
         }
 
         //FINALLY, ensure Score is non-negative
         Score = Mathf.Max(Score, 0);
     }
-    protected void CalcDamagingScore(BattleChar user, BattleChar target, int estimatedDamage)
+    protected void CalcDamagingScore(BattleAI.AIContextObject aiContext, int estimatedDamage)
     {
         ///Calculates Score of general damaging Abilities, which is always the same
 
@@ -228,7 +239,7 @@ public abstract class Ability
         }
 
         //increase based on % current HP dealt by estimated damage (cap at 100%)
-        float damagePercent = Mathf.Min((float)estimatedDamage / target.HP, 1.0f);
+        float damagePercent = Mathf.Min((float)estimatedDamage / aiContext.Player.HP, 1.0f);
         Score += (int)(damagePercent * 100f);
         //NOTE: cap at 100% because two Abilities that are both lethal have the same value
 
@@ -238,6 +249,15 @@ public abstract class Ability
             Score += 100;
         }
     }
+    void ConditionalScoreChecks(BattleAI.AIContextObject aiContext)
+    {
+        //IF MakesContact and target Thorns(etc.) is active, reduce Score slightly
+        if (MakesContact && aiContext.Player.Thorns > 0)
+        {
+            Score = Mathf.RoundToInt(Score * 0.90f);
+        }
+    }
+
 
     //overridable operational methods
     public virtual bool CheckAccuracy(BattleChar user, BattleChar target)

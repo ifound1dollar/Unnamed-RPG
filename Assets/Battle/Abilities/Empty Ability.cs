@@ -14,7 +14,7 @@ public class EmptyAbility : Ability
         Debug.Log("Tried to use Empty Ability.");
         yield break;
     }
-    protected override void CalcSpecificScore(BattleChar user, BattleChar target)
+    protected override void CalcSpecificScore(BattleAI.AIContextObject aiContext)
     {
         //Score remains at 0
     }

@@ -48,9 +48,9 @@ public class BattleSystem : MonoBehaviour
     }
     IEnumerator Setup()
     {
-        //instantiate BattleAI object (WILL ACCESS DIFFICULTY SETTING LATER)
+        //instantiate BattleAI object (difficulty is sent in AIContextObject)
         difficulty = AIDifficulty.Easy;
-        battleAI = new(this, difficulty);
+        battleAI = new();
 
         InitPlayerParty();
         InitEnemyParty();
@@ -64,7 +64,9 @@ public class BattleSystem : MonoBehaviour
         enemyImage.sprite = currEnemy.SpeciesData.FrontSprite;
 
         //TEMP
-        currEnemy.Energy = 0;
+        //currEnemy.Energy = 0;
+
+        //currPlayer.Trapped = 100;
         //TEMP
 
         //set hud for each
@@ -145,7 +147,7 @@ public class BattleSystem : MonoBehaviour
             //force targetLevel to be at minimum 8% below player max (TOTAL 4-8% BELOW)
             targetLevel = Mathf.Max(targetLevel, Mathf.RoundToInt(playerMax * 0.92f));
         }
-        else if (difficulty == AIDifficulty.Medium)
+        else if (difficulty == AIDifficulty.Normal)
         {
             //if normal, keep equal to player average
 
@@ -180,11 +182,7 @@ public class BattleSystem : MonoBehaviour
             enemySnaps.Add(new(playerTeam: false));
 
             //enable player input and wait until input gotten
-            yield return EnablePlayerAction();
-            yield return new WaitUntil(() => state != BattleState.WaitingChoice);
-            dialogBox.ShowMainButtons(false);
-            yield return dialogBox.DialogSet("Preparing...");
-            yield return new WaitForSeconds(textDelay);
+            yield return WaitPlayerAction();
 
             //enemy AI make choice and set enemyChoice
             GetEnemyChoice();
@@ -201,10 +199,14 @@ public class BattleSystem : MonoBehaviour
                 currEnemy.UsedAbility = null;
             }
 
+            //short dialog and delay before actions start
+            yield return dialogBox.DialogSet("Preparing...");
+            yield return new WaitForSeconds(textDelay);
+
             //check if player flee/forfeit
             if (playerChoice == BattleChoice.FleeForfeit)
             {
-                EndBattle(playerWin: false);
+                yield return EndBattle(playerWin: false);
             }
 
             //check swaps, performing any chosen swaps by player or enemy and resetting swapIndex for either/both
@@ -229,40 +231,49 @@ public class BattleSystem : MonoBehaviour
     
 
     //WaitingChoice
-    IEnumerator EnablePlayerAction()
+    IEnumerator WaitPlayerAction()
     {
+        //skip action if Delaying, Recharging, or MultiTurnAbility
+        if (currPlayer.Delaying || currPlayer.Recharging || currPlayer.MultiTurnAbility > 0)
+        {
+            yield break;
+        }
+
         yield return dialogBox.DialogSet("Player choice...");
-        state = BattleState.WaitingChoice;
         dialogBox.ShowMainButtons(true);
         dialogBox.SelectAttackButton();
+
+        //WaitingChoice will be un-set when player presses a button
+        state = BattleState.WaitingChoice;
+        yield return new WaitUntil(() => state != BattleState.WaitingChoice);
+        dialogBox.ShowMainButtons(false);
     }
     void GetEnemyChoice()
     {
+        //skip action if Delaying, Recharging, or MultiTurnAbility
+        if (currEnemy.Delaying || currEnemy.Recharging || currEnemy.MultiTurnAbility > 0)
+        {
+            return;
+        }
+
+        BattleAI.AIContextObject aiContext = new(difficulty, enemyChars, currEnemy, currPlayer);
+
         //get chosen Ability and assign to temp variable, then find max Score of all
-        Ability tempAbility = battleAI.ChooseAbility(currEnemy, currPlayer);
+        Ability tempAbility = battleAI.ChooseAbility(aiContext);
         int maxScore = currEnemy.Abilities.Max(x => x.Score);
 
-        //if null, then no Ability was chosen (must Swap or Pass)
-        if (tempAbility == null)
+        //if should swap, set swap index and choose Swap; else Pass or Attack
+        if (battleAI.CheckShouldSwap(aiContext, maxScore))
         {
-            //if should swap, set swap index and choose Swap; else Pass this turn
-            if (battleAI.CheckShouldSwap(currEnemy, currPlayer, maxScore))
-            {
-                enemySwapIndex = battleAI.ChooseSwapChar(enemyChars, currPlayer);
-                enemyChoice = BattleChoice.Swap;
-            }
-            else
-            {
-                enemyChoice = BattleChoice.Pass;
-            }
+            enemySwapIndex = battleAI.ChooseSwapChar(aiContext, GetCurrBattleCharIndex(playerTeam: false));
+            enemyChoice = BattleChoice.Swap;
         }
         else
         {
-            //if should swap, set swap index and choose Swap; else use Ability
-            if (battleAI.CheckShouldSwap(currEnemy, currPlayer, maxScore))
+            //if null, then no Ability was chosen, so must Pass; else attack
+            if (tempAbility == null)
             {
-                enemySwapIndex = battleAI.ChooseSwapChar(enemyChars, currPlayer);
-                enemyChoice = BattleChoice.Swap;
+                enemyChoice = BattleChoice.Pass;
             }
             else
             {
@@ -495,10 +506,14 @@ public class BattleSystem : MonoBehaviour
         yield return dialogBox.DialogSet(user.Name + " used " + user.UsedAbility.Name + "!");
         yield return new WaitForSeconds(textDelay);
 
-        //consume energy and update HUD, clear dialog, then progress to animation (seamlessly)
-        user.Energy -= user.UsedAbility.EnergyCost(user);
-        playerHud.UpdateHUD(currPlayer);
-        enemyHud.UpdateHUD(currEnemy);
+        //do not consume Energy if subsequent uses of a multi-turn Ability
+        if (user.MultiTurnAbility == 0)
+        {
+            //consume energy and update HUD, clear dialog, then progress to animation (seamlessly)
+            user.Energy -= user.UsedAbility.EnergyCost(user);
+            playerHud.UpdateHUD(currPlayer);
+            enemyHud.UpdateHUD(currEnemy);
+        }
         yield return dialogBox.DialogSet("TEMP ANIMATION TEXT");
 
         //if hit target, do attack and after effects; else acknowledge miss and continue
@@ -797,9 +812,12 @@ public class BattleSystem : MonoBehaviour
             yield return dialogBox.DialogSet($"Enemy's {currEnemy.Name} was slain!");
             yield return new WaitForSeconds(textDelay);
 
+            yield return HandleSlainOperations(currEnemy, currPlayer);
+
             if (GetRemaining(playerTeam: false) > 0)
             {
-                enemySwapIndex = battleAI.ChooseSwapChar(enemyChars, currPlayer);
+                BattleAI.AIContextObject aiContext = new(difficulty, enemyChars, currEnemy, currPlayer);
+                enemySwapIndex = battleAI.ChooseSwapChar(aiContext, GetCurrBattleCharIndex(playerTeam: false));
                 enemySwap = true;
             }
             else
@@ -815,6 +833,8 @@ public class BattleSystem : MonoBehaviour
         {
             yield return dialogBox.DialogSet($"Player's {currPlayer.Name} was slain!");
             yield return new WaitForSeconds(textDelay);
+
+            yield return HandleSlainOperations(currPlayer, currEnemy);
 
             if (GetRemaining(playerTeam: true) > 0)
             {
@@ -845,13 +865,52 @@ public class BattleSystem : MonoBehaviour
             //PLAYER SNAPSHOT UPDATE HERE
         }
     }
+    IEnumerator HandleSlainOperations(BattleChar slain, BattleChar alive)
+    {
+        //GraspAbility used by slain or alive
+        if (slain.UsedAbility is GraspAbility || alive.UsedAbility is GraspAbility)
+        {
+            //IF slain was user; ELSE alive was user
+            if (slain.UsedAbility is GraspAbility && slain.MultiTurnAbility > 0)
+            {
+                //reset only if Trapped duration was not initially longer than when set
+                if (alive.Trapped <= slain.MultiTurnAbility)
+                {
+                    alive.Trapped = 0;
+                }
+            }
+            else if (alive.UsedAbility is GraspAbility && alive.MultiTurnAbility > 0)
+            {
+                //must end MultiTurnAbility because there is no enemy to 'grasp' anymore
+                alive.MultiTurnAbility = 0;
+            }
+        }
+
+        yield break;
+    }
     
 
+
+
     //NewTurn
+    /// <summary>
+    /// Does final operations just before new turn like Energy regeneration, turn effect operations, etc.
+    /// </summary>
+    /// <returns></returns>
     IEnumerator NewTurnOperations()
     {
         RegenerateEnergy();
-        ResetTurnEffects();
+        HandleTurnEffects();
+
+        if (currPlayer.MultiTurnAbility > 0)
+        {
+            currPlayer.MultiTurnAbility--;
+        }
+        if (currEnemy.MultiTurnAbility > 0)
+        {
+            currEnemy.MultiTurnAbility--;
+        }
+
         playerHud.UpdateHUD(currPlayer);
         enemyHud.UpdateHUD(currEnemy);
         dialogBox.SetAbilityButtons(currPlayer);
@@ -863,6 +922,10 @@ public class BattleSystem : MonoBehaviour
 
         turnNumber++;
     }
+
+    /// <summary>
+    /// Regenerate Energy of all chars at > 0HP, less for active vs inactive
+    /// </summary>
     void RegenerateEnergy()
     {
         ///Regenerate Energy of all BattleChars on each team that are > 0HP
@@ -929,12 +992,21 @@ public class BattleSystem : MonoBehaviour
             }
         }
     }
-    void ResetTurnEffects()
+
+    /// <summary>
+    /// Reset single-turn effects and decrement multi-turn effects
+    /// </summary>
+    void HandleTurnEffects()
     {
-        currPlayer.ResetTurnEffects();
-        currEnemy.ResetTurnEffects();
+        currPlayer.ResetSingleTurnEffects();
+        currEnemy.ResetSingleTurnEffects();
+
+        currPlayer.DecrementMultiTurnEffects();
+        currEnemy.DecrementMultiTurnEffects();
     }
     
+
+
 
     //BattleEnded
     IEnumerator EndBattle(bool playerWin)

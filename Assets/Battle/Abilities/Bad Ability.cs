@@ -14,7 +14,7 @@ public class BadAbility : Ability
         Debug.Log("Tried to use Bad Ability.");
         yield break;
     }
-    protected override void CalcSpecificScore(BattleChar user, BattleChar target)
+    protected override void CalcSpecificScore(BattleAI.AIContextObject aiContext)
     {
         //Score remains at 0
     }

@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a63c78cf79b10d14a9e18e9ac8ee113c, type: 3}
-  m_Name: Ember Worg 1
+  m_Name: E Ember Worg 1
   m_EditorClassIdentifier: 
   speciesData: {fileID: 11400000, guid: a94234871811a79408aedd9b49842782, type: 2}
   level: 1
   eAbility1: BasicMove4
-  eAbility2: 
+  eAbility2: GraspAbility
   eAbility3: 
   eAbility4: 
   nAbility1: BasicMove4

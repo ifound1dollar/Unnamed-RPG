@@ -10,7 +10,7 @@ public class BasicMove4 : Ability
         Name = "Basic Move 4";
         Power = 40;
         Accuracy = 100;
-        Energy = 1;
+        Energy = 2;
         Description = "A simple damaging attack.";
 
         AbilityType = BattleType.Vital;
@@ -28,8 +28,8 @@ public class BasicMove4 : Ability
 
         yield break;
     }
-    protected override void CalcSpecificScore(BattleChar user, BattleChar target)
+    protected override void CalcSpecificScore(BattleAI.AIContextObject aiContext)
     {
-        CalcDamagingScore(user, target, EstimateDamage(user, target));
+        CalcDamagingScore(aiContext, EstimateDamage(aiContext.Enemy, aiContext.Player));
     }
 }

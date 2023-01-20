@@ -121,7 +121,7 @@ public class ScriptableBattleChar : ScriptableObject
             if (eAbility3 != "") { list.Add(eAbility3); }
             if (eAbility4 != "") { list.Add(eAbility4); }
         }
-        else if (difficulty == AIDifficulty.Medium)
+        else if (difficulty == AIDifficulty.Normal)
         {
             if (nAbility1 != "") { list.Add(nAbility1); }
             if (nAbility2 != "") { list.Add(nAbility2); }

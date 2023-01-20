@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speciesData: {fileID: 11400000, guid: 8fa4c4fa07f62764a9ebe582632e676a, type: 2}
   level: 1
-  eAbility1: somethin strange
-  eAbility2: BasicMove4
+  eAbility1: BasicMove4
+  eAbility2: GraspAbility
   eAbility3: IS BAD
   eAbility4: BasicMove4
   nAbility1: BasicMove4

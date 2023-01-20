@@ -27,8 +27,8 @@ public class StrongAttack : Ability
 
         yield break;
     }
-    protected override void CalcSpecificScore(BattleChar user, BattleChar target)
+    protected override void CalcSpecificScore(BattleAI.AIContextObject aiContext)
     {
-        CalcDamagingScore(user, target, EstimateDamage(user, target));
+        CalcDamagingScore(aiContext, EstimateDamage(aiContext.Enemy, aiContext.Player));
     }
 }
