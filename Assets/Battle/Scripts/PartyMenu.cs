@@ -211,6 +211,56 @@ public class PartyMenu : MonoBehaviour
 
 
     /// <summary>
+    /// Takes BattleSystem reference and calls its OnSwapButtonPress method
+    /// </summary>
+    /// <param name="battleSystem">Reference to active BattleSystem (in-battle only)</param>
+    public void OnSwapButtonPressed()
+    {
+        if (battleSystem != null)
+        {
+            HideSelectOptions();
+
+            //call battleSystem's OnSwapButtonPressed method with currentIndex
+            battleSystem.OnSwapButtonPress(CurrButtonIndex);
+        }
+    }
+
+    /// <summary>
+    /// Starts reordering process, hiding select options and storing initial reorder button
+    /// </summary>
+    public void OnCharReorderButtonPressed()
+    {
+        CharReorderIndex = CurrButtonIndex;
+        HideSelectOptions();
+        backButton.gameObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// Does reordering operation, swapping BattleChars, reloading, then ending reorder mode
+    /// </summary>
+    void HandleCharReorder()
+    {
+        //reorder actual playerChars
+        (playerChars[CurrButtonIndex], playerChars[CharReorderIndex])
+            = (playerChars[CharReorderIndex], playerChars[CurrButtonIndex]);
+
+        LoadPartyChars();
+        CancelCharReorder();
+    }
+
+    /// <summary>
+    /// Cancel reorder mode, resetting CharReorderIndex and showing BackButton again
+    /// </summary>
+    void CancelCharReorder()
+    {
+        CharReorderIndex = -1;
+        backButton.gameObject.SetActive(true);
+    }
+
+
+
+
+    /// <summary>
     /// Focuses details panel, setting active and auto-selecing first DetailsCharButton
     /// </summary>
     public void FocusDetailsPanel()
@@ -357,59 +407,6 @@ public class PartyMenu : MonoBehaviour
 
 
     /// <summary>
-    /// Takes BattleSystem reference and calls its OnSwapButtonPress method
-    /// </summary>
-    /// <param name="battleSystem">Reference to active BattleSystem (in-battle only)</param>
-    public void OnSwapButtonPressed()
-    {
-        if (battleSystem != null)
-        {
-            HideSelectOptions();
-
-            //call battleSystem's OnSwapButtonPressed method with currentIndex
-            battleSystem.OnSwapButtonPress(CurrButtonIndex);
-        }
-    }
-
-
-
-
-    /// <summary>
-    /// Starts reordering process, hiding select options and storing initial reorder button
-    /// </summary>
-    public void OnCharReorderButtonPressed()
-    {
-        CharReorderIndex = CurrButtonIndex;
-        HideSelectOptions();
-        backButton.gameObject.SetActive(false);
-    }
-
-    /// <summary>
-    /// Does reordering operation, swapping BattleChars, reloading, then ending reorder mode
-    /// </summary>
-    void HandleCharReorder()
-    {
-        //reorder actual playerChars
-        (playerChars[CurrButtonIndex], playerChars[CharReorderIndex])
-            = (playerChars[CharReorderIndex], playerChars[CurrButtonIndex]);
-
-        LoadPartyChars();
-        CancelCharReorder();
-    }
-
-    /// <summary>
-    /// Cancel reorder mode, resetting CharReorderIndex and showing BackButton again
-    /// </summary>
-    void CancelCharReorder()
-    {
-        CharReorderIndex = -1;
-        backButton.gameObject.SetActive(true);
-    }
-
-
-
-
-    /// <summary>
     /// Shows correct AbilityOption panel and auto-selects based on context
     /// </summary>
     public void ShowAbilityOption()
@@ -438,6 +435,9 @@ public class PartyMenu : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Hides AbilityOption window with Reorder or Remove button
+    /// </summary>
     public void HideAbilityOption()
     {
         abilityReorderOption.gameObject.SetActive(false);
@@ -645,22 +645,24 @@ public class PartyMenu : MonoBehaviour
                 //if not null, then is teaching
                 else if (TeachAbility != null)
                 {
-                    //if abilityBackButton is selected, else Ability button selected
                     if (CurrAbilityIndex == -1)
                     {
+                        //if already selected, will Cancel ability removal/replacement
                         CancelAbilityRemove();
                     }
                     else
                     {
+                        //pressing Escape should hover but not auto-select back button if not already selected
                         abilityBackButton.Select();
                     }
                 }
+                //else back out of Ability panel focus like normal
                 else
                 {
                     HideAbilityInfo();
                 }
             }
-            //else if details panel is focused, and abilities not
+            //else if details panel is focused
             else if (DetailsFocused)
             {
                 HideDetails();

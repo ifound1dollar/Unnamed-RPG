@@ -10,9 +10,9 @@ public class GraspAbility : Ability
         Power = 35;
         Accuracy = 90;
         Energy = 5;
-        Description = "A two-turn attack. The user violently grasps the target on the first turn, " +
-            "dealing damage and impairing its movement. The user deals the same damage on the second " +
-            "turn, then releases the target. The target is unable to swap while grasped.";
+        Description = "A two-turn attack. The user violently grabs hold of the target on the first turn, " +
+            "dealing damage and impairing its movement. The user then deals the same damage on the second " +
+            "turn before releasing the target. The target is unable to swap while grasped.";
 
         AbilityType = BattleType.Vital;
         Category = Category.Physical;
@@ -61,7 +61,7 @@ public class GraspAbility : Ability
 
         //is multi-turn, so decrease by 30% (70%)
 
-        //has secondary effect (Trapped), so increase by 10% (77%)
+        //has secondary effect (Trapped, kind of weak), so increase by 10% (77%)
 
         Score = Mathf.RoundToInt(Score * 0.77f);
     }

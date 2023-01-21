@@ -37,6 +37,13 @@ public class BattleAI
     }
     
 
+
+
+    /// <summary>
+    /// Calculates Ability Scores and chooses Ability to use or to Pass this turn
+    /// </summary>
+    /// <param name="aiContext">Contains difficulty, all enemies, current enemy, and current player</param>
+    /// <returns>Ability to use, or null to Pass</returns>
     public Ability ChooseAbility(AIContextObject aiContext)
     {
         ///Calculate Ability scores and dynamically choose an Ability to use
@@ -47,7 +54,7 @@ public class BattleAI
             return GetWildAbilityChoice(aiContext.Enemy);
         }
 
-        //calculate Ability scores and assign to Ability objects
+        //calculate Ability scores and assign values to each corresponding Ability
         CalcAbilityScores(aiContext);
 
         //create Ability pool
@@ -63,6 +70,13 @@ public class BattleAI
             return null;
         }
     }
+
+    /// <summary>
+    /// Determines whether to Swap instead of using one of the candidate Abilities
+    /// </summary>
+    /// <param name="aiContext">Contains difficulty, all enemies, current enemy, and current player</param>
+    /// <param name="maxScore">Maximum score of all candidate Abilities</param>
+    /// <returns>Whether to swap, true if should</returns>
     public bool CheckShouldSwap(AIContextObject aiContext, int maxScore)
     {
         ///Does calculation to determine if swapping is more preferable than attacking this
@@ -78,17 +92,10 @@ public class BattleAI
 
         BattleChar enemy = aiContext.Enemy;
 
-        //return false if enemy cannot swap
-        if (!enemy.CheckCanSwap())
-        {
-            return false;
-        }
-
-        //if only one remaining, only active for 1-2 turns, or Easy difficulty, do not swap
+        //if one remaining, active for 1-2 turns, Easy difficulty, or cannot swap
         if (aiContext.CountEnemyRemaining() <= 1 || enemy.TurnsActive <= 2
-            || aiContext.Difficulty == AIDifficulty.Easy)
+            || aiContext.Difficulty == AIDifficulty.Easy || !enemy.CheckCanSwap())
         {
-            //MUST ALSO CHECK FOR ATTRIBUTE THAT PREVENTS SWAPPING OUT OF BATTLE
             return false;
         }
 
@@ -113,16 +120,16 @@ public class BattleAI
         score += (enemy.MaxEnergy / enemy.Energy) / 2;
 
         //multiplier calculation
-        score = (int)Mathf.Round(score * typeMultiplier);
+        score = Mathf.RoundToInt(score * typeMultiplier);
 
 
-        //if maxScore >= 200 (likely lethal hit) OR score < 5 (not enough reason to swap)
-        if (maxScore >= 200 || score < 5)
+        //if maxScore >= 150 (likely lethal hit) OR score < 5 (not enough reason to swap)
+        if (maxScore >= 150 || score < 5)
         {
             return false;
         }
 
-        //increase scope to be comparable with maxScore (ex. score now 30, maxScore 70)
+        //increase score to be comparable with maxScore (ex. score now 30, maxScore 70)
         score *= 5;
 
         //Medium difficulty has only half chance to swap, while Hard and Boss have normal
@@ -144,6 +151,13 @@ public class BattleAI
         //if should not swap, return false
         return false;
     }
+
+    /// <summary>
+    /// Determines most preferable character to swap to and returns its index
+    /// </summary>
+    /// <param name="aiContext">Contains difficulty, all enemies, current enemy, and current player</param>
+    /// <param name="currEnemyIndex">Index of BattleSystem's currEnemy in enemyChars</param>
+    /// <returns>Index of character to swap to</returns>
     public int ChooseSwapChar(AIContextObject aiContext, int currEnemyIndex)
     {
         ///Finds the most preferable character to swap to and chooses it, weighted
@@ -223,12 +237,11 @@ public class BattleAI
             }
         }
 
-
         //it is possible that every one added to pool has 0, so will never return above
         for (int i = 0; i < enemies.Length; i++)
         {
-            //return first character at > 0HP
-            if (enemies[i].HP > 0)
+            //return first character at > 0HP that is not currEnemy
+            if (enemies[i].HP > 0 && i != currEnemyIndex)
             {
                 return i;
             }
@@ -238,6 +251,13 @@ public class BattleAI
         return 0;
     }
 
+
+
+
+    /// <summary>
+    /// Dynamically calculates Score of each Ability
+    /// </summary>
+    /// <param name="aiContext">Contains all context required for AI decision</param>
     void CalcAbilityScores(AIContextObject aiContext)
     {
         ///Calculates Score of each of enemy's Abilities
@@ -283,6 +303,12 @@ public class BattleAI
         Debug.Log("Scores: " + enemy.Abilities[0].Score + " " + enemy.Abilities[1].Score + " "
             + enemy.Abilities[2].Score + " " + enemy.Abilities[3].Score);
     }
+
+    /// <summary>
+    /// Creates and returns pool of candidate Abilities based on calculated Scores
+    /// </summary>
+    /// <param name="aiContext">Contains difficulty, all enemies, current enemy, and current player</param>
+    /// <returns>List of candidate Abilities</returns>
     List<Ability> CreateAbilityPool(AIContextObject aiContext)
     {
         ///Places every Ability within 75% of the highest Score in a pool
@@ -322,6 +348,55 @@ public class BattleAI
         //FINALLY, return ability pool
         return abilityPool;
     }
+
+    /// <summary>
+    /// Selects Ability from pool of candidate Abilities via weighted rolling
+    /// </summary>
+    /// <param name="abilityPool">Pool of Abilities to choose from</param>
+    /// <returns>Chosen Ability</returns>
+    Ability SelectAbilityFromPool(List<Ability> abilityPool)
+    {
+        ///Selects an Ability randomly from the provided Ability pool
+
+        //calculate total score and select a random value in its range
+        int choice = UnityEngine.Random.Range(0, abilityPool.Sum(x => x.Score));
+
+        ///EXPLANATION
+        ///Iterate through abilityPool, subtracting the current Ability's score from 'choice'
+        /// until it goes negative.
+        ///When it goes negative, break from the loop and return the Ability at this index.
+        ///
+        ///The total score can be thought of as a line segment, starting at 0 and
+        /// ending at total score. The line segment is made up of the Ability Scores in
+        /// abilityPool, added onto each other (ex. |100|125|125|, where 100 is the second
+        /// option and both of the 125s are the first option).
+        ///If 'choice' selects 230, then the item being pointed to by that integer would
+        /// be the second 125 (third block). Subtracting the value of the first item in the
+        /// line segment (in this example, 100) would leave 130 to go; the same operation
+        /// would leave 5 to go.
+        ///When the third subtraction occurs, 'choice' goes negative. This indicates that
+        /// the value to which the variable pointed has just been passed, and thus THIS
+        /// value is the index of the correct Move to use.
+        
+        foreach (Ability ability in abilityPool)
+        {
+            choice -= ability.Score;
+            if (choice < 0)
+            {
+                return ability;
+            }
+        }
+
+        //this will never be reached, but is required for compilation
+        return null;
+    }
+
+    /// <summary>
+    /// Determines whether to Pass this turn or use one of the candidate Abilities
+    /// </summary>
+    /// <param name="aiContext">Contains difficulty, all enemies, current enemy, and current player</param>
+    /// <param name="maxScore">Maximum score of all candidate Abilities</param>
+    /// <returns>Whether to pass, true if should</returns>
     bool CheckShouldPass(AIContextObject aiContext, int maxScore)
     {
         ///Determine whether passing this turn is preferable or forced
@@ -394,42 +469,15 @@ public class BattleAI
 
         return false;
     }
-    Ability SelectAbilityFromPool(List<Ability> abilityPool)
-    {
-        ///Selects an Ability randomly from the provided Ability pool
 
-        //calculate total score and select a random value in its range
-        int choice = UnityEngine.Random.Range(0, abilityPool.Sum(x => x.Score));
 
-        ///EXPLANATION
-        ///Iterate through abilityPool, subtracting the current Ability's score from 'choice'
-        /// until it goes negative.
-        ///When it goes negative, break from the loop and return the Ability at this index.
-        ///
-        ///The total score can be thought of as a line segment, starting at 0 and
-        /// ending at total score. The line segment is made up of the Ability Scores in
-        /// abilityPool, added onto each other (ex. |100|125|125|, where 100 is the second
-        /// option and both of the 125s are the first option).
-        ///If 'choice' selects 230, then the item being pointed to by that integer would
-        /// be the second 125 (third block). Subtracting the value of the first item in the
-        /// line segment (in this example, 100) would leave 130 to go; the same operation
-        /// would leave 5 to go.
-        ///When the third subtraction occurs, 'choice' goes negative. This indicates that
-        /// the value to which the variable pointed has just been passed, and thus THIS
-        /// value is the index of the correct Move to use.
-        foreach (Ability ability in abilityPool)
-        {
-            choice -= ability.Score;
-            if (choice < 0)
-            {
-                return ability;
-            }
-        }
 
-        //this will never be reached, but is required for compilation
-        return null;
-    }
 
+    /// <summary>
+    /// Adjusts Score of all Abilities, increasing if damaging / reducing if non-damaging
+    /// </summary>
+    /// <param name="abilities">Enemy Abilities array</param>
+    /// <param name="modifier">Ratio to adjust by, defaults to 1.25</param>
     void MakePreferDamaging(Ability[] abilities, float modifier = 1.25f)
     {
         ///Adjust Score of every Ability up or down by modifier value
@@ -447,6 +495,13 @@ public class BattleAI
             }
         }
     }
+
+    /// <summary>
+    /// Adds the second-highest Scoring Ability to the candidate pool, which was not within 75% of max
+    /// </summary>
+    /// <param name="abilities">Enemy Abilities array</param>
+    /// <param name="maxScore">Maximum Score of all candidate Abilities</param>
+    /// <param name="abilityPool">Existing pool of candiate Abilities</param>
     void AddSecondHighestToPool(Ability[] abilities, int maxScore, List<Ability> abilityPool)
     {
         ///Add second highest scoring Ability that is greater than 1 and add to pool
@@ -474,6 +529,11 @@ public class BattleAI
         }
     }
 
+    /// <summary>
+    /// Choose random (validated) Ability from all Enemy Abilities
+    /// </summary>
+    /// <param name="enemy">Wild Enemy reference</param>
+    /// <returns>Ability to use, null if must Pass</returns>
     Ability GetWildAbilityChoice(BattleChar enemy)
     {
         ///Make completely random, unbiased choice of Ability for Wild enemies

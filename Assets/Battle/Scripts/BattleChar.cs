@@ -21,9 +21,11 @@ public class BattleChar
     public int MaxEnergy    { get; set; }
     public int HP           { get; set; }
 
+
     //specialty stats
     public SpecialtyStat SpecialtyUp { get; set; }
     public SpecialtyStat SpecialtyDown { get; set; }
+
 
     //stat getters (rounded from float to int)
     public int MaxHP        { get => CalcMaxHP(); }
@@ -33,6 +35,7 @@ public class BattleChar
     public int Resistance   { get => CalcResistance(); }
     public int Agility      { get => CalcAgility(); }
 
+
     //raw stats
     public float RawMaxHP       { get; set; }
     public float RawStrength    { get; set; }
@@ -40,6 +43,7 @@ public class BattleChar
     public float RawArmor       { get; set; }
     public float RawResistance  { get; set; }
     public float RawAgility     { get; set; }
+
 
     //stat modifiers
     public int StrMod   { get; set; }
@@ -51,9 +55,11 @@ public class BattleChar
     public int DodMod   { get; set; }
     public int CrtMod   { get; set; }
 
+
     //status effects
     public StatusEffect StatusActive    { get; set; }
     public int StatusDuration           { get; set; }
+
 
     //single-turn effects
     public bool Protected               { get; set; }
@@ -61,17 +67,22 @@ public class BattleChar
     public StatusEffect? ReflectStatus  { get; set; }   //null when not ready, None when ready
     public int ReflectDamage            { get; set; }
 
+
     //multi-turn effects
     public int Trapped          { get; set; }
+
 
     //team effects
     public int HealingMist      { get; set; }
     public int Thorns           { get; set; }
 
+
     //field effects
+
 
     //traps
     public int ElectricSpikes   { get; set; }
+
 
     //tracking and operational
     public Ability UsedAbility  { get; set; }
@@ -80,6 +91,7 @@ public class BattleChar
     public bool Delaying        { get; set; }
     public int TurnsActive      { get; set; }
     public bool WasActive       { get; set; }
+    public List<string> PastAbilities { get; set; }
 
 
     public BattleChar(ScriptableBattleChar data, AIDifficulty difficulty, bool playerTeam, int argLevel = 0)
@@ -105,7 +117,7 @@ public class BattleChar
 
         //abilities, NOW IN ORDER WITH EMPTY AT THE END
         string[] abilityNames = data.GetAbilitiesAsArray(difficulty);
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < -4; i++)
         {
             if (abilityNames[i] == "")
             {
@@ -117,6 +129,9 @@ public class BattleChar
             try
             {
                 Abilities[i] = Activator.CreateInstance(Type.GetType(abilityNames[i])) as Ability;
+
+                //if successful, add name string to PastAbilities
+                PastAbilities.Add(abilityNames[i]);
             }
             catch
             {
@@ -141,7 +156,7 @@ public class BattleChar
         }
 
         //special ability
-        if (data.SpecialAbility == "")
+        if (data.PassiveAbility == "")
         {
             //if not defined, choose one of three from SpeciesData at random
             SpecialAbility = data.SpeciesData.SpecialAbilities[
@@ -150,7 +165,7 @@ public class BattleChar
         else
         {
             //else defined, so directly assign
-            SpecialAbility = data.SpecialAbility;
+            SpecialAbility = data.PassiveAbility;
         }
 
         //team
@@ -188,6 +203,8 @@ public class BattleChar
         if (HP > MaxHP) { HP = MaxHP; }
     }
 
+
+    //stat calculators
     float CalcRawFromBase(int baseStat, bool isHP = false)
     {
         float baseAsPercent = baseStat * 0.01f;
@@ -203,7 +220,6 @@ public class BattleChar
             return baseAsPercent * ((Level * 3) + 10);
         }
     }
-
     int CalcMaxHP()
     {
         if (SpecialtyUp == SpecialtyStat.HP)
@@ -303,6 +319,14 @@ public class BattleChar
         return Mathf.RoundToInt(value);
     }
 
+
+
+
+    //GENERAL OPERATIONS
+    /// <summary>
+    /// Deals damage (heals if negative argument), clamping between 0 and MaxHP
+    /// </summary>
+    /// <param name="damage">Damage to deal (negative to heal)</param>
     public void TakeDamage(int damage)
     {
         if (damage < 0 && StatusActive == StatusEffect.Cursed)
@@ -324,10 +348,21 @@ public class BattleChar
         }
     }
 
+    /// <summary>
+    /// Determines whether this BattleChar has an active status effect
+    /// </summary>
+    /// <returns>Whether a status effect is active, true if so</returns>
     public bool HasActiveStatus()
     {
         return (StatusActive != StatusEffect.None);
     }
+
+    /// <summary>
+    /// Attempts to apply a status effect to this BattleChar, returning whether successful
+    /// </summary>
+    /// <param name="effect">Status effect to apply</param>
+    /// <param name="duration">Duration of status effect</param>
+    /// <returns>Whether status effect was applied, true if successful</returns>
     public bool SetStatusEffect(StatusEffect effect, int duration)
     {
         if (HP == 0 || HasActiveStatus() || ImmuneStatus || Protected) { return false; }
@@ -343,77 +378,151 @@ public class BattleChar
         StatusDuration = duration;
         return true;
     }
+
+    /// <summary>
+    /// Calculates total value of modifiers, adding if positive / subtracting if negative
+    /// </summary>
+    /// <returns>Total value of modifiers</returns>
     public int CountModifierTotal()
     {
-        ///Counts total magnitude of modifiers and returns it as integer
+        ///Counts total value of modifiers and returns it as integer
 
         return StrMod + MasMod + ArmMod + ResMod + AgiMod + AccMod + DodMod + CrtMod;
     }
-    public bool SetModifier(string modifierName, int stages)
+
+    /// <summary>
+    /// Attempts to set a modifier, returning number of stages actually set
+    /// </summary>
+    /// <param name="modifierName">Name of modifier to apply</param>
+    /// <param name="stages">Number of stages to apply</param>
+    /// <returns>Number of stages set, less than stages argument means partial/complete failure</returns>
+    public int SetModifier(string modifierName, int stages)
     {
-        if (HP == 0) return false;
+        if (HP == 0) return 0;
 
         //handle modifier to set
+        int set = 0;
         if (modifierName == "StrMod")
         {
             StrMod += stages;
-            if (StrMod > 4) { StrMod = 4; }
-            else if (StrMod < 4) { StrMod = -4; }
-            return true;
+            if (StrMod > 4)
+            {
+                //subtract exceed amount (StrMod - 4) FROM stages argument to find actual set amount
+                set = stages - (StrMod - 4);
+                StrMod = 4;
+            }
+            else if (StrMod < -4)
+            {
+                set = stages - (StrMod + 4);
+                StrMod = -4;
+            }
         }
         else if (modifierName == "MasMod")
         {
             MasMod += stages;
-            if (MasMod > 4) { MasMod = 4; }
-            else if (MasMod < 4) { MasMod = -4; }
-            return true;
+            if (MasMod > 4)
+            {
+                set = stages - (MasMod - 4);
+                MasMod = 4;
+            }
+            else if (MasMod < -4)
+            {
+                set = stages - (MasMod + 4);
+                MasMod = -4;
+            }
         }
         else if (modifierName == "ArmMod")
         {
             ArmMod += stages;
-            if (ArmMod > 4) { ArmMod = 4; }
-            else if (ArmMod < 4) { ArmMod = -4; }
-            return true;
+            if (ArmMod > 4)
+            {
+                set = stages - (ArmMod - 4);
+                ArmMod = 4;
+            }
+            else if (ArmMod < -4)
+            {
+                set = stages - (ArmMod + 4);
+                ArmMod = -4;
+            }
         }
         else if (modifierName == "ResMod")
         {
             ResMod += stages;
-            if (ResMod > 4) { ResMod = 4; }
-            else if (ResMod < 4) { ResMod = -4; }
-            return true;
+            if (ResMod > 4)
+            {
+                set = stages - (ResMod - 4);
+                ResMod = 4;
+            }
+            else if (ResMod < -4)
+            {
+                set = stages - (ResMod + 4);
+                ResMod = -4;
+            }
         }
         else if (modifierName == "AgiMod")
         {
             AgiMod += stages;
-            if (AgiMod > 4) { AgiMod = 4; }
-            else if (AgiMod < 4) { AgiMod = -4; }
-            return true;
+            if (AgiMod > 4)
+            {
+                set = stages - (AgiMod - 4);
+                AgiMod = 4;
+            }
+            else if (AgiMod < -4)
+            {
+                set = stages - (AgiMod + 4);
+                AgiMod = -4;
+            }
         }
         else if (modifierName == "AccMod")
         {
             AccMod += stages;
-            if (AccMod > 4) { AccMod = 4; }
-            else if (AccMod < 4) { AccMod = -4; }
-            return true;
+            if (AccMod > 4)
+            {
+                set = stages - (AccMod - 4);
+                AccMod = 4;
+            }
+            else if (AccMod < -4)
+            {
+                set = stages - (AccMod + 4);
+                AccMod = -4;
+            }
         }
         else if (modifierName == "DodMod")
         {
             DodMod += stages;
-            if (DodMod > 4) { DodMod = 4; }
-            else if (DodMod < 4) { DodMod = -4; }
-            return true;
+            if (DodMod > 4)
+            {
+                set = stages - (DodMod - 4);
+                DodMod = 4;
+            }
+            else if (DodMod < -4)
+            {
+                set = stages - (DodMod + 4);
+                DodMod = -4;
+            }
         }
         else if (modifierName == "CrtMod")
         {
             CrtMod += stages;
-            if (CrtMod > 4) { CrtMod = 4; }
-            else if (CrtMod < 4) { CrtMod = -4; }
-            return true;
+            if (CrtMod > 4)
+            {
+                set = stages - (CrtMod - 4);
+                CrtMod = 4;
+            }
+            else if (CrtMod < -4)
+            {
+                set = stages - (CrtMod + 4);
+                CrtMod = -4;
+            }
         }
-
-        //failed if did not return above
-        return false;
+        
+        return set;
     }
+
+    /// <summary>
+    /// Checks whether an active status effect with 1 or 2 turns remaining will end early
+    /// </summary>
+    /// <returns>Status effect end acknowledgement, empty if no effect ended</returns>
     public string CheckEffectEndEarly()
     {
         ///If NEGATIVE status effect has 1 or 2 turns remaining, 25% chance to end early
@@ -473,6 +582,11 @@ public class BattleChar
         StatusActive = StatusEffect.None;
         return text;
     }
+
+    /// <summary>
+    /// Determines whether this BattleChar can swap out of battle
+    /// </summary>
+    /// <returns>Whether this BattleChar can swap, true if so</returns>
     public bool CheckCanSwap()
     {
         if (Trapped > 0)
@@ -483,7 +597,12 @@ public class BattleChar
     }
 
 
+
+
     //RESETS
+    /// <summary>
+    /// Resets all modifiers to 0
+    /// </summary>
     public void ResetModifiers()
     {
         //reset all modifiers when swapping from BattleChar
@@ -497,6 +616,10 @@ public class BattleChar
         DodMod = 0;
         CrtMod = 0;
     }
+
+    /// <summary>
+    /// Resets status effect var to None and duration to 0
+    /// </summary>
     public void ResetStatusEffects()
     {
         //reset any active status effect to duration 0
@@ -504,6 +627,10 @@ public class BattleChar
         StatusDuration = 0;
         StatusActive = StatusEffect.None;
     }
+
+    /// <summary>
+    /// Resets all single-turn operational effects
+    /// </summary>
     public void ResetSingleTurnEffects()
     {
         Protected = false;
@@ -512,10 +639,18 @@ public class BattleChar
         ReflectStatus = null;
         ReflectDamage = 0;        
     }
+
+    /// <summary>
+    /// Resets all multi-turn operational effects
+    /// </summary>
     public void ResetMultiTurnEffects()
     {
         Trapped = 0;
     }
+
+    /// <summary>
+    /// Resets all temporary operational and tracking data of this BattleChar's Abilities
+    /// </summary>
     public void ResetAbilities()
     {
         //reset tracking attributes of each Ability, called when swapping or at 0HP
@@ -526,6 +661,10 @@ public class BattleChar
             ability.Reset();
         }
     }
+
+    /// <summary>
+    /// Resets all temporary operational and tracking data stored by this BattleChar
+    /// </summary>
     public void ResetAll()
     {
         //reset all temporary data upon swap or 0HP
@@ -543,7 +682,12 @@ public class BattleChar
     }
 
 
+
+
     //MULTI TURN EFFECT OPERATIONS
+    /// <summary>
+    /// Decrements duration of all multi-turn operational effects
+    /// </summary>
     public void DecrementMultiTurnEffects()
     {
         if (Trapped > 0)
@@ -553,7 +697,13 @@ public class BattleChar
     }
 
 
+
+
     //TRANSFERS
+    /// <summary>
+    /// Transfers all currently active team effects to BattleChar swapping in
+    /// </summary>
+    /// <param name="newChar">BattleChar swapping in</param>
     public void TransferTeamEffectsToNew(BattleChar newChar)
     {
         //transfer team effects from old (this) to new (argument)
@@ -564,6 +714,11 @@ public class BattleChar
         HealingMist = 0;
         Thorns = 0;
     }
+
+    /// <summary>
+    /// Transfers all currently active field effects to BattleChar swapping in
+    /// </summary>
+    /// <param name="newChar">BattleChar swapping in</param>
     public void TransferFieldEffectsToNew(BattleChar newChar)
     {
         //transfer field effects from old (this) to new (argument)
@@ -571,6 +726,11 @@ public class BattleChar
         //FIRST TRANSFER TO NEW (ARGUMENT)
         //THEN RESET VALUES ON OLD (THIS) TO 0
     }
+
+    /// <summary>
+    /// Transfers all currently active traps to BattleChar swapping in
+    /// </summary>
+    /// <param name="newChar">BattleChar swapping in</param>
     public void TransferTrapsToNew(BattleChar newChar)
     {
         //transfer traps from old (this) to new (argument)
@@ -579,6 +739,11 @@ public class BattleChar
 
         ElectricSpikes = 0;
     }
+
+    /// <summary>
+    /// Transfers all team effects, field effects, and traps to BattleChar swapping in
+    /// </summary>
+    /// <param name="newChar">BattleChar swapping in</param>
     public void TransferAllToNew(BattleChar newChar)
     {
         //transfer all transferrable data upon swap or 0HP
@@ -589,7 +754,13 @@ public class BattleChar
     }
 
 
+
+
     //STATUS EFFECT OPERATIONS
+    /// <summary>
+    /// Does Burned operation to this BattleChar, dealing damage and acknowledging
+    /// </summary>
+    /// <returns>Damage acknowledgement string</returns>
     public string DoBurnedDamage()
     {
         //do Burned damage and return string
@@ -598,6 +769,11 @@ public class BattleChar
 
         return Name + " was damaged by its burn!";
     }
+
+    /// <summary>
+    /// Decrements duration of active status effect, acknowledging if effect ended
+    /// </summary>
+    /// <returns>Effect end acknowledgement string, if any</returns>
     public string DecrementStatusEffect()
     {
         ///Do action of and decrement any active status effect, returning dialog string
@@ -658,7 +834,13 @@ public class BattleChar
     }
 
 
+
+
     //TEAM EFFECT OPERATIONS
+    /// <summary>
+    /// Does operations of any active team effects, acknowledging actions
+    /// </summary>
+    /// <returns>List of acknowledgement strings to print to dialog</returns>
     public List<string> DoTeamEffects()
     {
         //perform action of any team effect (ex. Healing Mist)
@@ -677,6 +859,11 @@ public class BattleChar
 
         return dialog;  //empty list indicates no effect actions performed
     }
+
+    /// <summary>
+    /// Decrements durations of all team effects, acknowledging if effect ended
+    /// </summary>
+    /// <returns>List of acknowledgement strings to print to dialog</returns>
     public List<string> DecrementTeamEffects()
     {
         //decrement any active team effects
@@ -705,7 +892,13 @@ public class BattleChar
     }
 
 
+
+
     //FIELD EFFECT OPERATIONS
+    /// <summary>
+    /// Does operations of any active field effects, acknowledging actions
+    /// </summary>
+    /// <returns>List of acknowledgement strings to print to dialog</returns>
     public List<string> DoFieldEffects()
     {
         //perform action of any field effects
@@ -716,6 +909,11 @@ public class BattleChar
 
         return dialog;  //empty list indicates no field effect actions performed
     }
+
+    /// <summary>
+    /// Decrements durations of all field effects, acknowleding if effect ended
+    /// </summary>
+    /// <returns>List of acknowledgement strings to print to dialog</returns>
     public List<string> DecrementFieldEffects()
     {
         //decrement any active temporary field effects
@@ -728,7 +926,13 @@ public class BattleChar
     }
 
 
+
+
     //TRAP OPERATIONS
+    /// <summary>
+    /// Does operations of any traps that this BattleChar hit, acknowledging actions
+    /// </summary>
+    /// <returns>List of acknowledgement strings to print to dialog</returns>
     public List<string> DoTrapsHit()
     {
         //check for active traps upon swap, doing action and returning dialog strings
@@ -751,10 +955,11 @@ public class BattleChar
 
         return dialog;  //if list is empty, no traps were hit
     }
+
     /// <summary>
-    /// 
+    /// Decrements durations of all traps underneath this Team, acknowledging if trap ended
     /// </summary>
-    /// <returns></returns>
+    /// <returns>List of acknowledgement strings to print to dialog</returns>
     public List<string> DecrementTraps()
     {
         //decrement any active traps and return dialog strings with acknowledgements
@@ -775,13 +980,24 @@ public class BattleChar
     }
 
 
+
+
     //XP
+    /// <summary>
+    /// Adds XP to this BattleChar, ensuring it does not exceed maximum possible
+    /// </summary>
+    /// <param name="xp">XP to add</param>
     public void AddXP(int xp)
     {
         //add XP, then ensure is not greater than maximum at this xp ratio (1,000,000 base)
         XP += xp;
         XP = Mathf.RoundToInt(Mathf.Min(XP, 1000000 * SpeciesData.XPRatio));
     }
+
+    /// <summary>
+    /// Handles leveling up, increasing stats and checking if should learn an Ability
+    /// </summary>
+    /// <returns>Name of Ability to learn from level up, empty if none</returns>
     public string LevelUp()
     {
         ///Returns name of Ability if one is trying to be learned at new level
@@ -820,6 +1036,8 @@ public class BattleChar
         //if no learned ability, return empty string
         return "";
     }
+
+
 
 
     //CONVERSION

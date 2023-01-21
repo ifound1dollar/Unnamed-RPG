@@ -785,7 +785,7 @@ public class BattleSystem : MonoBehaviour
         yield return CheckHP();
 
 
-        //player field effect decrements, then enemy (ONLY PLAYER PRINTS DIALOG)
+        //player field effect decrements, then enemy (ONLY PRINT DIALOG ONCE, FROM PLAYER)
         fieldEffectStrings = currPlayer.DecrementFieldEffects();
         if (fieldEffectStrings.Count > 0)
         {
@@ -1086,6 +1086,9 @@ public class BattleSystem : MonoBehaviour
             try
             {
                 newAbility = Activator.CreateInstance(Type.GetType(abilityName)) as Ability;
+
+                //if successful, add newAbility's class name to player's PastAbilities list
+                player.PastAbilities.Add(newAbility.GetType().Name);
             }
             catch
             {

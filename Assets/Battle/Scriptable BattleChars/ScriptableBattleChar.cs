@@ -35,7 +35,7 @@ public class ScriptableBattleChar : ScriptableObject
     [SerializeField] int actualHP = -1;
 
     [Tooltip("Passive Ability is assigned by species data if undefined")]
-    [SerializeField] string specialAbility;
+    [SerializeField] string passiveAbility; //make PassiveAbility object
     [Tooltip("Impossible Ability cannot normally be learned, but has a chance to replace Ability 4")]
     [SerializeField] string impossibleAbility;
 
@@ -58,15 +58,15 @@ public class ScriptableBattleChar : ScriptableObject
     public int MaxEnergy            { get { return maxEnergy; } }
     public int ActualHP             { get { return actualHP; } }
 
-    public string SpecialAbility    { get { return specialAbility; } }
+    public string PassiveAbility    { get { return passiveAbility; } }  //make PassiveAbility object
     public string ImpossibleAbility { get { return impossibleAbility; } }
 
-    public float RawMaxHP         { get { return rawMaxHP; } }
-    public float RawStrength      { get { return rawStrength; } }
-    public float RawMastery       { get { return rawMastery; } }
-    public float RawArmor         { get { return rawArmor; } }
-    public float RawResistance    { get { return rawResistance; } }
-    public float RawAgility       { get { return rawAgility; } }
+    public float RawMaxHP           { get { return rawMaxHP; } }
+    public float RawStrength        { get { return rawStrength; } }
+    public float RawMastery         { get { return rawMastery; } }
+    public float RawArmor           { get { return rawArmor; } }
+    public float RawResistance      { get { return rawResistance; } }
+    public float RawAgility         { get { return rawAgility; } }
 
     public SpecialtyStat SpecialtyUp    { get { return specialtyUp; } }
     public SpecialtyStat SpecialtyDown  { get { return specialtyDown; } }
@@ -74,6 +74,7 @@ public class ScriptableBattleChar : ScriptableObject
 
     //HIDDEN FROM EDITOR, ONLY FOR PLAYER CHARACTER STORAGE
     public int XP { get; set; }
+    public List<string> PastAbilities { get; set; }
 
 
     //constructor for making save character
@@ -89,7 +90,7 @@ public class ScriptableBattleChar : ScriptableObject
         eAbility2 = nAbility2 = hAbility2 = battleChar.Abilities[1].ToString();
         eAbility3 = nAbility3 = hAbility3 = battleChar.Abilities[2].ToString();
         eAbility4 = nAbility4 = hAbility4 = battleChar.Abilities[3].ToString();
-        specialAbility = battleChar.SpecialAbility;
+        passiveAbility = battleChar.SpecialAbility;
 
         rawMaxHP = battleChar.RawMaxHP;
         rawStrength = battleChar.RawStrength;
@@ -102,13 +103,14 @@ public class ScriptableBattleChar : ScriptableObject
         specialtyDown = battleChar.SpecialtyDown;
 
         XP = battleChar.XP;
+        PastAbilities = battleChar.PastAbilities;
     }
 
     /// <summary>
     /// Returns Abilities as string array of fixed length 4, depending on Difficulty
     /// </summary>
     /// <param name="difficulty">Difficulty determining which Abilities to return</param>
-    /// <returns></returns>
+    /// <returns>Array of Ability names as strings</returns>
     public string[] GetAbilitiesAsArray(AIDifficulty difficulty)
     {
         //add to List in order ONLY IF not empty

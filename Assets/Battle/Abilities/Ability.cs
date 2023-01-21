@@ -11,13 +11,15 @@ public abstract class Ability
     public BattleType AbilityType { get; set; }
     public Category Category { get; set; }
     public bool MakesContact { get; set; }
+    public int Energy { get; set; }
     public int Power { get; set; }
     public int Accuracy { get; set; }
-    public int Energy { get; set; }
+
 
     public int Priority { get; set; }
     public bool Delayed { get; set; }
     public bool Recharge { get; set; }
+
 
     public int ConsecutiveUses { get; set; }
     public int TotalUses { get; set; }
@@ -25,11 +27,29 @@ public abstract class Ability
     public int Score { get; set; }
 
 
+
+
+    /// <summary>
+    /// Performs all operations of Ability use, overridden by each subclass
+    /// </summary>
+    /// <param name="data">Contains contextual data like user, target, turn number, damage, etc.</param>
+    /// <returns></returns>
     public abstract IEnumerator UseAbility(AbilityData data);
+
+    /// <summary>
+    /// Calculates Score of this Ability, overridden for custom implementation by each subclass
+    /// </summary>
+    /// <param name="aiContext">Contains difficulty, all enemies, current enemy, and current player</param>
     protected abstract void CalcSpecificScore(BattleAI.AIContextObject aiContext);
 
 
+
+
     //PROTECTED damage calculators and dialog/HUD update methods
+    /// <summary>
+    /// Calculates damage to deal with this Ability and assigns to AbilityData object
+    /// </summary>
+    /// <param name="data">Contains contextual data like user, target, turn number, damage, etc.</param>
     protected void CalcDamageToDeal(AbilityData data)
     {
         if (data.Target.Protected)
@@ -80,6 +100,13 @@ public abstract class Ability
         //FINALLY, set AbilityData.Damage to calculated damage
         data.Damage = (int)Mathf.Round(damage);
     }
+
+    /// <summary>
+    /// Estimates damage to deal, ignoring 90-110% random multiplier and critical strike chance
+    /// </summary>
+    /// <param name="user">Ability's user</param>
+    /// <param name="target">Ability's target</param>
+    /// <returns>Estimated damage as integer</returns>
     protected int EstimateDamage(BattleChar user, BattleChar target)
     {
         ///Estimates damage dealt by user to target using this Ability. Does not get random
@@ -122,10 +149,11 @@ public abstract class Ability
         //FINALLY, return estimated damage value
         return Mathf.RoundToInt(damage);
     }
+
     /// <summary>
-    /// Updates dialog with effectiveness and/or crit, else clears dialog
+    /// Updates dialog with effectiveness/crit message (if any) then delays for textDelay seconds
     /// </summary>
-    /// <param name="data"></param>
+    /// <param name="data">Contains contextual data like user, target, turn number, damage, etc.</param>
     /// <returns></returns>
     protected IEnumerator UpdateDialogUniversal(AbilityData data)
     {
@@ -161,6 +189,12 @@ public abstract class Ability
         yield return data.DialogBox.DialogSet(text);
         yield return new WaitForSeconds(data.TextDelay);
     }
+
+    /// <summary>
+    /// Updates HUD of both user and target, then delays while animations play
+    /// </summary>
+    /// <param name="data">Contains contextual data like user, target, turn number, damage, etc.</param>
+    /// <returns></returns>
     protected IEnumerator UpdateHudAndDelay(AbilityData data)
     {
         ///Updates HUD of player and enemy then delays
@@ -171,7 +205,13 @@ public abstract class Ability
     }
 
 
+
+
     //universal score calcuation (only called by EnemyAI)
+    /// <summary>
+    /// Calculates Score of this Ability based on context
+    /// </summary>
+    /// <param name="aiContext">Contains difficulty, all enemies, current enemy, and current player</param>
     public void CalcScore(BattleAI.AIContextObject aiContext)
     {
         ///Calculates this Ability's Score in the context of this turn and enemy/player
@@ -222,12 +262,18 @@ public abstract class Ability
         //if not Easy, do conditional Score adjustments
         if (aiContext.Difficulty != AIDifficulty.Easy)
         {
-            ConditionalScoreChecks(aiContext);
+            ConditionalScoreAdjustments(aiContext);
         }
 
         //FINALLY, ensure Score is non-negative
         Score = Mathf.Max(Score, 0);
     }
+
+    /// <summary>
+    /// Does general Score calculation for all damaging Abilities, higher damage = higher Score
+    /// </summary>
+    /// <param name="aiContext">Contains difficulty, all enemies, current enemy, and current player</param>
+    /// <param name="estimatedDamage">Estimated damage to deal to target (player)</param>
     protected void CalcDamagingScore(BattleAI.AIContextObject aiContext, int estimatedDamage)
     {
         ///Calculates Score of general damaging Abilities, which is always the same
@@ -249,7 +295,12 @@ public abstract class Ability
             Score += 100;
         }
     }
-    void ConditionalScoreChecks(BattleAI.AIContextObject aiContext)
+
+    /// <summary>
+    /// Adjusts Score of this Ability based on certain conditions
+    /// </summary>
+    /// <param name="aiContext">Contains difficulty, all enemies, current enemy, and current player</param>
+    void ConditionalScoreAdjustments(BattleAI.AIContextObject aiContext)
     {
         //IF MakesContact and target Thorns(etc.) is active, reduce Score slightly
         if (MakesContact && aiContext.Player.Thorns > 0)
@@ -259,7 +310,15 @@ public abstract class Ability
     }
 
 
+
+
     //overridable operational methods
+    /// <summary>
+    /// Determines whether this Ability will land or miss this turn
+    /// </summary>
+    /// <param name="user">Ability's user</param>
+    /// <param name="target">Ability's target</param>
+    /// <returns>Whether attack landed, true if successful</returns>
     public virtual bool CheckAccuracy(BattleChar user, BattleChar target)
     {
         ///Finds whether the attack landed or not, can be overridden for custom behaviors
@@ -274,6 +333,12 @@ public abstract class Ability
         }
         return false;
     }
+
+    /// <summary>
+    /// Calculates this Ability's Energy cost in the context of the user this turn
+    /// </summary>
+    /// <param name="battleChar">Owner of this Ability</param>
+    /// <returns>Ability's Energy cost this turn</returns>
     public virtual int EnergyCost(BattleChar battleChar)
     {
         ///Returns Energy cost of this Ability, can be overridden for custom behaviors
@@ -281,6 +346,12 @@ public abstract class Ability
         //double Energy cost if user is Cursed
         return (battleChar.StatusActive == StatusEffect.Cursed) ? Energy * 2 : Energy;
     }
+
+    /// <summary>
+    /// Determines whether this Ability is usable this turn
+    /// </summary>
+    /// <param name="battleChar">Owner of this Ability</param>
+    /// <returns>Whether Ability is usable, true if it is</returns>
     public virtual bool IsUsable(BattleChar battleChar)
     {
         ///Base method returns only whether user has enough Energy to use Ability and that
@@ -289,6 +360,10 @@ public abstract class Ability
 
         return (EnergyCost(battleChar) <= battleChar.Energy && !Blocked);
     }
+
+    /// <summary>
+    /// Resets this Ability's tracking data, overridden by Abilities with custom data
+    /// </summary>
     public virtual void Reset()
     {
         ///Resets all tracking data corresponding to this Ability. Base method only resets
