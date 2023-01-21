@@ -20,6 +20,7 @@ public class PartyMenu : MonoBehaviour
     [Header("Details")]
     [SerializeField] GameObject detailsPanel;
     [SerializeField] GameObject detailsOverlay;
+    [SerializeField] GameObject detailsButtonsContainer;
     [SerializeField] Button[] detailsCharButtons;
     [SerializeField] Button detailsBackButton;
     [SerializeField] TMP_Text detailsName;
@@ -468,6 +469,7 @@ public class PartyMenu : MonoBehaviour
         detailsPanel.SetActive(true);
         CurrButtonIndex = charIndex;
         ShowDetails();
+        detailsButtonsContainer.SetActive(false);
 
         //focus panel and show TeachAbility info
         FocusAbilityPanel();
@@ -521,6 +523,7 @@ public class PartyMenu : MonoBehaviour
         teachAbilityOverlay.SetActive(false);
         HideAbilityInfo();
         HideDetails();
+        detailsButtonsContainer.SetActive(true);
         HidePartyMenu();
     }
 

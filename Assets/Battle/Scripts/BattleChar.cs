@@ -91,7 +91,7 @@ public class BattleChar
     public bool Delaying        { get; set; }
     public int TurnsActive      { get; set; }
     public bool WasActive       { get; set; }
-    public List<string> PastAbilities { get; set; }
+    public List<string> PastAbilities { get; set; } = new();
 
 
     public BattleChar(ScriptableBattleChar data, AIDifficulty difficulty, bool playerTeam, int argLevel = 0)
@@ -117,7 +117,7 @@ public class BattleChar
 
         //abilities, NOW IN ORDER WITH EMPTY AT THE END
         string[] abilityNames = data.GetAbilitiesAsArray(difficulty);
-        for (int i = 0; i < -4; i++)
+        for (int i = 0; i < 4; i++)
         {
             if (abilityNames[i] == "")
             {
@@ -131,7 +131,10 @@ public class BattleChar
                 Abilities[i] = Activator.CreateInstance(Type.GetType(abilityNames[i])) as Ability;
 
                 //if successful, add name string to PastAbilities
-                PastAbilities.Add(abilityNames[i]);
+                if (!PastAbilities.Contains(abilityNames[i]))
+                {
+                    PastAbilities.Add(abilityNames[i]);
+                }
             }
             catch
             {

@@ -1033,9 +1033,14 @@ public class BattleSystem : MonoBehaviour
             }
         }
 
-        //add XP to each player, handling any level ups and learning Abilities
+        //add XP to each player that was active, handling any level ups and learning Abilities
         for (int i = 0; i < playerChars.Length; i++)
         {
+            if (!playerChars[i].WasActive)
+            {
+                continue;
+            }
+
             BattleChar player = playerChars[i];
             player.AddXP(playerTeamXP[i]);
 
@@ -1070,6 +1075,19 @@ public class BattleSystem : MonoBehaviour
             xp *= (enemy.SpeciesData.EvolutionStage == 2) ? 1.25f : 1.5f;
         }
 
+        //increase by another 50% if NOT Wild, and 100% if Boss
+        if (difficulty != AIDifficulty.Wild)
+        {
+            if (difficulty != AIDifficulty.Boss)
+            {
+                xp *= 1.50f;
+            }
+            else
+            {
+                xp *= 2.00f;
+            }
+        }
+
         //return xp value, divided by number of participants then rounded to int
         return Mathf.RoundToInt(xp / participants);
     }
@@ -1088,7 +1106,10 @@ public class BattleSystem : MonoBehaviour
                 newAbility = Activator.CreateInstance(Type.GetType(abilityName)) as Ability;
 
                 //if successful, add newAbility's class name to player's PastAbilities list
-                player.PastAbilities.Add(newAbility.GetType().Name);
+                if (!player.PastAbilities.Contains(newAbility.GetType().Name))
+                {
+                    player.PastAbilities.Add(newAbility.GetType().Name);
+                }
             }
             catch
             {
@@ -1115,12 +1136,12 @@ public class BattleSystem : MonoBehaviour
                 yield break;
             }
 
-            //handle teaching ability, waiting until not Busy to move on
+            //handle teaching ability, waiting until PartyMenu hidden to move on
             yield return dialogBox.DialogSet($"{player.Name} is trying to learn an Ability...");
             yield return new WaitForSeconds(textDelay);
-            state = BattleState.Busy;
+
             dialogBox.PartyMenu.BeginTeachAbility(newAbility, Array.IndexOf(playerChars, player));
-            yield return new WaitUntil(() => state != BattleState.Busy);
+            yield return new WaitUntil(() => !dialogBox.PartyMenu.gameObject.activeSelf);
 
             yield return dialogBox.DialogSet("MESSAGE AFTER TEACH");
             yield return new WaitForSeconds(textDelay);
