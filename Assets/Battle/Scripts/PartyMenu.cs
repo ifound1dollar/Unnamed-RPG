@@ -137,12 +137,12 @@ public class PartyMenu : MonoBehaviour
         gameObject.SetActive(false);
         backButton.gameObject.SetActive(true);
 
-        //if battleSystem is not null, call its function to auto-select main Party button
-        if (battleSystem != null)
+        //if in battle, call BattleSystem function to auto-select main Party button
+        if (GameState.InBattle)
         {
             battleSystem.HidePartyMenuInBattle();
         }
-        //else if is null, should deselect all
+        //else if should deselect everything
         else
         {
             EventSystem.current.SetSelectedGameObject(null);
