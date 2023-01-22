@@ -16,8 +16,8 @@ MonoBehaviour:
   type1: 4
   type2: 12
   xpRatio: 1
-  frontSprite: {fileID: 21300000, guid: 2b2a95926af0cf5419fad87528b918e4, type: 3}
-  backSprite: {fileID: 21300000, guid: 2b2a95926af0cf5419fad87528b918e4, type: 3}
+  frontSprite: {fileID: 21300000, guid: 1ee98b87b95a4904daa195d5dd82a9b4, type: 3}
+  backSprite: {fileID: 21300000, guid: 1ee98b87b95a4904daa195d5dd82a9b4, type: 3}
   hp: 110
   strength: 120
   mastery: 90

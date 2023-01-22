@@ -16,6 +16,7 @@ public class PlayerController : MonoBehaviour
 
     Animator animator;
 
+
     private void Awake()
     {
         //initialize animator reference and move camera above player sprite
@@ -27,7 +28,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         //only allow movement input if not already moving
-        if (!isMoving)
+        if (!GameState.InBattle && !isMoving)
         {
             inputPos.x = Input.GetAxisRaw("Horizontal");
             inputPos.y = Input.GetAxisRaw("Vertical");

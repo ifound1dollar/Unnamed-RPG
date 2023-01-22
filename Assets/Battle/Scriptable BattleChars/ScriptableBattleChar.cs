@@ -77,6 +77,8 @@ public class ScriptableBattleChar : ScriptableObject
     public List<string> PastAbilities { get; set; }
 
 
+
+
     //constructor for making save character
     public ScriptableBattleChar(BattleChar battleChar)
     {
@@ -106,16 +108,19 @@ public class ScriptableBattleChar : ScriptableObject
         PastAbilities = battleChar.PastAbilities;
     }
 
+
+
+
     /// <summary>
     /// Returns Abilities as string array of fixed length 4, depending on Difficulty
     /// </summary>
     /// <param name="difficulty">Difficulty determining which Abilities to return</param>
     /// <returns>Array of Ability names as strings</returns>
-    public string[] GetAbilitiesAsArray(AIDifficulty difficulty)
+    public string[] GetAbilitiesAsArray(BattleAI.AIDifficulty difficulty)
     {
         //add to List in order ONLY IF not empty
         List<string> list = new();
-        if (difficulty == AIDifficulty.Easy || difficulty == AIDifficulty.Wild)
+        if (difficulty == BattleAI.AIDifficulty.Easy || difficulty == BattleAI.AIDifficulty.Wild)
         {
             //add in order only if not empty
             if (eAbility1 != "") { list.Add(eAbility1); }
@@ -123,7 +128,7 @@ public class ScriptableBattleChar : ScriptableObject
             if (eAbility3 != "") { list.Add(eAbility3); }
             if (eAbility4 != "") { list.Add(eAbility4); }
         }
-        else if (difficulty == AIDifficulty.Normal)
+        else if (difficulty == BattleAI.AIDifficulty.Normal)
         {
             if (nAbility1 != "") { list.Add(nAbility1); }
             if (nAbility2 != "") { list.Add(nAbility2); }

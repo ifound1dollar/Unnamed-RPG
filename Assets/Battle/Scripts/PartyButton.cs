@@ -26,7 +26,7 @@ public class PartyButton : MonoBehaviour, ISelectHandler
             }
             else
             {
-                partyMenu.CurrButtonIndex = buttonIndex;
+                partyMenu.CurrCharIndex = buttonIndex;
 
                 //if details focused already, also show details of this character
                 if (partyMenu.DetailsFocused)

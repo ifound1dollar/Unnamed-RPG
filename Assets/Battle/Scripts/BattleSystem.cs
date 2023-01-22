@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class BattleSystem : MonoBehaviour
@@ -13,22 +14,17 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] PlayerHud playerHud;
     [SerializeField] EnemyHud enemyHud;
     [SerializeField] DialogBox dialogBox;
+    [SerializeField] PartyMenu partyMenu;
     [SerializeField] Image playerImage;
     [SerializeField] Image enemyImage;
-
-    [SerializeField] BattleParty playerParty;
-    [SerializeField] BattleParty enemyParty;
-
-
 
     BattleChar[] playerChars;
     BattleChar[] enemyChars;
     BattleChar currPlayer;
     BattleChar currEnemy;
-    List<Snapshot> playerSnaps;
-    List<Snapshot> enemySnaps;
-    BattleAI battleAI;
-    AIDifficulty difficulty;
+
+    readonly BattleAI battleAI = new();
+    BattleAI.AIDifficulty difficulty;
     float textDelay = 1.5f;
 
     int turnNumber;
@@ -38,60 +34,20 @@ public class BattleSystem : MonoBehaviour
     int playerSwapIndex;
     int enemySwapIndex;
 
-    //getter for playerChars
-    public BattleChar[] PlayerChars { get { return playerChars; } }
 
-    // Start is called before the first frame update
-    void Start()
+
+
+    //setup
+    public void SetPersistentData(PersistentData data)
     {
-        StartCoroutine(Setup());
+        difficulty = data.Difficulty;
+        dialogBox.DialogSpeed = data.DialogSpeed;
+        textDelay = data.TextDelay;
+
+        playerChars = data.PlayerChars;
     }
-    IEnumerator Setup()
+    public void BeginBattle(BattleParty enemyParty)
     {
-        //instantiate BattleAI object (difficulty is sent in AIContextObject)
-        difficulty = AIDifficulty.Easy;
-        battleAI = new();
-
-        InitPlayerParty();
-        InitEnemyParty();
-        currPlayer = playerChars[0];
-        currEnemy = enemyChars[0];
-        playerSnaps = new();
-        enemySnaps = new();
-
-        //load player and enemy sprites from BattleChar's species data
-        playerImage.sprite = currPlayer.SpeciesData.BackSprite;
-        enemyImage.sprite = currEnemy.SpeciesData.FrontSprite;
-
-        //TEMP
-        //currEnemy.Energy = 0;
-
-        //currPlayer.Trapped = 100;
-        //TEMP
-
-        //set hud for each
-        playerHud.SetHUD(currPlayer);
-        enemyHud.SetHUD(currEnemy);
-        dialogBox.Setup(this);
-        dialogBox.SetAbilityButtons(currPlayer);
-
-        //TEMP
-        yield return dialogBox.DialogSet("TEST TEXT TEST TEXT TEST TEXT TEST TEXT TEST TEXT ");
-        yield return new WaitForSeconds(textDelay);
-        yield return dialogBox.DialogAppend("Test append.");
-        yield return new WaitForSeconds(textDelay);
-        //TEMP
-
-        StartCoroutine(Loop());
-    }
-    void InitPlayerParty()
-    {
-        playerChars = new BattleChar[playerParty.Team.Length];
-        for (int i = 0; i < playerParty.Team.Length; i++)
-        {
-            playerChars[i] = new BattleChar(playerParty.Team[i], difficulty, playerTeam: true);
-        }
-
         //find first BattleChar in array with >0HP to make currPlayer
         foreach (BattleChar battleChar in playerChars)
         {
@@ -102,8 +58,22 @@ public class BattleSystem : MonoBehaviour
                 break;
             }
         }
+
+        //InitPlayerParty();
+        InitEnemyParty(enemyParty);
+
+        //load player and enemy sprites from BattleChar's species data
+        playerImage.sprite = currPlayer.SpeciesData.BackSprite;
+        enemyImage.sprite = currEnemy.SpeciesData.FrontSprite;
+
+        //set hud for each
+        playerHud.SetHUD(currPlayer);
+        enemyHud.SetHUD(currEnemy);
+        dialogBox.SetAbilityButtons(currPlayer);
+
+        StartCoroutine(Loop());
     }
-    void InitEnemyParty()
+    void InitEnemyParty(BattleParty enemyParty)
     {
         int targetLevel = CalcEnemyLevel();
 
@@ -115,7 +85,6 @@ public class BattleSystem : MonoBehaviour
             enemyChars[i] = new BattleChar(enemyParty.Team[i], difficulty, playerTeam: false, argLevel: level);
         }
 
-        //find first BattleChar in array with >0HP to make currPlayer
         foreach (BattleChar battleChar in enemyChars)
         {
             if (battleChar.HP > 0)
@@ -139,7 +108,7 @@ public class BattleSystem : MonoBehaviour
         int targetLevel = playerAvg;
 
         //different behavior for wild/easy, normal, and hard/boss
-        if (difficulty == AIDifficulty.Easy || difficulty == AIDifficulty.Wild)
+        if (difficulty == BattleAI.AIDifficulty.Easy || difficulty == BattleAI.AIDifficulty.Wild)
         {
             //if easy or wild, set to 4% below player average
             targetLevel = Mathf.RoundToInt(playerAvg * 0.96f);
@@ -147,14 +116,14 @@ public class BattleSystem : MonoBehaviour
             //force targetLevel to be at minimum 8% below player max (TOTAL 4-8% BELOW)
             targetLevel = Mathf.Max(targetLevel, Mathf.RoundToInt(playerMax * 0.92f));
         }
-        else if (difficulty == AIDifficulty.Normal)
+        else if (difficulty == BattleAI.AIDifficulty.Normal)
         {
             //if normal, keep equal to player average
 
             //force targetLevel to be at minimum 4% below player max (TOTAL 0-4% BELOW)
             targetLevel = Mathf.Max(targetLevel, Mathf.RoundToInt(playerMax * 0.96f));
         }
-        else if (difficulty == AIDifficulty.Hard || difficulty == AIDifficulty.Boss)
+        else if (difficulty == BattleAI.AIDifficulty.Hard || difficulty == BattleAI.AIDifficulty.Boss)
         {
             //if hard or boss, set to 4% above player average
             targetLevel = Mathf.RoundToInt(playerAvg * 1.04f);
@@ -164,7 +133,7 @@ public class BattleSystem : MonoBehaviour
         }
 
         //finally, verify that targetLevel is within min and max range ONLY IF NOT BOSS
-        if (difficulty != AIDifficulty.Boss)
+        if (difficulty != BattleAI.AIDifficulty.Boss)
         {
             targetLevel = Mathf.Clamp(targetLevel, minLevel, maxLevel);
         }
@@ -173,16 +142,27 @@ public class BattleSystem : MonoBehaviour
     }
 
 
+
+
     IEnumerator Loop()
     {
+        //TEMP
+        yield return dialogBox.DialogSet("TEST TEXT TEST TEXT TEST TEXT TEST TEXT TEST TEXT ");
+        yield return new WaitForSeconds(textDelay);
+        yield return dialogBox.DialogAppend("Test append.");
+        yield return new WaitForSeconds(textDelay);
+        //TEMP
+
         while (state != BattleState.BattleEnded)
         {
-            //add new empty Snapshot for both player and enemy into respective lists
-            playerSnaps.Add(new(playerTeam: true));
-            enemySnaps.Add(new(playerTeam: false));
-
             //enable player input and wait until input gotten
             yield return WaitPlayerAction();
+
+            //check if player flee/forfeit
+            if (playerChoice == BattleChoice.FleeForfeit)
+            {
+                yield return EndBattle(playerWin: false);
+            }
 
             //enemy AI make choice and set enemyChoice
             GetEnemyChoice();
@@ -202,12 +182,6 @@ public class BattleSystem : MonoBehaviour
             //short dialog and delay before actions start
             yield return dialogBox.DialogSet("Preparing...");
             yield return new WaitForSeconds(textDelay);
-
-            //check if player flee/forfeit
-            if (playerChoice == BattleChoice.FleeForfeit)
-            {
-                yield return EndBattle(playerWin: false);
-            }
 
             //check swaps, performing any chosen swaps by player or enemy and resetting swapIndex for either/both
             yield return CheckSwaps();
@@ -229,6 +203,8 @@ public class BattleSystem : MonoBehaviour
         }
     }
     
+
+
 
     //WaitingChoice
     IEnumerator WaitPlayerAction()
@@ -282,6 +258,8 @@ public class BattleSystem : MonoBehaviour
             }
         }
     }
+
+
 
 
     //Preparing (swaps, status end early)
@@ -377,6 +355,9 @@ public class BattleSystem : MonoBehaviour
         //after checking status, time to begin attacking
         state = BattleState.Attacking;
     }
+
+
+
 
     //Attacking
     IEnumerator PerformAttacks()
@@ -592,6 +573,9 @@ public class BattleSystem : MonoBehaviour
 
         yield break;
     }
+
+
+
 
     //EndingTurn
     IEnumerator EndOfTurnOperations()
@@ -839,8 +823,7 @@ public class BattleSystem : MonoBehaviour
             if (GetRemaining(playerTeam: true) > 0)
             {
                 state = BattleState.WaitingChoice;
-                dialogBox.ShowPartyMenu(enabled);
-                dialogBox.HidePartyBackButton();
+                partyMenu.ShowPartyMenu(showBackButton: false);
                 yield return new WaitUntil(() => state != BattleState.WaitingChoice);
                 playerSwap = true;
             }
@@ -1050,14 +1033,13 @@ public class BattleSystem : MonoBehaviour
             }
         }
 
-
-
-        //CONVERT PLAYER CHARACTERS TO SCRIPTABLE AND STORE WHEREVER NECESSARY
-
-
+        yield return dialogBox.DialogSet("Ending battle...");
+        yield return new WaitForSeconds(textDelay);
 
         //hide this gameObject (entire BattleSystem) then stop all coroutines
         gameObject.SetActive(false);
+        ResetAllBattleData();
+        GameState.InBattle = false;
         StopAllCoroutines();
     }
     int CalculateXPYield(BattleChar enemy, BattleChar player, int participants)
@@ -1076,9 +1058,9 @@ public class BattleSystem : MonoBehaviour
         }
 
         //increase by another 50% if NOT Wild, and 100% if Boss
-        if (difficulty != AIDifficulty.Wild)
+        if (difficulty != BattleAI.AIDifficulty.Wild)
         {
-            if (difficulty != AIDifficulty.Boss)
+            if (difficulty != BattleAI.AIDifficulty.Boss)
             {
                 xp *= 1.50f;
             }
@@ -1140,13 +1122,33 @@ public class BattleSystem : MonoBehaviour
             yield return dialogBox.DialogSet($"{player.Name} is trying to learn an Ability...");
             yield return new WaitForSeconds(textDelay);
 
-            dialogBox.PartyMenu.BeginTeachAbility(newAbility, Array.IndexOf(playerChars, player));
-            yield return new WaitUntil(() => !dialogBox.PartyMenu.gameObject.activeSelf);
-
-            yield return dialogBox.DialogSet("MESSAGE AFTER TEACH");
-            yield return new WaitForSeconds(textDelay);
+            partyMenu.BeginTeachAbility(newAbility, Array.IndexOf(playerChars, player));
+            yield return new WaitUntil(() => !partyMenu.gameObject.activeSelf);
         }
     }
+    void ResetAllBattleData()
+    {
+        turnNumber = 0;
+        playerSwapIndex = -1;
+        enemySwapIndex = -1;
+        state = BattleState.Start;
+        playerChoice = BattleChoice.Attack;
+        enemyChoice = BattleChoice.Attack;
+
+        //reset all player BattleChar data and nullify enemyChars to free memory
+        currPlayer = null;
+        currEnemy = null;
+        foreach (BattleChar player in playerChars)
+        {
+            player.ResetEndBattle();
+        }
+        enemyChars = null;
+
+        //deselect all buttons so player cannot interact with BattleSystem when inactive
+        EventSystem.current.SetSelectedGameObject(null);
+    }
+
+
 
 
     //button presses
@@ -1185,7 +1187,7 @@ public class BattleSystem : MonoBehaviour
         playerChoice = BattleChoice.Swap;
         playerSwapIndex = swapIndex;
 
-        dialogBox.ShowPartyMenu(false);
+        partyMenu.HidePartyMenu();
 
         state = BattleState.Preparing;
     }
@@ -1195,11 +1197,26 @@ public class BattleSystem : MonoBehaviour
         {
             return;
         }
-        playerChoice = BattleChoice.FleeForfeit;
 
+        dialogBox.ShowFleeForfeitOverlay(false);
+        playerChoice = BattleChoice.FleeForfeit;
         state = BattleState.Preparing;
     }
+    public void OnPartyButtonPress()
+    {
+        partyMenu.LoadPartyChars(GetCurrBattleCharIndex(playerTeam: true));
+        partyMenu.ShowPartyMenu();
+        partyMenu.FocusPartyMenu();
+    }
+    public void HidePartyMenuInBattle()
+    {
+        dialogBox.FocusMainPartyButton();
+    }
 
+
+
+
+    //simple getters
     public int GetCurrBattleCharIndex(bool playerTeam)
     {
         if (playerTeam)

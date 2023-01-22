@@ -260,7 +260,7 @@ public abstract class Ability
         Score = Mathf.RoundToInt((1 + (inverse / 3)) * Score);
 
         //if not Easy, do conditional Score adjustments
-        if (aiContext.Difficulty != AIDifficulty.Easy)
+        if (aiContext.Difficulty != BattleAI.AIDifficulty.Easy)
         {
             ConditionalScoreAdjustments(aiContext);
         }

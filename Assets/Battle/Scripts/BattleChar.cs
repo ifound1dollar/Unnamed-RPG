@@ -9,6 +9,28 @@ public enum StatusEffect { None, Frozen, Burned, Poisoned, Infected, Cursed, Stu
 
 public class BattleChar
 {
+    public struct TrackData
+    {
+        public bool DidSwapIn { get; set; }
+        public bool DidApplyStatus { get; set; }
+        public bool DidReceiveStatus { get; set; }
+
+        public int DamageDealt { get; set; }
+        public int DamageTaken { get; set; }
+        public int DamageHealed { get; set; }
+
+        public void Reset()
+        {
+            DidSwapIn = false;
+            DidApplyStatus = false;
+            DidReceiveStatus = false;
+
+            DamageDealt = 0;
+            DamageTaken = 0;
+            DamageHealed = 0;
+        }
+    }
+
     public SpeciesData SpeciesData { get; }
 
     public Ability[] Abilities { get; set; } = new Ability[4];
@@ -92,9 +114,10 @@ public class BattleChar
     public int TurnsActive      { get; set; }
     public bool WasActive       { get; set; }
     public List<string> PastAbilities { get; set; } = new();
+    public TrackData TurnData { get; set; } = new();
 
 
-    public BattleChar(ScriptableBattleChar data, AIDifficulty difficulty, bool playerTeam, int argLevel = 0)
+    public BattleChar(ScriptableBattleChar data, BattleAI.AIDifficulty difficulty, bool playerTeam, int argLevel = 0)
     {
         SpeciesData = data.SpeciesData;
 
@@ -670,18 +693,37 @@ public class BattleChar
     /// </summary>
     public void ResetAll()
     {
-        //reset all temporary data upon swap or 0HP
-
         ResetModifiers();
         ResetStatusEffects();
         ResetSingleTurnEffects();
         ResetMultiTurnEffects();
         ResetAbilities();
+        TurnData.Reset();
 
+        UsedAbility = null;
         Recharging = false;
         Delaying = false;
         TurnsActive = 0;
         MultiTurnAbility = 0;
+    }
+
+    /// <summary>
+    /// Resets all temporary operational and tracking data AND all battle-relevant data
+    /// </summary>
+    public void ResetEndBattle()
+    {
+        ResetAll();
+        WasActive = false;
+
+        //team effects
+        HealingMist = 0;
+        Thorns = 0;
+
+        //field effects
+        //ANY RESETS HERE
+
+        //traps
+        ElectricSpikes = 0;
     }
 
 

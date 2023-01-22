@@ -2,15 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Snapshot
+public class TrackingData
 {
-    public bool PlayerTeam { get; set; }
-
-    public Snapshot(bool playerTeam)
-    {
-        PlayerTeam = playerTeam;
-    }
-
     public void UpdateAfterSwap(bool forced = false)
     {
         ///Updates data relevant to swapping

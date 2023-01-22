@@ -4,9 +4,11 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 
-public enum AIDifficulty { Easy, Normal, Hard, Boss, Wild }
+
 public class BattleAI
 {
+    public enum AIDifficulty { Easy, Normal, Hard, Boss, Wild }
+
     public struct AIContextObject
     {
         public AIDifficulty Difficulty { get; private set; }
@@ -35,7 +37,6 @@ public class BattleAI
             return count;
         }
     }
-    
 
 
 

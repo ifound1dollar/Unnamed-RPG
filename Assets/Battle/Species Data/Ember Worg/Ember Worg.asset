@@ -16,7 +16,7 @@ MonoBehaviour:
   type1: 4
   type2: 12
   xpRatio: 1
-  frontSprite: {fileID: 21300000, guid: c218da3920f09d845b74fda4cabb5461, type: 3}
+  frontSprite: {fileID: 21300000, guid: 8c6a451d63fe0c949b5754cd28e7d791, type: 3}
   backSprite: {fileID: 21300000, guid: c218da3920f09d845b74fda4cabb5461, type: 3}
   hp: 100
   strength: 100

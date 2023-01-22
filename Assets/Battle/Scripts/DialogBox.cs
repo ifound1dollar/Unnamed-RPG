@@ -9,12 +9,15 @@ using UnityEngine.UI;
 
 public class DialogBox : MonoBehaviour
 {
-    [SerializeField] PartyMenu partyMenu;
     [SerializeField] GameObject abilityOverlay;
     [SerializeField] Button[] abilityButtons;
     [SerializeField] TMP_Text[] abilityNames;
     [SerializeField] TMP_Text[] abilityEnergies;
     [SerializeField] TMP_Text dialogText;
+
+    [SerializeField] GameObject fleeForfeitOverlay;
+    [SerializeField] Button fleeForfeitYesButton;
+    [SerializeField] Button fleeForfeitNoButton;
 
     [SerializeField] Button attackButton;
     [SerializeField] Button passButton;
@@ -22,24 +25,10 @@ public class DialogBox : MonoBehaviour
     [SerializeField] Button fleeForfeitButton;
     [SerializeField] Button abilityBackButton;
 
-    BattleSystem battleSystem;
+    public int DialogSpeed { get; set; }
 
-    [Tooltip("Dialog print speed in characters per second.")]
-    [SerializeField] int dialogSpeed = 30;  //default 30 characters per second
 
-    public PartyMenu PartyMenu { get { return partyMenu; } }
 
-    /// <summary>
-    /// Sets BattleSystem reference, also sets playerChars reference in PartyMenu
-    /// </summary>
-    /// <param name="battleSystem">Reference to active BattleSystem</param>
-    public void Setup(BattleSystem battleSystem)
-    {
-        this.battleSystem = battleSystem;
-        partyMenu.SetPlayerCharsReference(battleSystem.PlayerChars);
-        partyMenu.SetDialogBoxReference(this);
-        partyMenu.SetBattleSystemReference(battleSystem);
-    }
 
     /// <summary>
     /// Selects attack button, typically used for beginning of turn
@@ -111,7 +100,7 @@ public class DialogBox : MonoBehaviour
                 abilityBackButton.Select();
             }
         }
-        //else back button pressed or Ability pressed, so auto select Attack button
+        //else back button pressed or Ability pressed, so auto-select Attack button
         else
         {
             attackButton.Select();
@@ -120,36 +109,26 @@ public class DialogBox : MonoBehaviour
         //show overlay and back button, hide original 4 buttons (and vice versa when enable = false)
         abilityOverlay.SetActive(enable);
         abilityBackButton.gameObject.SetActive(enable);
-
-        attackButton.gameObject.SetActive(!enable);
-        passButton.gameObject.SetActive(!enable);
-        partyButton.gameObject.SetActive(!enable);
-        fleeForfeitButton.gameObject.SetActive(!enable);
+        ShowMainButtons(!enable);
     }
 
     /// <summary>
-    /// Shows/hides PartyMenu, reloading party data if showing
+    /// Shows/hides 'are you sure?' overlay, auto-selecting No or main Attack button if hiding
     /// </summary>
-    /// <param name="enable">Bool for whether to enable or disable menu</param>
-    public void ShowPartyMenu(bool enable)
+    /// <param name="enable">Whether to show or hide overlay</param>
+    public void ShowFleeForfeitOverlay(bool enable)
     {
-        //if showing party menu, reload data then select first char show details
         if (enable)
         {
-            partyMenu.LoadPartyChars(currPlayerIndex: battleSystem.GetCurrBattleCharIndex(playerTeam: true));
-            partyMenu.SelectCurrPlayerButton();
-            partyMenu.ShowPartyMenu();
+            fleeForfeitNoButton.Select();
         }
-        //else if hiding, auto select Party button
         else
         {
-            partyButton.Select();
-            partyMenu.HidePartyMenu();
+            attackButton.Select();
         }
-    }
-    public void HidePartyBackButton()
-    {
-        partyMenu.ShowPartyMenu(showBackButton: false);
+
+        fleeForfeitOverlay.SetActive(enable);
+        ShowMainButtons(!enable);
     }
 
     /// <summary>
@@ -218,7 +197,7 @@ public class DialogBox : MonoBehaviour
             temp.Remove(i + startIndex + 17, 1);    //remove AT index i, 1 character
             temp.Insert(i + startIndex, text[i]);   //insert AFTER index i
             dialogText.text = temp.ToString();
-            yield return new WaitForSeconds(1f/dialogSpeed);
+            yield return new WaitForSeconds(1f/DialogSpeed);
         }
 
         //remove the now useless color definition (17 for beginning, 8 for end)
@@ -237,6 +216,10 @@ public class DialogBox : MonoBehaviour
             if (abilityOverlay.activeSelf)
             {
                 abilityBackButton.onClick.Invoke();
+            }
+            else if (fleeForfeitOverlay.activeSelf)
+            {
+                fleeForfeitNoButton.onClick.Invoke();
             }
         }
     }

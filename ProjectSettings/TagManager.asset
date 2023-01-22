@@ -59,3 +59,6 @@ TagManager:
   - name: CollisionOverlay
     uniqueID: 894877101
     locked: 0
+  - name: UIOverlay
+    uniqueID: 1144178637
+    locked: 0

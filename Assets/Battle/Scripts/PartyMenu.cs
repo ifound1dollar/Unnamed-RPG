@@ -33,6 +33,7 @@ public class PartyMenu : MonoBehaviour
     [SerializeField] Button abilityBackButton;
     [SerializeField] AbilitySelectOptions abilityReorderOption;
     [SerializeField] AbilitySelectOptions abilityRemoveOption;
+    [Space()]
     [SerializeField] GameObject abilityInfoOverlay;
     [SerializeField] TMP_Text abilityName;
     [SerializeField] TMP_Text abilityType;
@@ -54,47 +55,31 @@ public class PartyMenu : MonoBehaviour
     [SerializeField] TMP_Text teachAbilityAccuracy;
 
 
-    public bool AbilitiesFocused { get; private set; }
-    public bool DetailsFocused { get; private set; }
-    public int CurrButtonIndex { get; set; }
-    public int CharReorderIndex { get; set; } = -1;
-    public int CurrAbilityIndex { get; set; }
-    public int AbilityReorderIndex { get; set; } = -1;
-    public Ability TeachAbility { get; set; }
-    public bool BackButtonJumped { get; private set; }
+    public bool AbilitiesFocused    { get; private set; }
+    public bool DetailsFocused      { get; private set; }
+    public int CurrCharIndex        { get; set; }
+    public int CharReorderIndex     { get; set; } = -1;
+    public int CurrAbilityIndex     { get; set; }
+    public int AbilityReorderIndex  { get; set; } = -1;
+    public Ability TeachAbility     { get; set; }
+    public bool BackButtonJumped    { get; private set; }
 
     BattleChar[] playerChars;
-    DialogBox dialogBox;
     BattleSystem battleSystem;
     int currPlayerIndex = 0;
     int lastAbilityIndex = 0;
 
 
 
-    /// <summary>
-    /// Sets the local reference to the playerChars array
-    /// </summary>
-    /// <param name="battleChars">Reference to array of BattleChars</param>
-    public void SetPlayerCharsReference(BattleChar[] battleChars)
-    {
-        playerChars = battleChars;
-    }
 
     /// <summary>
-    /// Sets reference to DialogBox, used in battle when hiding PartyMenu
+    /// Sets local references to playerChars array and BattleSystem instance
     /// </summary>
-    /// <param name="dialogBox">Reference to DialogBox object</param>
-    public void SetDialogBoxReference(DialogBox dialogBox)
+    /// <param name="playerChars">Reference to playerChars array</param>
+    /// <param name="battleSystem">Reference to active BattleSystem instance</param>
+    public void Setup(BattleChar[] playerChars, BattleSystem battleSystem = null)
     {
-        this.dialogBox = dialogBox;
-    }
-
-    /// <summary>
-    /// Sets local reference to active BattleSystem
-    /// </summary>
-    /// <param name="battleSystem"></param>
-    public void SetBattleSystemReference(BattleSystem battleSystem)
-    {
+        this.playerChars = playerChars;
         this.battleSystem = battleSystem;
     }
 
@@ -126,20 +111,20 @@ public class PartyMenu : MonoBehaviour
     }
 
     /// <summary>
-    /// Select button corresponding to CurrPlayerIndex
-    /// </summary>
-    public void SelectCurrPlayerButton()
-    {
-        charButtons[currPlayerIndex].Select();
-    }
-
-    /// <summary>
-    /// Shows party menu, optionally hiding back button
+    /// Shows party menu and auto-reloads party chars, optionally hiding back button
     /// </summary>
     public void ShowPartyMenu(bool showBackButton = true)
     {
         gameObject.SetActive(true);
-        backButton.enabled = showBackButton;
+        backButton.gameObject.SetActive(showBackButton);
+    }
+
+    /// <summary>
+    /// Focuses party menu, selecting the first char button
+    /// </summary>
+    public void FocusPartyMenu()
+    {
+        charButtons[0].Select();
     }
 
     /// <summary>
@@ -147,14 +132,20 @@ public class PartyMenu : MonoBehaviour
     /// </summary>
     public void HidePartyMenu()
     {
-        CurrButtonIndex = 0;
+        CurrCharIndex = 0;
         BackButtonJumped = false;
         gameObject.SetActive(false);
+        backButton.gameObject.SetActive(true);
 
-        //if dialogBox is not null, call its function to auto-select main Party button
-        if (dialogBox != null)
+        //if battleSystem is not null, call its function to auto-select main Party button
+        if (battleSystem != null)
         {
-            dialogBox.FocusMainPartyButton();
+            battleSystem.HidePartyMenuInBattle();
+        }
+        //else if is null, should deselect all
+        else
+        {
+            EventSystem.current.SetSelectedGameObject(null);
         }
     }
 
@@ -177,7 +168,7 @@ public class PartyMenu : MonoBehaviour
         if (currPlayerIndex != -1)
         {
             //if is currPlayer or currPlayer cannot swap
-            if (currPlayerIndex == CurrButtonIndex || !playerChars[currPlayerIndex].CheckCanSwap())
+            if (currPlayerIndex == CurrCharIndex || !playerChars[currPlayerIndex].CheckCanSwap())
             {
                 inBattleNoSwapOptions.gameObject.SetActive(true);
                 inBattleNoSwapOptions.DetailsButton.Select();
@@ -205,7 +196,7 @@ public class PartyMenu : MonoBehaviour
         inBattleOptions.gameObject.SetActive(false);
         inBattleNoSwapOptions.gameObject.SetActive(false);
         outOfBattleOptions.gameObject.SetActive(false);
-        charButtons[CurrButtonIndex].Select();
+        charButtons[CurrCharIndex].Select();
     }
 
 
@@ -222,7 +213,7 @@ public class PartyMenu : MonoBehaviour
             HideSelectOptions();
 
             //call battleSystem's OnSwapButtonPressed method with currentIndex
-            battleSystem.OnSwapButtonPress(CurrButtonIndex);
+            battleSystem.OnSwapButtonPress(CurrCharIndex);
         }
     }
 
@@ -231,7 +222,7 @@ public class PartyMenu : MonoBehaviour
     /// </summary>
     public void OnCharReorderButtonPressed()
     {
-        CharReorderIndex = CurrButtonIndex;
+        CharReorderIndex = CurrCharIndex;
         HideSelectOptions();
         backButton.gameObject.SetActive(false);
     }
@@ -242,10 +233,10 @@ public class PartyMenu : MonoBehaviour
     void HandleCharReorder()
     {
         //reorder actual playerChars
-        (playerChars[CurrButtonIndex], playerChars[CharReorderIndex])
-            = (playerChars[CharReorderIndex], playerChars[CurrButtonIndex]);
+        (playerChars[CurrCharIndex], playerChars[CharReorderIndex])
+            = (playerChars[CharReorderIndex], playerChars[CurrCharIndex]);
 
-        LoadPartyChars();
+        LoadPartyChars(currPlayerIndex);    //avoid resetting currPlayerIndex to -1
         CancelCharReorder();
     }
 
@@ -268,7 +259,7 @@ public class PartyMenu : MonoBehaviour
     {
         DetailsFocused = true;
         detailsPanel.SetActive(true);
-        detailsCharButtons[CurrButtonIndex].Select();
+        detailsCharButtons[CurrCharIndex].Select();
     }
 
     /// <summary>
@@ -277,7 +268,7 @@ public class PartyMenu : MonoBehaviour
     /// <param name="index">Index of selected BattleChar</param>
     public void ShowDetails()
     {
-        BattleChar player = playerChars[CurrButtonIndex];
+        BattleChar player = playerChars[CurrCharIndex];
 
         //SHOW DATA
         detailsName.text = player.Name;
@@ -330,7 +321,7 @@ public class PartyMenu : MonoBehaviour
         HideSelectOptions();
 
         //select button from current details panel character
-        charButtons[CurrButtonIndex].Select();
+        charButtons[CurrCharIndex].Select();
         DetailsFocused = false;
         BackButtonJumped = false;
 
@@ -354,7 +345,7 @@ public class PartyMenu : MonoBehaviour
     /// </summary>
     public void ShowAbilityInfo()
     {
-        Ability ability = playerChars[CurrButtonIndex].Abilities[CurrAbilityIndex];
+        Ability ability = playerChars[CurrCharIndex].Abilities[CurrAbilityIndex];
 
         abilityName.text = ability.Name;
         abilityType.text = "Type: " + ability.AbilityType.ToString();
@@ -399,7 +390,7 @@ public class PartyMenu : MonoBehaviour
         abilityInfoOverlay.SetActive(false);
         AbilitiesFocused = false;
         BackButtonJumped = false;
-        detailsCharButtons[CurrButtonIndex].Select();
+        detailsCharButtons[CurrCharIndex].Select();
 
         CurrAbilityIndex = -1;
     }
@@ -463,15 +454,17 @@ public class PartyMenu : MonoBehaviour
         teachAbilityPower.text = "Power: " + ability.Power.ToString();
         teachAbilityAccuracy.text = "Accuracy: " + ability.Accuracy.ToString();
 
-        //this method must show EVERYTHING necessary since PartyMenu will not be open when this is called
-        LoadPartyChars();
+        //reload chars then set this entire gameobject active
+        LoadPartyChars(currPlayerIndex);
         ShowPartyMenu();
-        detailsPanel.SetActive(true);
-        CurrButtonIndex = charIndex;
+
+        //load details of this character, then hide other character buttons
+        CurrCharIndex = charIndex;
         ShowDetails();
+        detailsPanel.SetActive(true);
         detailsButtonsContainer.SetActive(false);
 
-        //focus panel and show TeachAbility info
+        //focus Ability panel and show TeachAbility info
         FocusAbilityPanel();
         teachAbilityOverlay.SetActive(true);
     }
@@ -490,7 +483,7 @@ public class PartyMenu : MonoBehaviour
     /// </summary>
     void HandleAbilityRemove()
     {
-        BattleChar player = playerChars[CurrButtonIndex];
+        BattleChar player = playerChars[CurrCharIndex];
         if (TeachAbility != null)
         {
             //replace ability at selected index with TeachAbility
@@ -547,7 +540,7 @@ public class PartyMenu : MonoBehaviour
     void HandleAbilityReorder()
     {
         //swap Abilities in array
-        BattleChar player = playerChars[CurrButtonIndex];
+        BattleChar player = playerChars[CurrCharIndex];
         (player.Abilities[AbilityReorderIndex], player.Abilities[CurrAbilityIndex])
             = (player.Abilities[CurrAbilityIndex], player.Abilities[AbilityReorderIndex]);
 
@@ -579,12 +572,12 @@ public class PartyMenu : MonoBehaviour
         else if (DetailsFocused)
         {
             detailsCharButtons[playerChars.Length - 1].Select();
-            CurrButtonIndex = playerChars.Length - 1;
+            CurrCharIndex = playerChars.Length - 1;
         }
         else
         {
             charButtons[playerChars.Length - 1].Select();
-            CurrButtonIndex = playerChars.Length - 1;
+            CurrCharIndex = playerChars.Length - 1;
         }
         BackButtonJumped = false;
     }
