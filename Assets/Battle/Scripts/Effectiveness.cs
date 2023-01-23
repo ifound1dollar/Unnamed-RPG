@@ -173,4 +173,12 @@ public static class Effectiveness
         //finally, return multiplier value
         return value;
     }
+
+    public static float GetCharMultiplier(BattleChar user, BattleChar target)
+    {
+        float prelimA = GetMultiplier(user.SpeciesData.Type1, target.SpeciesData.Type1, target.SpeciesData.Type2);
+        float prelimB = GetMultiplier(user.SpeciesData.Type2, target.SpeciesData.Type1, target.SpeciesData.Type2);
+
+        return prelimA * prelimB;
+    }
 }

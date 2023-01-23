@@ -19,6 +19,8 @@ public abstract class Ability
     public int Priority { get; set; }
     public bool Delayed { get; set; }
     public bool Recharge { get; set; }
+    public bool Interrupts { get; set; }
+    public bool IsMovement { get; set; }
 
 
     public int ConsecutiveUses { get; set; }

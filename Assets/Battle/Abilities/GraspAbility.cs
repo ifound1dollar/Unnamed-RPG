@@ -7,16 +7,19 @@ public class GraspAbility : Ability
     public GraspAbility()
     {
         Name = "Grasp Ability";
-        Power = 35;
+        Power = 30;
         Accuracy = 90;
         Energy = 5;
         Description = "A two-turn attack. The user violently grabs hold of the target on the first turn, " +
             "dealing damage and impairing its movement. The user then deals the same damage on the second " +
-            "turn before releasing the target. The target is unable to swap while grasped.";
+            "turn before releasing the target. The target is unable to swap out while grasped.";
 
         AbilityType = BattleType.Vital;
         Category = Category.Physical;
         MakesContact = true;
+
+        Interrupts = true;
+        Priority = 5;       //extremely high because should ALWAYS attack first
     }
 
     public override IEnumerator UseAbility(AbilityData data)
@@ -57,13 +60,32 @@ public class GraspAbility : Ability
     }
     protected override void CalcSpecificScore(BattleAI.AIContextObject aiContext)
     {
+        ///IN THE FUTURE, ON HARD MODE ONLY, AI SHOULD FLAT OUT CHEAT?
+        ///SEE IF PLAYERCHOICE IS SWAP AND ROLL CHANCE TO INTERRUPT? HARD AI BUT NOT GUARANTEED INTERRUPT
+
         CalcDamagingScore(aiContext, EstimateDamage(aiContext.Enemy, aiContext.Player) * 2);
 
-        //is multi-turn, so decrease by 30% (70%)
+        //is multi-turn, so decrease by 25% (75%)
+        Score = Mathf.RoundToInt(Score * 0.75f);
 
-        //has secondary effect (Trapped, kind of weak), so increase by 10% (77%)
+        //if player has reason to swap (guess), increase Score (bad type matchup, much lower level, etc.)
+        int count = 0;
+        float ratio = Effectiveness.GetCharMultiplier(aiContext.Enemy, aiContext.Player);
+        if (ratio > 1.01f)
+        {
+            count++;
+            if (ratio > 2.01f)
+            {
+                count++;
+            }
+        }
+        if (aiContext.Enemy.Level - aiContext.Player.Level >= 5)
+        {
+            count++;
+        }
 
-        Score = Mathf.RoundToInt(Score * 0.77f);
+        //increase Score by 10% per count
+        Score = Mathf.RoundToInt(Score * (1 + (count * 0.10f)));
     }
 
     public override bool CheckAccuracy(BattleChar user, BattleChar target)

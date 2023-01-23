@@ -9,7 +9,7 @@ using UnityEngine.UI;
 public class BattleSystem : MonoBehaviour
 {
     enum BattleState { Start, WaitingChoice, Preparing, Attacking, EndingTurn, NewTurn, BattleEnded, Busy }
-    enum BattleChoice { Attack, Pass, Swap, FleeForfeit }
+    enum BattleChoice { None, Attack, Pass, Swap, FleeForfeit }
 
     [SerializeField] PlayerHud playerHud;
     [SerializeField] EnemyHud enemyHud;
@@ -212,6 +212,7 @@ public class BattleSystem : MonoBehaviour
         //skip action if Delaying, Recharging, or MultiTurnAbility
         if (currPlayer.Delaying || currPlayer.Recharging || currPlayer.MultiTurnAbility > 0)
         {
+            playerChoice = BattleChoice.Attack; //ensure remains set to Attack
             yield break;
         }
 
@@ -229,6 +230,7 @@ public class BattleSystem : MonoBehaviour
         //skip action if Delaying, Recharging, or MultiTurnAbility
         if (currEnemy.Delaying || currEnemy.Recharging || currEnemy.MultiTurnAbility > 0)
         {
+            enemyChoice = BattleChoice.Attack;  //ensure remains set to attack
             return;
         }
 
@@ -267,13 +269,45 @@ public class BattleSystem : MonoBehaviour
     {
         if (playerChoice == BattleChoice.Swap)
         {
+            //interrupt swap if enemy used Ability that interrupts swapping
+            if (enemyChoice == BattleChoice.Attack && currEnemy.UsedAbility.Interrupts)
+            {
+                yield return DoAttack(currEnemy, currPlayer);
+                enemyChoice = BattleChoice.None;
+
+                //if now Trapped, then Interrupt ability stopped swaps and cannot swap; else swap as usual
+                if (currPlayer.Trapped > 0)
+                {
+                    yield return dialogBox.DialogSet(currPlayer.Name + " could not swap out!");
+                    yield return new WaitForSeconds(textDelay);
+
+                    playerChoice = BattleChoice.None;
+                    playerSwapIndex = -1;
+                    yield break;
+                }
+            }
+
             yield return PerformSwap(playerTeam: true);
-            //PLAYER SNAPSHOT UPDATE HERE
         }
         if (enemyChoice == BattleChoice.Swap)
         {
+            if (playerChoice == BattleChoice.Attack && currPlayer.UsedAbility.Interrupts)
+            {
+                yield return DoAttack(currPlayer, currEnemy);
+                playerChoice = BattleChoice.None;
+
+                if (currEnemy.Trapped > 0)
+                {
+                    yield return dialogBox.DialogSet(currEnemy.Name + " could not swap out!");
+                    yield return new WaitForSeconds(textDelay);
+
+                    enemyChoice = BattleChoice.None;
+                    enemySwapIndex = -1;
+                    yield break;
+                }
+            }
+
             yield return PerformSwap(playerTeam: false);
-            //ENEMY SNAPSHOT UPDATE HERE
         }
 
         yield break;
@@ -400,8 +434,8 @@ public class BattleSystem : MonoBehaviour
             }
             yield return DoAttack(currEnemy, currPlayer);
         }
-        //else both swapped, so just acknowledge
-        else
+        //else if both passed, so just acknowledge
+        else if (playerChoice == BattleChoice.Pass && enemyChoice == BattleChoice.Pass)
         {
             yield return dialogBox.DialogSet(currPlayer.Name + " passed this turn.");
             yield return new WaitForSeconds(textDelay);
@@ -477,6 +511,15 @@ public class BattleSystem : MonoBehaviour
         if (user.UsedAbility.Recharge)
         {
             user.Recharging = true;
+        }
+
+        //if user is Trapped, cannot use movement Abilities
+        if (user.Trapped > 0 && user.UsedAbility.IsMovement)
+        {
+            yield return dialogBox.DialogSet(user.Name + " is immobilized and cannot use "
+                + user.UsedAbility.Name + "!");
+            yield return new WaitForSeconds(textDelay);
+            yield break;
         }
         #endregion
 
