@@ -210,7 +210,7 @@ public class BattleSystem : MonoBehaviour
     IEnumerator WaitPlayerAction()
     {
         //skip action if Delaying, Recharging, or MultiTurnAbility
-        if (currPlayer.Delaying || currPlayer.Recharging || currPlayer.MultiTurnAbility > 0)
+        if (currPlayer.IsDelaying || currPlayer.IsRecharging || currPlayer.MultiTurnAbility > 0)
         {
             playerChoice = BattleChoice.Attack; //ensure remains set to Attack
             yield break;
@@ -228,7 +228,7 @@ public class BattleSystem : MonoBehaviour
     void GetEnemyChoice()
     {
         //skip action if Delaying, Recharging, or MultiTurnAbility
-        if (currEnemy.Delaying || currEnemy.Recharging || currEnemy.MultiTurnAbility > 0)
+        if (currEnemy.IsDelaying || currEnemy.IsRecharging || currEnemy.MultiTurnAbility > 0)
         {
             enemyChoice = BattleChoice.Attack;  //ensure remains set to attack
             return;
@@ -460,8 +460,8 @@ public class BattleSystem : MonoBehaviour
         //if user Stunned, acknowledge and do not attack (interrupt Delaying and Recharging)
         if (user.StatusActive == StatusEffect.Stunned)
         {
-            user.Delaying = false;
-            user.Recharging = false;
+            user.IsDelaying = false;
+            user.IsRecharging = false;
             yield return dialogBox.DialogSet(user.Name + " is Stunned!");
             yield return new WaitForSeconds(textDelay);
             yield break;
@@ -472,8 +472,8 @@ public class BattleSystem : MonoBehaviour
         {
             if (UnityEngine.Random.Range(0, 100) < 33)
             {
-                user.Delaying = false;
-                user.Recharging = false;
+                user.IsDelaying = false;
+                user.IsRecharging = false;
                 yield return dialogBox.DialogSet(user.Name + " is too cold to move!");
                 yield return new WaitForSeconds(textDelay);
                 yield break;
@@ -481,9 +481,9 @@ public class BattleSystem : MonoBehaviour
         }
 
         //if user currently Recharging, do not attack
-        if (user.Recharging)
+        if (user.IsRecharging)
         {
-            user.Recharging = false;
+            user.IsRecharging = false;
             yield return dialogBox.DialogSet(user.Name + " is recharging!");
             yield return new WaitForSeconds(textDelay);
             yield break;
@@ -493,13 +493,13 @@ public class BattleSystem : MonoBehaviour
         if (user.UsedAbility.Delayed)
         {
             //if user is currently waiting, use Ability this turn; else begin actual delay
-            if (user.Delaying)
+            if (user.IsDelaying)
             {
-                user.Delaying = false;
+                user.IsDelaying = false;
             }
             else
             {
-                user.Delaying = true;
+                user.IsDelaying = true;
                 yield return dialogBox.DialogSet(user.Name + " is preparing to use "
                     + user.UsedAbility.Name + " next turn!");
                 yield return new WaitForSeconds(textDelay);
@@ -510,7 +510,7 @@ public class BattleSystem : MonoBehaviour
         //if user not currently Recharging and is using Recharge move, recharge next turn
         if (user.UsedAbility.Recharge)
         {
-            user.Recharging = true;
+            user.IsRecharging = true;
         }
 
         //if user is Trapped, cannot use movement Abilities

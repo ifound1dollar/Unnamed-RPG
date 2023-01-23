@@ -109,8 +109,11 @@ public class BattleChar
     //tracking and operational
     public Ability UsedAbility  { get; set; }
     public int MultiTurnAbility { get; set; }
-    public bool Recharging      { get; set; }
-    public bool Delaying        { get; set; }
+    public bool IsRecharging    { get; set; }
+    public bool IsDelaying      { get; set; }
+    public bool IsFlying        { get; set; }
+    public bool IsUnderground   { get; set; }
+
     public int TurnsActive      { get; set; }
     public bool WasActive       { get; set; }
     public List<string> PastAbilities { get; set; } = new();
@@ -701,8 +704,8 @@ public class BattleChar
         TurnData.Reset();
 
         UsedAbility = null;
-        Recharging = false;
-        Delaying = false;
+        IsRecharging = false;
+        IsDelaying = false;
         TurnsActive = 0;
         MultiTurnAbility = 0;
     }

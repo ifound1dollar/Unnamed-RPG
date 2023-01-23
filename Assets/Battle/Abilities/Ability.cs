@@ -327,6 +327,9 @@ public abstract class Ability
 
         //always true if accuracy = 0
         if (Accuracy == 0) { return true; }
+
+        //always misses if target IsFlying or IsUnderground (can be overridden, remember)
+        if (target.IsFlying || target.IsUnderground) { return false; }
         
         //if random 0-99 less than Accuracy modified by flat 10% per user AccMod or target DodMod
         if (Random.Range(0, 100) < (Accuracy + (user.AccMod * 10) - (target.DodMod * 10)))
