@@ -188,8 +188,8 @@ public class BattleChar
         if (data.PassiveAbility == "")
         {
             //if not defined, choose one of three from SpeciesData at random
-            SpecialAbility = data.SpeciesData.SpecialAbilities[
-                UnityEngine.Random.Range(0, data.SpeciesData.SpecialAbilities.Count)];
+            SpecialAbility = data.SpeciesData.PassiveAbilities[
+                UnityEngine.Random.Range(0, data.SpeciesData.PassiveAbilities.Count)];
         }
         else
         {
@@ -706,6 +706,8 @@ public class BattleChar
         UsedAbility = null;
         IsRecharging = false;
         IsDelaying = false;
+        IsFlying = false;
+        IsUnderground = false;
         TurnsActive = 0;
         MultiTurnAbility = 0;
     }

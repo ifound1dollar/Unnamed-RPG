@@ -25,8 +25,8 @@ public class SpeciesData : ScriptableObject
 
     [SerializeField] List<LearnedAbility> learnedAbilities;
 
-    [Header("Exactly 3 possible Special Abilities")]
-    [SerializeField] List<string> specialAbilities;
+    [Header("Exactly 3 possible Passive Abilities")]
+    [SerializeField] List<string> passiveAbilities; //replace with 3 separate PassiveAbility objects (not list)
 
     [Header("Evolution data")]
     [SerializeField] int evolutionStage = 1;
@@ -54,5 +54,5 @@ public class SpeciesData : ScriptableObject
     public int EvolutionStage { get { return evolutionStage; } }
     public List<EvolutionData> Evolutions { get { return evolutions; } }
 
-    public List<string> SpecialAbilities { get { return specialAbilities; } }
+    public List<string> PassiveAbilities { get { return passiveAbilities; } }   //remove list, make PassiveAbility objs
 }
