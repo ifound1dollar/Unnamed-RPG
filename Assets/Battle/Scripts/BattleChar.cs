@@ -116,6 +116,9 @@ public class BattleChar
 
     public int TurnsActive      { get; set; }
     public bool WasActive       { get; set; }
+    public bool WasSlain        { get; set; }
+    public bool LeveledUp       { get; set; }
+    public int EvoIndex         { get; set; } = -1;
     public List<string> PastAbilities { get; set; } = new();
     public TrackData TurnData { get; set; } = new();
 
@@ -719,6 +722,7 @@ public class BattleChar
     {
         ResetAll();
         WasActive = false;
+        WasSlain = false;
 
         //team effects
         HealingMist = 0;
@@ -1032,7 +1036,7 @@ public class BattleChar
 
 
 
-    //XP
+    //XP AND EVOLUTION
     /// <summary>
     /// Adds XP to this BattleChar, ensuring it does not exceed maximum possible
     /// </summary>
@@ -1085,6 +1089,39 @@ public class BattleChar
 
         //if no learned ability, return empty string
         return "";
+    }
+
+    public void CheckEvolutionConditions(BattleChar[] enemyChars)
+    {
+        foreach (EvolutionData evoData in SpeciesData.Evolutions)
+        {
+            //if Level only requirement
+            if (LeveledUp && evoData.EventType == EvolutionData.EvoEvent.LevelUp && evoData.Level <= Level)
+            {
+                EvoIndex = SpeciesData.Evolutions.IndexOf(evoData);
+                return;     //will only be one that meets requirement per battle, but return anyway
+            }
+            //if slays specified target and within valid level range
+            else if (evoData.EventType == EvolutionData.EvoEvent.SlayTarget && evoData.Level <= Level)
+            {
+                foreach (BattleChar battleChar in enemyChars)
+                {
+                    if (battleChar.HP == 0 && battleChar.SpeciesData.SpeciesName == evoData.SlayTargetName)
+                    {
+                        //if correct species slain, set EvoIndex and return
+                        EvoIndex = SpeciesData.Evolutions.IndexOf(evoData);
+                        return;
+                    }
+                }
+            }
+            //if was slain and within valid level range
+            else if (WasSlain && evoData.EventType == EvolutionData.EvoEvent.IsSlain && evoData.Level <= Level)
+            {
+                EvoIndex = SpeciesData.Evolutions.IndexOf(evoData);
+                return;
+            }
+        }
+
     }
 
 

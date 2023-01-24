@@ -839,6 +839,7 @@ public class BattleSystem : MonoBehaviour
             yield return dialogBox.DialogSet($"Enemy's {currEnemy.Name} was slain!");
             yield return new WaitForSeconds(textDelay);
 
+            currEnemy.WasSlain = true;
             yield return HandleSlainOperations(currEnemy, currPlayer);
 
             if (GetRemaining(playerTeam: false) > 0)
@@ -861,6 +862,7 @@ public class BattleSystem : MonoBehaviour
             yield return dialogBox.DialogSet($"Player's {currPlayer.Name} was slain!");
             yield return new WaitForSeconds(textDelay);
 
+            currPlayer.WasSlain = true;
             yield return HandleSlainOperations(currPlayer, currEnemy);
 
             if (GetRemaining(playerTeam: true) > 0)
@@ -1037,6 +1039,20 @@ public class BattleSystem : MonoBehaviour
     //BattleEnded
     IEnumerator EndBattle(bool playerWin)
     {
+        yield return HandleXPOperations();
+        HandleEvolutionChecks();
+
+        yield return dialogBox.DialogSet("Ending battle...");
+        yield return new WaitForSeconds(textDelay);
+
+        //hide this gameObject (entire BattleSystem) then stop all coroutines
+        gameObject.SetActive(false);
+        ResetAllBattleData();
+        GameState.InBattle = false;
+        StopAllCoroutines();
+    }
+    IEnumerator HandleXPOperations()
+    {
         int[] playerTeamXP = new int[playerChars.Length];
         int participants = 0;
 
@@ -1075,15 +1091,6 @@ public class BattleSystem : MonoBehaviour
                 yield return HandleLevelUp(player);
             }
         }
-
-        yield return dialogBox.DialogSet("Ending battle...");
-        yield return new WaitForSeconds(textDelay);
-
-        //hide this gameObject (entire BattleSystem) then stop all coroutines
-        gameObject.SetActive(false);
-        ResetAllBattleData();
-        GameState.InBattle = false;
-        StopAllCoroutines();
     }
     int CalculateXPYield(BattleChar enemy, BattleChar player, int participants)
     {
@@ -1167,6 +1174,13 @@ public class BattleSystem : MonoBehaviour
 
             partyMenu.BeginTeachAbility(newAbility, Array.IndexOf(playerChars, player));
             yield return new WaitUntil(() => !partyMenu.gameObject.activeSelf);
+        }
+    }
+    void HandleEvolutionChecks()
+    {
+        foreach (BattleChar player in playerChars)
+        {
+            player.CheckEvolutionConditions(enemyChars);
         }
     }
     void ResetAllBattleData()
