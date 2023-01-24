@@ -34,7 +34,7 @@ public class BattleChar
     public SpeciesData SpeciesData { get; }
 
     public Ability[] Abilities { get; set; } = new Ability[4];
-    public string SpecialAbility { get; set; }
+    public SpecialAbility PassiveAbility { get; set; }
     public string Name      { get; set; }
     public bool PlayerTeam  { get; set; }
     public int Level        { get; set; }
@@ -188,16 +188,27 @@ public class BattleChar
         }
 
         //special ability
-        if (data.PassiveAbility == "")
+        if (data.PassiveAbility == null)
         {
-            //if not defined, choose one of three from SpeciesData at random
-            SpecialAbility = data.SpeciesData.PassiveAbilities[
-                UnityEngine.Random.Range(0, data.SpeciesData.PassiveAbilities.Count)];
+            //if not defined, choose one of three from SpeciesData (third is only 10% chance)
+            int rand = UnityEngine.Random.Range(0, 100);
+            if (rand < 45)
+            {
+                PassiveAbility = data.SpeciesData.PassiveAbility1;
+            }
+            else if (rand < 90)
+            {
+                PassiveAbility = data.SpeciesData.PassiveAbility2;
+            }
+            else
+            {
+                PassiveAbility = data.SpeciesData.PassiveAbility3;
+            }
         }
         else
         {
             //else defined, so directly assign
-            SpecialAbility = data.PassiveAbility;
+            PassiveAbility = data.PassiveAbility;
         }
 
         //team
@@ -400,7 +411,7 @@ public class BattleChar
         if (HP == 0 || HasActiveStatus() || ImmuneStatus || Protected) { return false; }
 
         //check ReflectStatus ONLY IF a real attempt was made (as if rebounded)
-        if (ReflectStatus != StatusEffect.None) //will be None only when ready, else null
+        if (ReflectStatus != null) //will be None only when ready, else null
         {
             ReflectStatus = effect;
             return false;
@@ -569,6 +580,9 @@ public class BattleChar
                 return "";
             }
 
+            //reset duration to 0 and effect to None, then set status end text and return
+            StatusDuration = 0;
+            StatusActive = StatusEffect.None;
             switch (StatusActive)
             {
                 case StatusEffect.Frozen:
@@ -609,9 +623,6 @@ public class BattleChar
             }
         }
 
-        //reset duration to 0 and effect enum to None, then return text
-        StatusDuration = 0;
-        StatusActive = StatusEffect.None;
         return text;
     }
 
@@ -838,9 +849,13 @@ public class BattleChar
             return "";
         }
 
+        //decrement duration, then check if effect just ended
+        StatusDuration--;
         string text = "";
-        if (StatusDuration == 1)    //1 means this was last turn, will decrement below
+        if (StatusDuration == 0)
         {
+            //reset effect to None and set status end text before returning
+            StatusActive = StatusEffect.None;
             switch (StatusActive)
             {
                 case StatusEffect.Frozen:
@@ -881,9 +896,6 @@ public class BattleChar
             }
         }
 
-        //reset duration to 0, active enum to None, then return text
-        StatusDuration = 0;
-        StatusActive = StatusEffect.None;
         return text;
     }
 
@@ -1091,6 +1103,10 @@ public class BattleChar
         return "";
     }
 
+    /// <summary>
+    /// Checks all evolution conditions to see if this BattleChar should evolve after battle
+    /// </summary>
+    /// <param name="enemyChars">Array of enemy BattleChars, checked for some conditions</param>
     public void CheckEvolutionConditions(BattleChar[] enemyChars)
     {
         foreach (EvolutionData evoData in SpeciesData.Evolutions)

@@ -8,6 +8,8 @@ public class EnemyHud : MonoBehaviour
 {
     public TMP_Text nameText;
     public TMP_Text levelText;
+    public Sprite[] statusImages;
+    public Image statusHudImage;
     public Slider hpBackSlider;
     public Slider hpMainSlider;
     public Slider enSlider;
@@ -29,6 +31,17 @@ public class EnemyHud : MonoBehaviour
         nameText.text = battleChar.Name;
         levelText.text = battleChar.Level.ToString();
 
+        //get sprite image from array and set transparency correctly
+        statusHudImage.sprite = statusImages[(int)battleChar.StatusActive];
+        if (battleChar.StatusActive != StatusEffect.None)
+        {
+            statusHudImage.color = new Color(255, 255, 255, 255);
+        }
+        else
+        {
+            statusHudImage.color = new Color(255, 255, 255, 0);
+        }
+
         //set HP slider values
         hpBackSlider.value = hpMainSlider.value = (float)battleChar.HP / battleChar.MaxHP;
 
@@ -49,6 +62,17 @@ public class EnemyHud : MonoBehaviour
         oldHP = currHP;
         currHP = battleChar.HP;
         currEN = battleChar.Energy;
+
+        //get sprite image from array and set transparency correctly
+        statusHudImage.sprite = statusImages[(int)battleChar.StatusActive];
+        if (battleChar.StatusActive != StatusEffect.None)
+        {
+            statusHudImage.color = new Color(255, 255, 255, 255);
+        }
+        else
+        {
+            statusHudImage.color = new Color(255, 255, 255, 0);
+        }
 
         //verify back slider at old value, then set main slider to real current value
         hpBackSlider.value = (float)oldHP / maxHP;

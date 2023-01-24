@@ -183,11 +183,11 @@ public class BattleSystem : MonoBehaviour
             yield return dialogBox.DialogSet("Preparing...");
             yield return new WaitForSeconds(textDelay);
 
-            //check swaps, performing any chosen swaps by player or enemy and resetting swapIndex for either/both
-            yield return CheckSwaps();
-
             //check status effect of either currPlayer or currEnemy ending early
             yield return CheckStatusEndEarly();
+
+            //check swaps, performing any chosen swaps by player or enemy and resetting swapIndex for either/both
+            yield return CheckSwaps();
 
             //perform attacks
             yield return PerformAttacks();
@@ -602,16 +602,35 @@ public class BattleSystem : MonoBehaviour
         //ReflectStatus turn effect
         if (data.Target.ReflectStatus != null && data.Target.ReflectStatus != StatusEffect.None)
         {
-            //if empty, is not active; if ready, is active but not used
+            //if null, is not active; if None, is ready but not actually used
 
             //set status to user for 5 turns, status stored in ReflectStatus (CANNOT BE NULL)
-            data.User.SetStatusEffect((StatusEffect)data.Target.ReflectStatus, 5);
-            playerHud.UpdateHUD(currPlayer);
-            enemyHud.UpdateHUD(currEnemy);
+            if (data.User.SetStatusEffect((StatusEffect)data.Target.ReflectStatus, 5))
+            {
+                playerHud.UpdateHUD(currPlayer);
+                enemyHud.UpdateHUD(currEnemy);
 
-            yield return dialogBox.DialogSet(data.User.Name + "'s attempt to apply "
-                    + data.Target.ReflectStatus + " to " + data.Target.Name + " rebounded!");
-            yield return new WaitForSeconds(textDelay);
+                yield return dialogBox.DialogSet(data.User.Name + "'s attempt to apply "
+                        + data.Target.ReflectStatus + " to " + data.Target.Name + " rebounded!");
+                yield return new WaitForSeconds(textDelay);
+            }
+        }
+
+        //Toxic Skin
+        if (data.Target.PassiveAbility.Name == "Toxic Skin")
+        {
+            if (UnityEngine.Random.Range(0, 100) < 10)
+            {
+                //10% chance to Poison attacker
+                if (data.User.SetStatusEffect(StatusEffect.Poisoned, 5))
+                {
+                    playerHud.UpdateHUD(currPlayer);
+                    enemyHud.UpdateHUD(currEnemy);
+
+                    yield return dialogBox.DialogSet($"{data.Target.Name}'s Toxic Skin poisoned {data.User.Name}!");
+                    yield return new WaitForSeconds(textDelay);
+                }
+            }
         }
 
         yield break;

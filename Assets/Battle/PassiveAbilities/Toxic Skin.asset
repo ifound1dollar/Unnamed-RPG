@@ -9,12 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 38dbc84f1b52d044b8285364596b3613, type: 3}
-  m_Name: Evo Fiery Worg
+  m_Script: {fileID: 11500000, guid: 761613b22f004fb4b93f4c20d3d0a9b7, type: 3}
+  m_Name: Toxic Skin
   m_EditorClassIdentifier: 
-  evolutionSpecies: {fileID: 11400000, guid: 8fa4c4fa07f62764a9ebe582632e676a, type: 2}
-  eventType: 1
-  level: 2
-  slayTargetName: 
-  itemName: 
-  overworldEventName: 
+  abilityName: Toxic Skin
+  abilityDescription: This unit has a chance to Poison attackers upon contact.

@@ -8,6 +8,8 @@ public class PlayerHud : MonoBehaviour
 {
     public TMP_Text nameText;
     public TMP_Text levelText;
+    public Sprite[] statusImages;
+    public Image statusHudImage;
     public TMP_Text hpText;
     public TMP_Text maxHpText;
     public Slider hpBackSlider;
@@ -39,6 +41,17 @@ public class PlayerHud : MonoBehaviour
         enText.text = battleChar.Energy.ToString();
         maxEnText.text = battleChar.MaxEnergy.ToString();
 
+        //get sprite image from array and set transparency correctly
+        statusHudImage.sprite = statusImages[(int)battleChar.StatusActive];
+        if (battleChar.StatusActive != StatusEffect.None)
+        {
+            statusHudImage.color = new Color(255, 255, 255, 255);
+        }
+        else
+        {
+            statusHudImage.color = new Color(255, 255, 255, 0);
+        }
+
         //set HP slider values
         hpBackSlider.value = hpMainSlider.value = (float)battleChar.HP / battleChar.MaxHP;
 
@@ -64,6 +77,17 @@ public class PlayerHud : MonoBehaviour
 
         hpText.text = currHP.ToString();
         enText.text = currEN.ToString();
+
+        //get sprite image from array and set transparency correctly
+        statusHudImage.sprite = statusImages[(int)battleChar.StatusActive];
+        if (battleChar.StatusActive != StatusEffect.None)
+        {
+            statusHudImage.color = new Color(255, 255, 255, 255);
+        }
+        else
+        {
+            statusHudImage.color = new Color(255, 255, 255, 0);
+        }
 
         //verify back slider at old value, then set main slider to real current value
         hpBackSlider.value = (float)oldHP / maxHP;
