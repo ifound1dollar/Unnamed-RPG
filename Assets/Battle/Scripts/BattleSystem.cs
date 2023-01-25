@@ -1120,10 +1120,18 @@ public class BattleSystem : MonoBehaviour
         float xp = (enemy.Level >= player.Level)
             ? (enemy.Level * 10) * ratio : (enemy.Level * 10) / ratio;
 
-        //increase yield by flat 25% per evolution stage above 1
-        if (enemy.SpeciesData.EvolutionStage > 1)
+        //increase yield by 50% for final evolution stage, handling in-between values
+        if (enemy.SpeciesData.TotalEvoStages == 1)
         {
-            xp *= (enemy.SpeciesData.EvolutionStage == 2) ? 1.25f : 1.5f;
+            //50% bonus always if only one stage (don't do calculation if 1 because divide by 0)
+            xp *= 1.50f;
+        }
+        else
+        {
+            //calculate bonus ratio using -1 because first stage is interpreted as stage 0
+            float evoRatio = ((enemy.SpeciesData.CurrentEvoStage - 1)
+                / (enemy.SpeciesData.TotalEvoStages - 1)) * 0.50f;
+            xp *= (1 + evoRatio);
         }
 
         //increase by another 50% if NOT Wild, and 100% if Boss

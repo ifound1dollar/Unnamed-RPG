@@ -164,24 +164,28 @@ public class PartyMenu : MonoBehaviour
             return;
         }
 
-        //if valid (not -1), then is in battle; else is out of battle
+        //store anchor location, then move correct options to this location
+        Vector3 anchorPos = partyChars[CurrCharIndex].OptionsAnchor.position;
         if (currPlayerIndex != -1)
         {
             //if is currPlayer or currPlayer cannot swap
             if (currPlayerIndex == CurrCharIndex || !playerChars[currPlayerIndex].CheckCanSwap())
             {
+                inBattleNoSwapOptions.gameObject.transform.position = anchorPos;
                 inBattleNoSwapOptions.gameObject.SetActive(true);
                 inBattleNoSwapOptions.DetailsButton.Select();
             }
             //else can swap so show normal options
             else
             {
+                inBattleOptions.gameObject.transform.position = anchorPos;
                 inBattleOptions.gameObject.SetActive(true);
                 inBattleOptions.SwapInButton.Select();
             }
         }
         else
         {
+            outOfBattleOptions.gameObject.transform.position = anchorPos;
             outOfBattleOptions.gameObject.SetActive(true);
             outOfBattleOptions.DetailsButton.Select();
         }

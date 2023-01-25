@@ -926,14 +926,14 @@ MonoBehaviour:
   nameText: {fileID: 1882999937}
   levelText: {fileID: 105496904}
   statusImages:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 21300000, guid: 68abf97a8c4c2514a89cce2faab18603, type: 3}
+  - {fileID: 21300000, guid: f2d07b131f69fa04885d4a3ae36dd2a5, type: 3}
+  - {fileID: 21300000, guid: 8a7de2987a553b543b007723b4586af3, type: 3}
+  - {fileID: 21300000, guid: 024f0a8e1b0dd9041ac9e0d63884df3d, type: 3}
+  - {fileID: 21300000, guid: afc28041628ae154384877794e750c41, type: 3}
+  - {fileID: 21300000, guid: 5ce1e4ed60876934c9e9c2bdfcb6468e, type: 3}
+  - {fileID: 21300000, guid: 61912772ac8496046b8977e8ee4e2ca8, type: 3}
   statusHudImage: {fileID: 1473485485}
   hpText: {fileID: 782973117}
   maxHpText: {fileID: 1232961085}
@@ -6079,7 +6079,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nameText: {fileID: 334428635}
   levelText: {fileID: 772012571}
-  statusImages: []
+  statusImages:
+  - {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 21300000, guid: 68abf97a8c4c2514a89cce2faab18603, type: 3}
+  - {fileID: 21300000, guid: f2d07b131f69fa04885d4a3ae36dd2a5, type: 3}
+  - {fileID: 21300000, guid: 8a7de2987a553b543b007723b4586af3, type: 3}
+  - {fileID: 21300000, guid: 024f0a8e1b0dd9041ac9e0d63884df3d, type: 3}
+  - {fileID: 21300000, guid: afc28041628ae154384877794e750c41, type: 3}
+  - {fileID: 21300000, guid: 5ce1e4ed60876934c9e9c2bdfcb6468e, type: 3}
+  - {fileID: 21300000, guid: 61912772ac8496046b8977e8ee4e2ca8, type: 3}
   statusHudImage: {fileID: 1917055390}
   hpBackSlider: {fileID: 361491594}
   hpMainSlider: {fileID: 1165336449}
