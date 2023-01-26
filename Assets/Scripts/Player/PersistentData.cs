@@ -12,6 +12,7 @@ public class PersistentData : MonoBehaviour
     [Space()]
     [SerializeField] BattleSystem battleSystem;
     [SerializeField] PartyMenu partyMenu;
+    [SerializeField] DialogManager dialogManager;
 
     //TEMP
     [Header("TEMP")]
@@ -39,6 +40,7 @@ public class PersistentData : MonoBehaviour
         InitPlayerParty();
         battleSystem.SetPersistentData(this);
         partyMenu.Setup(PlayerChars, battleSystem);
+        dialogManager.Setup(dialogSpeed);
 
         //TEMP
         GameState.InBattle = true;

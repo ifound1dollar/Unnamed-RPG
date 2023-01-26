@@ -15,8 +15,8 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] EnemyHud enemyHud;
     [SerializeField] DialogBox dialogBox;
     [SerializeField] PartyMenu partyMenu;
-    [SerializeField] Image playerImage;
-    [SerializeField] Image enemyImage;
+    [SerializeField] BattleUnit playerUnit;
+    [SerializeField] BattleUnit enemyUnit;
 
     BattleChar[] playerChars;
     BattleChar[] enemyChars;
@@ -48,6 +48,13 @@ public class BattleSystem : MonoBehaviour
     }
     public void BeginBattle(BattleParty enemyParty)
     {
+        AbilityButton temp = (AbilityButton)gameObject.AddComponent(Type.GetType("AbilityButton"));
+        Debug.Log(temp);
+        
+
+
+
+
         //find first BattleChar in array with >0HP to make currPlayer
         foreach (BattleChar battleChar in playerChars)
         {
@@ -63,14 +70,16 @@ public class BattleSystem : MonoBehaviour
         InitEnemyParty(enemyParty);
 
         //load player and enemy sprites from BattleChar's species data
-        playerImage.sprite = currPlayer.SpeciesData.BackSprite;
-        enemyImage.sprite = currEnemy.SpeciesData.FrontSprite;
+        playerUnit.Image.sprite = currPlayer.SpeciesData.BackSprite;
+        enemyUnit.Image.sprite = currEnemy.SpeciesData.FrontSprite;
+        playerUnit.IsPlayer = true;
 
         //set hud for each
         playerHud.SetHUD(currPlayer);
         enemyHud.SetHUD(currEnemy);
         dialogBox.SetAbilityButtons(currPlayer);
 
+        gameObject.SetActive(true);
         StartCoroutine(Loop());
     }
     void InitEnemyParty(BattleParty enemyParty)
@@ -152,6 +161,14 @@ public class BattleSystem : MonoBehaviour
         yield return dialogBox.DialogAppend("Test append.");
         yield return new WaitForSeconds(textDelay);
         //TEMP
+
+        playerUnit.PlayStartAnimation();
+        yield return new WaitForSeconds(1.5f);
+        enemyUnit.PlayStartAnimation();
+        yield return new WaitForSeconds(1.5f);
+
+        yield return dialogBox.DialogSet("Beginning battle...");
+        yield return new WaitForSeconds(textDelay);
 
         while (state != BattleState.BattleEnded)
         {
@@ -323,7 +340,7 @@ public class BattleSystem : MonoBehaviour
             currPlayer.WasActive = true;
 
             //update sprite, hud, and button data
-            playerImage.sprite = currPlayer.SpeciesData.BackSprite;
+            playerUnit.Image.sprite = currPlayer.SpeciesData.BackSprite;
             playerHud.SetHUD(currPlayer);
             dialogBox.SetAbilityButtons(currPlayer);
 
@@ -350,7 +367,7 @@ public class BattleSystem : MonoBehaviour
             currEnemy = enemyChars[enemySwapIndex];
             currEnemy.WasActive = true;
 
-            enemyImage.sprite = currEnemy.SpeciesData.FrontSprite;
+            enemyUnit.Image.sprite = currEnemy.SpeciesData.FrontSprite;
             enemyHud.SetHUD(currEnemy);
 
             yield return dialogBox.DialogSet("Enemy swapped to " + enemyChars[enemySwapIndex].Name + ".");
@@ -538,27 +555,50 @@ public class BattleSystem : MonoBehaviour
             playerHud.UpdateHUD(currPlayer);
             enemyHud.UpdateHUD(currEnemy);
         }
-        yield return dialogBox.DialogSet("TEMP ANIMATION TEXT");
+        //yield return dialogBox.DialogSet("TEMP ANIMATION TEXT");
 
         //if hit target, do attack and after effects; else acknowledge miss and continue
         if (user.UsedAbility.CheckAccuracy(user, target))
         {
-            //PLAY HIT ANIMATION, DELAYING UNTIL COMPLETION
-            yield return new WaitForSeconds(1.5f);  //TEMP ANIMATION DELAY
+            yield return DoAttackAnimation(user, target, didHit: true);
+            yield return new WaitForSeconds(0.25f);
 
             //use Ability, then do after-effects like Thorns (dialog and delays handled in-method)
             yield return user.UsedAbility.UseAbility(data);
             yield return DoAfterEffects(data);
-
-            //BOTH PLAYER AND ENEMY SNAPSHOT UPDATES HERE
         }
         else
         {
-            //PLAY MISS ANIMATION, DELAYING UNTIL COMPLETION
-            yield return new WaitForSeconds(1.5f);  //TEMP ANIMATION DELAY
+            yield return DoAttackAnimation(user, target, didHit: false);
+            yield return new WaitForSeconds(0.25f);
 
             yield return dialogBox.DialogSet("The attack missed!");
             yield return new WaitForSeconds(textDelay);
+        }
+    }
+    IEnumerator DoAttackAnimation(BattleChar user, BattleChar target, bool didHit)
+    {
+        if (user.PlayerTeam)
+        {
+            playerUnit.PlayAttackAnimation();
+            yield return new WaitForSeconds(0.75f);
+
+            if (didHit)
+            {
+                enemyUnit.PlayDamagedAnimation();
+                yield return new WaitForSeconds(0.5f);
+            }
+        }
+        else
+        {
+            enemyUnit.PlayAttackAnimation();
+            yield return new WaitForSeconds(0.75f);
+
+            if (didHit)
+            {
+                playerUnit.PlayDamagedAnimation();
+                yield return new WaitForSeconds(0.5f);
+            }
         }
     }
     IEnumerator DoAfterEffects(AbilityData data)
@@ -859,6 +899,7 @@ public class BattleSystem : MonoBehaviour
             yield return new WaitForSeconds(textDelay);
 
             currEnemy.WasSlain = true;
+            yield return DoSlainAnimation(enemyUnit);
             yield return HandleSlainOperations(currEnemy, currPlayer);
 
             if (GetRemaining(playerTeam: false) > 0)
@@ -882,6 +923,7 @@ public class BattleSystem : MonoBehaviour
             yield return new WaitForSeconds(textDelay);
 
             currPlayer.WasSlain = true;
+            yield return DoSlainAnimation(playerUnit);
             yield return HandleSlainOperations(currPlayer, currEnemy);
 
             if (GetRemaining(playerTeam: true) > 0)
@@ -911,6 +953,13 @@ public class BattleSystem : MonoBehaviour
             yield return PerformSwap(playerTeam: true);
             //PLAYER SNAPSHOT UPDATE HERE
         }
+    }
+    IEnumerator DoSlainAnimation(BattleUnit unit)
+    {
+        unit.PlaySlainAnimation();
+        yield return new WaitForSeconds(1.25f);
+
+        yield break;
     }
     IEnumerator HandleSlainOperations(BattleChar slain, BattleChar alive)
     {

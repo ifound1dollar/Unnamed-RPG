@@ -175,15 +175,25 @@ public class BattleChar
         if (data.ImpossibleAbility != "" && UnityEngine.Random.Range(0, 100) == 0)
         {
             //has 1% chance to replace fourth ability, store old ability in case of failure
-            Ability origAbility = Abilities[3];
+            int lastIndex = -1;
+            for (int i = 0; i < Abilities.Length; i++)
+            {
+                if (Abilities[i] is EmptyAbility || i == 3)
+                {
+                    lastIndex = i;
+                    break;
+                }
+            }
+
+            Ability origAbility = Abilities[lastIndex];
             try
             {
-                Abilities[3] = Activator.CreateInstance(Type.GetType(data.ImpossibleAbility)) as Ability;
+                Abilities[lastIndex] = Activator.CreateInstance(Type.GetType(data.ImpossibleAbility)) as Ability;
             }
             catch
             {
                 //if replacement fails, return to original fourth ability
-                Abilities[3] = origAbility;
+                Abilities[lastIndex] = origAbility;
             }
         }
 

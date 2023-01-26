@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour
 {
     public float moveSpeed;
     public LayerMask collisionLayer;
+    public LayerMask interactableLayer;
     public Tilemap terrainTilemap;
     public Camera playerCamera;
 
@@ -28,8 +29,16 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         //only allow movement input if not already moving
-        if (!GameState.InBattle && !isMoving)
+        if (!GameState.InBattle && !GameState.IsMenuOpen && !GameState.InDialog && !isMoving)
         {
+            //first, check if attempting to interact with something (and not at y = n.5)
+            if (Mathf.Approximately(transform.position.y % 1.0f, 0) && Input.GetKeyDown(KeyCode.Return))
+            {
+                Interact();
+                return;
+            }
+
+
             inputPos.x = Input.GetAxisRaw("Horizontal");
             inputPos.y = Input.GetAxisRaw("Vertical");
 
@@ -233,8 +242,7 @@ public class PlayerController : MonoBehaviour
     bool IsWalkable(Vector3 targetPos)
     {
         //if player is at y = n.5, then is on stairs, so should check if above or below is walkable
-        if (Mathf.Approximately(transform.position.y % 0.5f, 0)
-            && !Mathf.Approximately(transform.position.y % 1.0f, 0))
+        if (!Mathf.Approximately(transform.position.y % 1.0f, 0))
         {
             //player will always be between two stair tiles here, so cast to int is fine
             Vector3Int playerPosInt = new((int)transform.position.x,
@@ -264,11 +272,26 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        //finally, if targetPos overlaps a tile in the collision layer (radius 0.3), is not walkable
-        if (Physics2D.OverlapCircle(targetPos, 0.3f, collisionLayer) != null)
+        //finally, if targetPos overlaps a tile in A collision layer (radius 0.3), is not walkable
+        if (Physics2D.OverlapCircle(targetPos, 0.3f, collisionLayer | interactableLayer) != null)
         {
             return false;
         }
         return true;
+    }
+
+
+
+    void Interact()
+    {
+        //get the tile that the player is looking at (can never be called when y ~ n.5)
+        Vector3 facingDir = new(animator.GetFloat("moveX"), animator.GetFloat("moveY"));
+        Vector3 interactPos = transform.position + facingDir;
+
+        Collider2D collider = Physics2D.OverlapCircle(interactPos, 0.3f, interactableLayer);
+        if (collider != null)
+        {
+            collider.GetComponent<IInteractable>()?.Interact();
+        }
     }
 }

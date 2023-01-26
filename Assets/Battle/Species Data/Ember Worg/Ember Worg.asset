@@ -16,7 +16,7 @@ MonoBehaviour:
   type1: 4
   type2: 12
   xpRatio: 1
-  frontSprite: {fileID: 21300000, guid: 8c6a451d63fe0c949b5754cd28e7d791, type: 3}
+  frontSprite: {fileID: 21300000, guid: 1de77b436c4cfb7489f98e9a78358f76, type: 3}
   backSprite: {fileID: 21300000, guid: c218da3920f09d845b74fda4cabb5461, type: 3}
   hp: 100
   strength: 100
@@ -29,6 +29,7 @@ MonoBehaviour:
   passiveAbility1: {fileID: 11400000, guid: 42ab9e7ce79842c498d58bb2c6e76685, type: 2}
   passiveAbility2: {fileID: 11400000, guid: 42ab9e7ce79842c498d58bb2c6e76685, type: 2}
   passiveAbility3: {fileID: 11400000, guid: 42ab9e7ce79842c498d58bb2c6e76685, type: 2}
-  evolutionStage: 1
+  currentEvoStage: 1
+  totalEvoStages: 1
   evolutions:
   - {fileID: 11400000, guid: 58b2ada6b665e6c48881072ef4fe7bc8, type: 2}
