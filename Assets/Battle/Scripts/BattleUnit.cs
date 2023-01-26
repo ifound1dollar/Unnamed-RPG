@@ -76,18 +76,4 @@ public class BattleUnit : MonoBehaviour
         sequence.Append(image.DOColor(Color.gray, 0.1f));
         sequence.Append(image.DOColor(Color.white, 0.1f));
     }
-
-
-
-
-    //ANIMATIONS WILL BE HANDLED INDIVIDUALLY IN ABILITY OBJECTS
-    public void PlayAttackHitAnimation()
-    {
-
-    }
-
-    public void PlayAttackMissAnimation()
-    {
-
-    }
 }

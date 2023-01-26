@@ -17,6 +17,8 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] PartyMenu partyMenu;
     [SerializeField] BattleUnit playerUnit;
     [SerializeField] BattleUnit enemyUnit;
+    [Space()]
+    [SerializeField] List<AbilityAnimation> abilityAnimations;
 
     BattleChar[] playerChars;
     BattleChar[] enemyChars;
@@ -48,13 +50,6 @@ public class BattleSystem : MonoBehaviour
     }
     public void BeginBattle(BattleParty enemyParty)
     {
-        AbilityButton temp = (AbilityButton)gameObject.AddComponent(Type.GetType("AbilityButton"));
-        Debug.Log(temp);
-        
-
-
-
-
         //find first BattleChar in array with >0HP to make currPlayer
         foreach (BattleChar battleChar in playerChars)
         {
@@ -65,6 +60,8 @@ public class BattleSystem : MonoBehaviour
                 break;
             }
         }
+
+        SetupAbilityAnimations();
 
         //InitPlayerParty();
         InitEnemyParty(enemyParty);
@@ -81,6 +78,13 @@ public class BattleSystem : MonoBehaviour
 
         gameObject.SetActive(true);
         StartCoroutine(Loop());
+    }
+    void SetupAbilityAnimations()
+    {
+        foreach (AbilityAnimation anim in abilityAnimations)
+        {
+            anim.Setup();
+        }
     }
     void InitEnemyParty(BattleParty enemyParty)
     {
@@ -578,26 +582,36 @@ public class BattleSystem : MonoBehaviour
     }
     IEnumerator DoAttackAnimation(BattleChar user, BattleChar target, bool didHit)
     {
+        //attempts to find AbilityAnimation in list, logging and returning if not found
+        AbilityAnimation anim = abilityAnimations.Find(x => x.Name == user.UsedAbility.Name);
+        if (anim == null)
+        {
+            Debug.Log("Missing animation.");
+            yield return new WaitForSeconds(1.0f);
+            yield break;
+        }
+
+        //play correct animation based on player or enemy AND hit or miss
         if (user.PlayerTeam)
         {
-            playerUnit.PlayAttackAnimation();
-            yield return new WaitForSeconds(0.75f);
-
             if (didHit)
             {
-                enemyUnit.PlayDamagedAnimation();
-                yield return new WaitForSeconds(0.5f);
+                yield return anim.PlayerHitAnimation(playerUnit, enemyUnit);
+            }
+            else
+            {
+                yield return anim.PlayerMissAnimation(playerUnit, enemyUnit);
             }
         }
         else
         {
-            enemyUnit.PlayAttackAnimation();
-            yield return new WaitForSeconds(0.75f);
-
             if (didHit)
             {
-                playerUnit.PlayDamagedAnimation();
-                yield return new WaitForSeconds(0.5f);
+                yield return anim.EnemyHitAnimation(enemyUnit, playerUnit);
+            }
+            else
+            {
+                yield return anim.EnemyMissAnimation(enemyUnit, playerUnit);
             }
         }
     }
