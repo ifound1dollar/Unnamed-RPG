@@ -98,6 +98,23 @@ public class BattleUnit : MonoBehaviour
         sequence.Append(image.transform.DOLocalMoveX(origPos.x, 0.10f));
     }
 
+    public void PlayKnockbackAnimation()
+    {
+        //universal attack animation (not specific to Ability, sometimes not called)
+        DG.Tweening.Sequence sequence = DOTween.Sequence();
+
+        if (IsPlayer)
+        {
+            sequence.Append(image.transform.DOLocalMoveX(origPos.x - 50f, 0.4f));
+        }
+        else
+        {
+            sequence.Append(image.transform.DOLocalMoveX(origPos.x + 50f, 0.4f));
+        }
+
+        sequence.Append(image.transform.DOLocalMoveX(origPos.x, 0.4f));
+    }
+
     public void PlayDamagedAnimation()
     {
         //universal damage animation

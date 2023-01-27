@@ -608,9 +608,8 @@ public class BattleSystem : MonoBehaviour
     }
     IEnumerator DoAttackAnimation(BattleChar user, BattleChar target, bool didHit)
     {
-        bool targetImmune = target.CheckIsDamageImmune(user.UsedAbility);
-
         //play animation corresponding to whether hit or miss (or immune to damage)
+        bool targetImmune = target.CheckIsDamageImmune(user.UsedAbility);
         if (didHit && !targetImmune)
         {
             yield return user.UsedAbility.PlayHitAnimation(playerUnit, enemyUnit, user.PlayerTeam);
