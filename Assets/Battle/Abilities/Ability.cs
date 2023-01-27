@@ -49,7 +49,14 @@ public abstract class Ability
 
 
 
-    public IEnumerator PlayHitAnimation(BattleUnit playerUnit, BattleUnit enemyUnit, bool isPlayer, bool targetImmune)
+    /// <summary>
+    /// Plays hit animation of this Ability and typical target animations (shaking, damage flash, etc.)
+    /// </summary>
+    /// <param name="playerUnit">Player BattleUnit</param>
+    /// <param name="enemyUnit">Enemy BattleUnit</param>
+    /// <param name="isPlayer">Whether this Ability is owned by player or enemy</param>
+    /// <returns></returns>
+    public IEnumerator PlayHitAnimation(BattleUnit playerUnit, BattleUnit enemyUnit, bool isPlayer)
     {
         if (Animation == null)
         {
@@ -61,26 +68,25 @@ public abstract class Ability
         if (isPlayer)
         {
             yield return Animation.PlayerHitAnimation(playerUnit, enemyUnit);
+            yield return new WaitForSeconds(0.5f);  //wait 0.5s before playing damage anim
+            enemyUnit.PlayDamagedAnimation();
         }
         else
         {
             yield return Animation.EnemyHitAnimation(enemyUnit, playerUnit);
-        }
-
-        //if damaging Ability and target not immune, play damaged animation
-        if ((Category == Category.Physical || Category == Category.Magic) && !targetImmune)
-        {
-            if (isPlayer)
-            {
-                enemyUnit.PlayDamagedAnimation();
-            }
-            else
-            {
-                playerUnit.PlayDamagedAnimation();
-            }
             yield return new WaitForSeconds(0.5f);
+            playerUnit.PlayDamagedAnimation();
         }
+        yield return new WaitForSeconds(0.5f);
     }
+
+    /// <summary>
+    /// Plays miss animation of this Ability, not playing typical target animations
+    /// </summary>
+    /// <param name="playerUnit">Player BattleUnit</param>
+    /// <param name="enemyUnit">Enemy BattleUnit</param>
+    /// <param name="isPlayer">Whether this Ability is owned by player or enemy</param>
+    /// <returns></returns>
     public IEnumerator PlayMissAnimation(BattleUnit playerUnit, BattleUnit enemyUnit, bool isPlayer)
     {
         if (Animation == null)
@@ -98,6 +104,7 @@ public abstract class Ability
         {
             yield return Animation.EnemyMissAnimation(enemyUnit, playerUnit);
         }
+        yield return new WaitForSeconds(0.5f);
     }
 
 

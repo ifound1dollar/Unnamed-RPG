@@ -593,7 +593,6 @@ public class BattleSystem : MonoBehaviour
         if (user.UsedAbility.CheckAccuracy(user, target))
         {
             yield return DoAttackAnimation(user, target, didHit: true);
-            yield return new WaitForSeconds(0.25f);
 
             //use Ability, then do after-effects like Thorns (dialog and delays handled in-method)
             yield return user.UsedAbility.UseAbility(data);
@@ -602,7 +601,6 @@ public class BattleSystem : MonoBehaviour
         else
         {
             yield return DoAttackAnimation(user, target, didHit: false);
-            yield return new WaitForSeconds(0.25f);
 
             yield return dialogBox.DialogSet("The attack missed!");
             yield return new WaitForSeconds(textDelay);
@@ -610,16 +608,18 @@ public class BattleSystem : MonoBehaviour
     }
     IEnumerator DoAttackAnimation(BattleChar user, BattleChar target, bool didHit)
     {
-        //play animation corresponding to whether hit or miss
-        if (didHit)
+        bool targetImmune = target.CheckIsDamageImmune(user.UsedAbility);
+
+        //play animation corresponding to whether hit or miss (or immune to damage)
+        if (didHit && !targetImmune)
         {
-            bool targetImmune = target.CheckIsDamageImmune(user.UsedAbility);
-            yield return user.UsedAbility.PlayHitAnimation(playerUnit, enemyUnit, user.PlayerTeam, targetImmune);
+            yield return user.UsedAbility.PlayHitAnimation(playerUnit, enemyUnit, user.PlayerTeam);
         }
         else
         {
             yield return user.UsedAbility.PlayMissAnimation(playerUnit, enemyUnit, user.PlayerTeam);
         }
+        //IMPORTANT: delays are all handled within above methods
     }
     IEnumerator DoAfterEffects(AbilityData data)
     {

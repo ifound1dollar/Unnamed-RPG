@@ -590,9 +590,8 @@ public class BattleChar
                 return "";
             }
 
-            //reset duration to 0 and effect to None, then set status end text and return
+            //reset duration to 0 and set status end text
             StatusDuration = 0;
-            StatusActive = StatusEffect.None;
             switch (StatusActive)
             {
                 case StatusEffect.Frozen:
@@ -631,6 +630,9 @@ public class BattleChar
                         break;
                     }
             }
+
+            //reset status active to None before returning
+            StatusActive = StatusEffect.None;
         }
 
         return text;
@@ -882,8 +884,6 @@ public class BattleChar
         string text = "";
         if (StatusDuration == 0)
         {
-            //reset effect to None and set status end text before returning
-            StatusActive = StatusEffect.None;
             switch (StatusActive)
             {
                 case StatusEffect.Frozen:
@@ -922,6 +922,9 @@ public class BattleChar
                         break;
                     }
             }
+
+            //reset effect to None before returning
+            StatusActive = StatusEffect.None;
         }
 
         return text;

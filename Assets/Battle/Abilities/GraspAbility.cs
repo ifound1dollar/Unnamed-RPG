@@ -79,6 +79,14 @@ public class GraspAbility : Ability
                 count++;
             }
         }
+        if (aiContext.Player.StatusActive != StatusEffect.None)
+        {
+            count++;
+        }
+        if (aiContext.Player.CountModifierTotal() < 0)
+        {
+            count++;
+        }
         if (aiContext.Enemy.Level - aiContext.Player.Level >= 5)
         {
             count++;

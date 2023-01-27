@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
+using Unity.VisualScripting;
 
 public class BattleUnit : MonoBehaviour
 {
@@ -53,7 +54,7 @@ public class BattleUnit : MonoBehaviour
     public void PlayAttackAnimation()
     {
         //universal attack animation (not specific to Ability, sometimes not called)
-        Sequence sequence = DOTween.Sequence();
+        DG.Tweening.Sequence sequence = DOTween.Sequence();
 
         if (IsPlayer)
         {
@@ -68,10 +69,39 @@ public class BattleUnit : MonoBehaviour
         //apparently auto-plays sequence
     }
 
+    public void PlayShakingAnimation()
+    {
+        DG.Tweening.Sequence sequence = DOTween.Sequence();
+
+        if (IsPlayer)
+        {
+            //PUT THESE IN LOOP LATER
+            //if player, move left first (half distance, so half the time) then back right
+            sequence.Append(image.transform.DOLocalMoveX(origPos.x + -10.0f, 0.10f));
+            sequence.Append(image.transform.DOLocalMoveX(origPos.x + 10.0f, 0.20f));
+            sequence.Append(image.transform.DOLocalMoveX(origPos.x + -10.0f, 0.20f));
+            sequence.Append(image.transform.DOLocalMoveX(origPos.x + 10.0f, 0.20f));
+            //sequence.Append(image.transform.DOLocalMoveX(origPos.x + -15.0f, 0.16f));
+            //sequence.Append(image.transform.DOLocalMoveX(origPos.x + 15.0f, 0.16f));
+        }
+        else
+        {
+            //else move right first
+            sequence.Append(image.transform.DOLocalMoveX(origPos.x + 10.0f, 0.10f));
+            sequence.Append(image.transform.DOLocalMoveX(origPos.x + -10.0f, 0.20f));
+            sequence.Append(image.transform.DOLocalMoveX(origPos.x + 10.0f, 0.20f));
+            sequence.Append(image.transform.DOLocalMoveX(origPos.x + -10.0f, 0.20f));
+            //sequence.Append(image.transform.DOLocalMoveX(origPos.x + 15.0f, 0.16f));
+            //sequence.Append(image.transform.DOLocalMoveX(origPos.x + -15.0f, 0.16f));
+        }
+
+        sequence.Append(image.transform.DOLocalMoveX(origPos.x, 0.10f));
+    }
+
     public void PlayDamagedAnimation()
     {
         //universal damage animation
-        Sequence sequence = DOTween.Sequence();
+        DG.Tweening.Sequence sequence = DOTween.Sequence();
 
         sequence.Append(image.DOColor(Color.gray, 0.1f));
         sequence.Append(image.DOColor(Color.white, 0.1f));
