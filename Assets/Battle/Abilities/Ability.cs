@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public enum Category { Status, Self, Physical, Magic }
 
@@ -14,6 +15,7 @@ public abstract class Ability
     public int Energy { get; set; }
     public int Power { get; set; }
     public int Accuracy { get; set; }
+    public AbilityAnimation Animation { get; set; }
 
 
     public int Priority { get; set; }
@@ -43,6 +45,60 @@ public abstract class Ability
     /// </summary>
     /// <param name="aiContext">Contains difficulty, all enemies, current enemy, and current player</param>
     protected abstract void CalcSpecificScore(BattleAI.AIContextObject aiContext);
+
+
+
+
+    public IEnumerator PlayHitAnimation(BattleUnit playerUnit, BattleUnit enemyUnit, bool isPlayer, bool targetImmune)
+    {
+        if (Animation == null)
+        {
+            Debug.Log("Animation in Ability is null; returning.");
+            yield return new WaitForSeconds(1.0f);
+            yield break;
+        }
+
+        if (isPlayer)
+        {
+            yield return Animation.PlayerHitAnimation(playerUnit, enemyUnit);
+        }
+        else
+        {
+            yield return Animation.EnemyHitAnimation(enemyUnit, playerUnit);
+        }
+
+        //if damaging Ability and target not immune, play damaged animation
+        if ((Category == Category.Physical || Category == Category.Magic) && !targetImmune)
+        {
+            if (isPlayer)
+            {
+                enemyUnit.PlayDamagedAnimation();
+            }
+            else
+            {
+                playerUnit.PlayDamagedAnimation();
+            }
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
+    public IEnumerator PlayMissAnimation(BattleUnit playerUnit, BattleUnit enemyUnit, bool isPlayer)
+    {
+        if (Animation == null)
+        {
+            Debug.Log("Animation in Ability is null; returning.");
+            yield return new WaitForSeconds(1.0f);
+            yield break;
+        }
+
+        if (isPlayer)
+        {
+            yield return Animation.PlayerMissAnimation(playerUnit, enemyUnit);
+        }
+        else
+        {
+            yield return Animation.EnemyMissAnimation(enemyUnit, playerUnit);
+        }
+    }
 
 
 

@@ -649,6 +649,24 @@ public class BattleChar
         return true;
     }
 
+    /// <summary>
+    /// Checks all damage immunity effects and Ability effectiveness to see if this BattleChar is immune
+    /// </summary>
+    /// <returns>Whether this BattleChar is immune to incoming damage</returns>
+    public bool CheckIsDamageImmune(Ability ability)
+    {
+        if (Effectiveness.GetMultiplier(ability.AbilityType, SpeciesData.Type1, SpeciesData.Type2) == 0)
+        {
+            return true;
+        }
+        if (Protected)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
 
 
 

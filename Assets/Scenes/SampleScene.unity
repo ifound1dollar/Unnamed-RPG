@@ -2596,6 +2596,7 @@ MonoBehaviour:
   enemyUnit: {fileID: 1651437090}
   abilityAnimations:
   - {fileID: 2855022728118611010, guid: 3b5b6f58835433c4288caeff13cf460f, type: 3}
+  defaultAbilityAnimation: {fileID: 2855022728118611010, guid: 3b5b6f58835433c4288caeff13cf460f, type: 3}
 --- !u!1 &574726211
 GameObject:
   m_ObjectHideFlags: 0

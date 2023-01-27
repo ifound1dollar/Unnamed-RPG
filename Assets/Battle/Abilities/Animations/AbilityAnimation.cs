@@ -5,10 +5,10 @@ using UnityEngine.UI;
 
 public abstract class AbilityAnimation : MonoBehaviour
 {
-    [SerializeField] List<Sprite> animationSprites;
+    //[SerializeField] List<Sprite> animationSprites;
 
     public string Name { get; protected set; }
-    public List<Sprite> AnimationSprites { get { return animationSprites; } }
+    //public List<Sprite> AnimationSprites { get { return animationSprites; } }
 
 
     public abstract void Setup();

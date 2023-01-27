@@ -19,6 +19,7 @@ public class BattleSystem : MonoBehaviour
     [SerializeField] BattleUnit enemyUnit;
     [Space()]
     [SerializeField] List<AbilityAnimation> abilityAnimations;
+    [SerializeField] AbilityAnimation defaultAbilityAnimation;
 
     BattleChar[] playerChars;
     BattleChar[] enemyChars;
@@ -61,10 +62,9 @@ public class BattleSystem : MonoBehaviour
             }
         }
 
-        SetupAbilityAnimations();
-
-        //InitPlayerParty();
         InitEnemyParty(enemyParty);
+
+        SetupAbilityAnimations();   //must be called after enemy party is instantiated
 
         //load player and enemy sprites from BattleChar's species data
         playerUnit.Image.sprite = currPlayer.SpeciesData.BackSprite;
@@ -84,6 +84,35 @@ public class BattleSystem : MonoBehaviour
         foreach (AbilityAnimation anim in abilityAnimations)
         {
             anim.Setup();
+        }
+
+        foreach (BattleChar player in playerChars)
+        {
+            foreach (Ability ability in player.Abilities)
+            {
+                //finds AbilityAnimation matching ability, else default, and sets to this Ability
+                AbilityAnimation anim = abilityAnimations.Find(x => x.Name == ability.Name);
+                if (anim == null)
+                {
+                    //Debug.Log("Failed to find Ability in AbilityAnimations: " + ability.Name);
+                    anim = defaultAbilityAnimation;
+                }
+                ability.Animation = anim;
+            }
+        }
+
+        foreach (BattleChar enemy in enemyChars)
+        {
+            foreach (Ability ability in enemy.Abilities)
+            {
+                //finds AbilityAnimation matching ability, else default, and sets to this Ability
+                AbilityAnimation anim = abilityAnimations.Find(x => x.Name == ability.Name);
+                if (anim == null)
+                {
+                    anim = defaultAbilityAnimation;
+                }
+                ability.Animation = anim;
+            }
         }
     }
     void InitEnemyParty(BattleParty enemyParty)
@@ -559,7 +588,6 @@ public class BattleSystem : MonoBehaviour
             playerHud.UpdateHUD(currPlayer);
             enemyHud.UpdateHUD(currEnemy);
         }
-        //yield return dialogBox.DialogSet("TEMP ANIMATION TEXT");
 
         //if hit target, do attack and after effects; else acknowledge miss and continue
         if (user.UsedAbility.CheckAccuracy(user, target))
@@ -582,37 +610,15 @@ public class BattleSystem : MonoBehaviour
     }
     IEnumerator DoAttackAnimation(BattleChar user, BattleChar target, bool didHit)
     {
-        //attempts to find AbilityAnimation in list, logging and returning if not found
-        AbilityAnimation anim = abilityAnimations.Find(x => x.Name == user.UsedAbility.Name);
-        if (anim == null)
+        //play animation corresponding to whether hit or miss
+        if (didHit)
         {
-            Debug.Log("Missing animation.");
-            yield return new WaitForSeconds(1.0f);
-            yield break;
-        }
-
-        //play correct animation based on player or enemy AND hit or miss
-        if (user.PlayerTeam)
-        {
-            if (didHit)
-            {
-                yield return anim.PlayerHitAnimation(playerUnit, enemyUnit);
-            }
-            else
-            {
-                yield return anim.PlayerMissAnimation(playerUnit, enemyUnit);
-            }
+            bool targetImmune = target.CheckIsDamageImmune(user.UsedAbility);
+            yield return user.UsedAbility.PlayHitAnimation(playerUnit, enemyUnit, user.PlayerTeam, targetImmune);
         }
         else
         {
-            if (didHit)
-            {
-                yield return anim.EnemyHitAnimation(enemyUnit, playerUnit);
-            }
-            else
-            {
-                yield return anim.EnemyMissAnimation(enemyUnit, playerUnit);
-            }
+            yield return user.UsedAbility.PlayMissAnimation(playerUnit, enemyUnit, user.PlayerTeam);
         }
     }
     IEnumerator DoAfterEffects(AbilityData data)
