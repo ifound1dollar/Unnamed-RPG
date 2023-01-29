@@ -168,8 +168,9 @@ public class PartyMenu : MonoBehaviour
         Vector3 anchorPos = partyChars[CurrCharIndex].OptionsAnchor.position;
         if (currPlayerIndex != -1)
         {
-            //if is currPlayer or currPlayer cannot swap
-            if (currPlayerIndex == CurrCharIndex || !playerChars[currPlayerIndex].CheckCanSwap())
+            //if is currPlayer, currPlayer cannot swap, or is at 0HP
+            if (currPlayerIndex == CurrCharIndex || !playerChars[currPlayerIndex].CheckCanSwap()
+                || playerChars[CurrCharIndex].HP <= 0)
             {
                 inBattleNoSwapOptions.gameObject.transform.position = anchorPos;
                 inBattleNoSwapOptions.gameObject.SetActive(true);
@@ -340,6 +341,7 @@ public class PartyMenu : MonoBehaviour
     /// </summary>
     public void FocusAbilityPanel()
     {
+        abilityBackButton.gameObject.SetActive(true);
         AbilitiesFocused = true;
         abilityButtons[0].Select();
     }
@@ -392,6 +394,7 @@ public class PartyMenu : MonoBehaviour
 
         teachWarningOverlay.SetActive(false);
         abilityInfoOverlay.SetActive(false);
+        abilityBackButton.gameObject.SetActive(false);
         AbilitiesFocused = false;
         BackButtonJumped = false;
         detailsCharButtons[CurrCharIndex].Select();

@@ -66,9 +66,11 @@ public class BattleSystem : MonoBehaviour
 
         SetupAbilityAnimations();   //must be called after enemy party is instantiated
 
-        //load player and enemy sprites from BattleChar's species data
+        //load player and enemy sprites from BattleChar's species data and hide
         playerUnit.Image.sprite = currPlayer.SpeciesData.BackSprite;
+        playerUnit.Image.gameObject.SetActive(false);
         enemyUnit.Image.sprite = currEnemy.SpeciesData.FrontSprite;
+        enemyUnit.Image.gameObject.SetActive(false);
         playerUnit.IsPlayer = true;
 
         //set hud for each
@@ -195,9 +197,9 @@ public class BattleSystem : MonoBehaviour
         yield return new WaitForSeconds(textDelay);
         //TEMP
 
-        playerUnit.PlayStartAnimation();
+        playerUnit.PlayEnterAnimation();
         yield return new WaitForSeconds(1.5f);
-        enemyUnit.PlayStartAnimation();
+        enemyUnit.PlayEnterAnimation();
         yield return new WaitForSeconds(1.5f);
 
         yield return dialogBox.DialogSet("Beginning battle...");
@@ -372,10 +374,19 @@ public class BattleSystem : MonoBehaviour
             currPlayer = playerChars[playerSwapIndex];
             currPlayer.WasActive = true;
 
+            //only play exit animation if Image currently visible
+            if (playerUnit.Image.gameObject.activeSelf)
+            {
+                playerUnit.PlayExitAnimation();
+                yield return new WaitForSeconds(1.0f);  //wait for entire animation
+            }
+
             //update sprite, hud, and button data
             playerUnit.Image.sprite = currPlayer.SpeciesData.BackSprite;
             playerHud.SetHUD(currPlayer);
             dialogBox.SetAbilityButtons(currPlayer);
+            playerUnit.PlayEnterAnimation();
+            yield return new WaitForSeconds(1.0f);
 
             //update dialog text
             yield return dialogBox.DialogSet("Player swapped to " + playerChars[playerSwapIndex].Name + ".");
@@ -400,8 +411,16 @@ public class BattleSystem : MonoBehaviour
             currEnemy = enemyChars[enemySwapIndex];
             currEnemy.WasActive = true;
 
+            if (enemyUnit.Image.gameObject.activeSelf)
+            {
+                enemyUnit.PlayExitAnimation();
+                yield return new WaitForSeconds(1.0f);  //wait for entire animation
+            }
+
             enemyUnit.Image.sprite = currEnemy.SpeciesData.FrontSprite;
             enemyHud.SetHUD(currEnemy);
+            playerUnit.PlayEnterAnimation();
+            yield return new WaitForSeconds(1.0f);
 
             yield return dialogBox.DialogSet("Enemy swapped to " + enemyChars[enemySwapIndex].Name + ".");
             yield return new WaitForSeconds(textDelay);
@@ -576,9 +595,11 @@ public class BattleSystem : MonoBehaviour
         //create AbilityData object to pass to Ability's UseAbility method
         AbilityData data = new(user, target, turnNumber, dialogBox, textDelay, playerHud, enemyHud);
 
-        //update dialog with use text and wait
+        //update dialog with use text and wait, then empty text box
         yield return dialogBox.DialogSet(user.Name + " used " + user.UsedAbility.Name + "!");
         yield return new WaitForSeconds(textDelay);
+        yield return dialogBox.DialogSet("");
+        yield return new WaitForSeconds(0.25f);
 
         //do not consume Energy if subsequent uses of a multi-turn Ability
         if (user.MultiTurnAbility == 0)
@@ -918,6 +939,7 @@ public class BattleSystem : MonoBehaviour
             yield return new WaitForSeconds(textDelay);
 
             currEnemy.WasSlain = true;
+            currEnemy.ResetAll();
             yield return DoSlainAnimation(enemyUnit);
             yield return HandleSlainOperations(currEnemy, currPlayer);
 
@@ -942,14 +964,20 @@ public class BattleSystem : MonoBehaviour
             yield return new WaitForSeconds(textDelay);
 
             currPlayer.WasSlain = true;
+            currPlayer.ResetAll();  //must do this here or else Trapped may still be active
             yield return DoSlainAnimation(playerUnit);
             yield return HandleSlainOperations(currPlayer, currEnemy);
 
             if (GetRemaining(playerTeam: true) > 0)
             {
                 state = BattleState.WaitingChoice;
+                partyMenu.LoadPartyChars(GetCurrBattleCharIndex(playerTeam: true));
                 partyMenu.ShowPartyMenu(showBackButton: false);
+                partyMenu.FocusPartyMenu();
+
                 yield return new WaitUntil(() => state != BattleState.WaitingChoice);
+                dialogBox.ShowMainButtons(false);
+                yield return new WaitForSeconds(0.5f);
                 playerSwap = true;
             }
             else
@@ -965,18 +993,17 @@ public class BattleSystem : MonoBehaviour
         if (enemySwap)
         {
             yield return PerformSwap(playerTeam: false);
-            //ENEMY SNAPSHOT UPDATE HERE
         }
         if (playerSwap)
         {
             yield return PerformSwap(playerTeam: true);
-            //PLAYER SNAPSHOT UPDATE HERE
         }
     }
     IEnumerator DoSlainAnimation(BattleUnit unit)
     {
         unit.PlaySlainAnimation();
         yield return new WaitForSeconds(1.25f);
+        unit.Image.gameObject.SetActive(false); //after delay so anim can finish
 
         yield break;
     }
@@ -1129,6 +1156,7 @@ public class BattleSystem : MonoBehaviour
         yield return HandleXPOperations();
         HandleEvolutionChecks();
 
+        dialogBox.ShowMainButtons(false);
         yield return dialogBox.DialogSet("Ending battle...");
         yield return new WaitForSeconds(textDelay);
 
@@ -1172,6 +1200,8 @@ public class BattleSystem : MonoBehaviour
 
             BattleChar player = playerChars[i];
             player.AddXP(playerTeamXP[i]);
+            yield return dialogBox.DialogSet($"{player.Name} gained {playerTeamXP[i]} XP!");
+            yield return new WaitForSeconds(textDelay);
 
             while (player.XP >= XPTable.GetXpToNextLevel(player.Level, player.SpeciesData.XPRatio))
             {
@@ -1220,11 +1250,15 @@ public class BattleSystem : MonoBehaviour
     }
     IEnumerator HandleLevelUp(BattleChar player)
     {
+        string abilityName = player.LevelUp();
+        if (player == currPlayer)
+        {
+            playerHud.UpdateHUD(player);
+        }
         yield return dialogBox.DialogSet($"{player.Name} leveled up to {player.Level + 1}!");
         yield return new WaitForSeconds(textDelay);
 
         //if LevelUp returns not empty, then an Ability is trying to be learned
-        string abilityName = player.LevelUp();
         if (abilityName != "")
         {
             Ability newAbility;
@@ -1269,6 +1303,7 @@ public class BattleSystem : MonoBehaviour
 
             partyMenu.BeginTeachAbility(newAbility, Array.IndexOf(playerChars, player));
             yield return new WaitUntil(() => !partyMenu.gameObject.activeSelf);
+            dialogBox.ShowMainButtons(false);
         }
     }
     void HandleEvolutionChecks()

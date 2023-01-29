@@ -11,6 +11,7 @@ public class PlayerController : MonoBehaviour
     public LayerMask interactableLayer;
     public Tilemap terrainTilemap;
     public Camera playerCamera;
+    public PersistentData persistentData;
 
     bool isMoving;
     Vector2 inputPos;
@@ -46,7 +47,7 @@ public class PlayerController : MonoBehaviour
             //first, check if attempting to interact with something (and not at y = n.5)
             if (Mathf.Approximately(transform.position.y % 1.0f, 0) && Input.GetKeyDown(KeyCode.Return))
             {
-                Interact();
+                StartCoroutine(Interact());
                 return;
             }
 
@@ -298,7 +299,7 @@ public class PlayerController : MonoBehaviour
 
 
 
-    void Interact()
+    IEnumerator Interact()
     {
         //get the tile that the player is looking at (can never be called when y ~ n.5)
         Vector3 facingDir = new(animator.GetFloat("moveX"), animator.GetFloat("moveY"));
@@ -307,7 +308,17 @@ public class PlayerController : MonoBehaviour
         Collider2D collider = Physics2D.OverlapCircle(interactPos, 0.3f, interactableLayer);
         if (collider != null)
         {
-            StartCoroutine(collider.GetComponentInParent<IInteractable>()?.Interact());
+            yield return collider.GetComponentInParent<IInteractable>()?.Interact();
+
+            //if now InBattle, begin battle
+            if (GameState.InBattle)
+            {
+                BattleParty enemyParty = collider.GetComponentInParent<BattleParty>();
+                if (enemyParty != null)
+                {
+                    persistentData.BeginBattle(enemyParty);
+                }
+            }
         }
     }
 }

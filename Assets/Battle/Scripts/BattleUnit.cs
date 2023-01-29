@@ -23,34 +23,43 @@ public class BattleUnit : MonoBehaviour
         unitImage.gameObject.SetActive(false);
     }
 
-    public void PlayStartAnimation()
+    public void PlayEnterAnimation()
     {
-        unitImage.gameObject.SetActive(true);
-
         if (IsPlayer)
         {
-            transform.localPosition = new(transform.localPosition.x - 500, transform.localPosition.y);
+            transform.localPosition = new(origPos.x - 500, origPos.y);
         }
         else
         {
-            transform.localPosition = new(transform.localPosition.x + 500, transform.localPosition.y);
+            transform.localPosition = new(origPos.x + 500, origPos.y);
         }
 
+        unitImage.gameObject.SetActive(true);
         transform.DOLocalMoveX(origPos.x, 1.0f);
+    }
+
+    public void PlayExitAnimation()
+    {
+        if (IsPlayer)
+        {
+            transform.DOLocalMoveX(origPos.x - 500, 1.0f);
+        }
+        else
+        {
+            transform.DOLocalMoveX(origPos.x + 500, 1.0f);
+        }
     }
 
     public void PlaySlainAnimation()
     {
         if (IsPlayer)
         {
-            transform.DOLocalMoveY(transform.localPosition.y - 500, 1.0f);
+            transform.DOLocalMoveY(origPos.y - 500, 1.0f);
         }
         else
         {
-            transform.DOLocalMoveY(transform.localPosition.y - 500, 1.0f);
+            transform.DOLocalMoveY(origPos.y - 500, 1.0f);
         }
-
-        unitImage.gameObject.SetActive(false);
     }
 
     public void PlayAttackAnimation()
@@ -60,14 +69,14 @@ public class BattleUnit : MonoBehaviour
 
         if (IsPlayer)
         {
-            sequence.Append(transform.DOLocalMoveX(origPos.x + 50f, 0.25f));
+            sequence.Append(transform.DOLocalMoveX(origPos.x + 50f, 0.20f));
         }
         else
         {
-            sequence.Append(transform.DOLocalMoveX(origPos.x - 50f, 0.25f));
+            sequence.Append(transform.DOLocalMoveX(origPos.x - 50f, 0.20f));
         }
 
-        sequence.Append(transform.DOLocalMoveX(origPos.x, 0.25f));
+        sequence.Append(transform.DOLocalMoveX(origPos.x, 0.20f));
         //apparently auto-plays sequence
     }
 

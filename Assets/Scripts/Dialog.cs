@@ -9,6 +9,7 @@ public class Dialog
     [TextArea()]
     [SerializeField] string line;
     [SerializeField] bool isConditionalOnly;
+    [SerializeField] bool beginsBattle;
 
     [Header("Flags : dot notation (ex. 0.0)")]
     [SerializeField] string checkFlag;
@@ -25,6 +26,7 @@ public class Dialog
 
     public string Line              { get { return line; } }
     public bool IsConditionalOnly   { get { return isConditionalOnly; } }
+    public bool BeginsBattle        { get { return beginsBattle; } }
 
     public string CheckFlag         { get { return checkFlag; } }
     public int FlagRerouteIndex     { get { return flagRerouteIndex; } }

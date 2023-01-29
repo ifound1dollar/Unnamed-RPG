@@ -18,7 +18,6 @@ public class PersistentData : MonoBehaviour
     //TEMP
     [Header("TEMP")]
     [SerializeField] BattleParty playerParty;   //will pull from save file later
-    [SerializeField] BattleParty enemyParty;    //will set automatically during runtime later
     //TEMP
 
 
@@ -43,11 +42,6 @@ public class PersistentData : MonoBehaviour
         battleSystem.SetPersistentData(this);
         partyMenu.Setup(PlayerChars, battleSystem);
         dialogManager.Setup(dialogSpeed);
-
-        //TEMP
-        GameState.InBattle = true;
-        battleSystem.BeginBattle(enemyParty);
-        //TEMP
     }
 
     /// <summary>
@@ -62,6 +56,11 @@ public class PersistentData : MonoBehaviour
         {
             PlayerChars[i] = new BattleChar(playerParty.Team[i], difficulty, playerTeam: true);
         }
+    }
+
+    public void BeginBattle(BattleParty enemyParty)
+    {
+        battleSystem.BeginBattle(enemyParty);
     }
 
 }

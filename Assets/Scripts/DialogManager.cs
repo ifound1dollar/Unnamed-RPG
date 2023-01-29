@@ -89,6 +89,12 @@ public class DialogManager : MonoBehaviour
             //if valid flag, attempt to set flag by adding to dictionary
             PersistentData.Flags.TryAdd(dialog.SetFlag, true);
         }
+
+        if (dialog.BeginsBattle)
+        {
+            //will start battle from NPC Controller once dialog ends
+            GameState.InBattle = true;
+        }
     }
 
     /// <summary>

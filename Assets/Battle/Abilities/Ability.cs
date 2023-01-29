@@ -250,9 +250,15 @@ public abstract class Ability
             text += "Critical hit!";
         }
         
-        //update dialog even if empty (effectively clears dialog)
-        yield return data.DialogBox.DialogSet(text);
-        yield return new WaitForSeconds(data.TextDelay);
+        if (text != "")
+        {
+            yield return data.DialogBox.DialogSet(text);
+            yield return new WaitForSeconds(data.TextDelay);
+        }
+        else
+        {
+            yield return new WaitForSeconds(0.25f);
+        }
     }
 
     /// <summary>

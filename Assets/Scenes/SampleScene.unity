@@ -3204,7 +3204,6 @@ MonoBehaviour:
   partyMenu: {fileID: 1582121994}
   dialogManager: {fileID: 1448524723}
   playerParty: {fileID: 826484062}
-  enemyParty: {fileID: 1060446751}
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -4986,6 +4985,7 @@ GameObject:
   - component: {fileID: 814874603}
   - component: {fileID: 814874602}
   - component: {fileID: 814874606}
+  - component: {fileID: 814874607}
   m_Layer: 8
   m_Name: NPC
   m_TagString: Untagged
@@ -5081,45 +5081,65 @@ MonoBehaviour:
   moveSpeed: 2
   dialogs:
   - line: Hello, is this thing on?
+    isConditionalOnly: 0
+    beginsBattle: 0
     checkFlag: 0.0
     flagRerouteIndex: 3
     setFlag: 
-    isConditionalOnly: 0
     requiresInput: 1
     option1Text: Yes
     option1Index: 1
     option2Text: No
     option2Index: 2
   - line: Good.
+    isConditionalOnly: 1
+    beginsBattle: 0
     checkFlag: 
     flagRerouteIndex: 0
     setFlag: 0.0
-    isConditionalOnly: 1
     requiresInput: 0
     option1Text: 
     option1Index: 0
     option2Text: 
     option2Index: 0
   - line: That's unfortunate.
+    isConditionalOnly: 1
+    beginsBattle: 0
     checkFlag: 
     flagRerouteIndex: 0
     setFlag: 0.0
-    isConditionalOnly: 1
     requiresInput: 0
     option1Text: 
     option1Index: 0
     option2Text: 
     option2Index: 0
   - line: Flag is set
+    isConditionalOnly: 1
+    beginsBattle: 1
     checkFlag: 
     flagRerouteIndex: 0
     setFlag: 
-    isConditionalOnly: 1
     requiresInput: 0
     option1Text: 
     option1Index: 0
     option2Text: 
     option2Index: 0
+  battleFlag: 0.1
+  party: {fileID: 814874607}
+--- !u!114 &814874607
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 814874601}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60473cec25ee93146a497b87dbba73e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  team:
+  - {fileID: 11400000, guid: a36af071bbb6ec840b0b644a167c5b57, type: 2}
 --- !u!1 &826484057
 GameObject:
   m_ObjectHideFlags: 0
@@ -5233,6 +5253,7 @@ MonoBehaviour:
     m_Bits: 256
   terrainTilemap: {fileID: 2034781103}
   playerCamera: {fileID: 519420031}
+  persistentData: {fileID: 601822679}
 --- !u!95 &826484061
 Animator:
   serializedVersion: 4
@@ -7562,7 +7583,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_AdditionalShaderChannelsFlag: 25
   m_SortingLayerID: 1144178637
-  m_SortingOrder: 1
+  m_SortingOrder: 4
   m_TargetDisplay: 0
 --- !u!1 &1149473769
 GameObject:
@@ -14365,7 +14386,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_AdditionalShaderChannelsFlag: 25
   m_SortingLayerID: 1144178637
-  m_SortingOrder: 10
+  m_SortingOrder: 3
   m_TargetDisplay: 0
 --- !u!1 &2095843105
 GameObject:

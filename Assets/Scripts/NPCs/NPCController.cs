@@ -14,6 +14,10 @@ public class NPCController : MonoBehaviour, IInteractable
     [Header("Interaction data")]
     [SerializeField] List<Dialog> dialogs;
 
+    [Header("Battle data (if applicable)")]
+    [SerializeField] string battleFlag;
+    [SerializeField] BattleParty party;
+
 
     bool isBusy;
     Animator animator;
