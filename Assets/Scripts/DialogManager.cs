@@ -3,16 +3,20 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class DialogManager : MonoBehaviour
 {
     [SerializeField] GameObject dialogBox;
     [SerializeField] TMP_Text dialogText;
+    [SerializeField] Button[] optionButtons;
+    [SerializeField] TMP_Text[] optionTexts;
 
     int dialogSpeed;
 
     int currentLine;
-    Dialog dialog;
+    List<Dialog> dialogs;
     bool textAnimating = false;
 
 
@@ -25,17 +29,66 @@ public class DialogManager : MonoBehaviour
     }
 
 
-    public IEnumerator ShowDialog(Dialog dialog)
+    /// <summary>
+    /// Initially shows dialog, sets gameObject active, and sets GameState to InDialog
+    /// </summary>
+    /// <param name="dialogs"></param>
+    /// <returns></returns>
+    public IEnumerator ShowDialog(List<Dialog> dialogs)
     {
         //wait for end of frame because Update() should be run first
         yield return new WaitForEndOfFrame();
 
         GameState.InDialog = true;
-        this.dialog = dialog;
-        currentLine = 0;
+        this.dialogs = dialogs;
 
         dialogBox.SetActive(true);
-        StartCoroutine(DialogSet(dialog.Lines[0]));
+        StartCoroutine(HandleDialog(lineIndex: 0));
+    }
+
+    /// <summary>
+    /// Sets currentLine and shows dialog and input buttons based on context
+    /// </summary>
+    /// <param name="lineIndex">Index of dialog object being accessed</param>
+    /// <returns></returns>
+    public IEnumerator HandleDialog(int lineIndex)
+    {
+        if (PersistentData.Flags.ContainsKey(dialogs[lineIndex].CheckFlag))
+        {
+            //will not contain empty string; if contains actual flag, move onto reroute index
+            lineIndex = dialogs[lineIndex].FlagRerouteIndex;
+        }
+
+        Dialog dialog = dialogs[lineIndex];
+        currentLine = lineIndex;
+
+        if (dialog.RequiresInput)
+        {
+            //IN THE FUTURE, WILL CHECK IF NOT EMPTY STRING IN OPTION TEXTS BEFORE SHOWING
+            optionTexts[0].text = dialog.Option1Text;
+            optionTexts[1].text = dialog.Option2Text;
+
+            //wait for dialog completion before showing buttons
+            yield return DialogSet(dialog.Line);
+
+            optionButtons[0].gameObject.SetActive(true);
+            optionButtons[1].gameObject.SetActive(true);
+            optionButtons[0].Select();
+        }
+        else
+        {
+            optionButtons[0].gameObject.SetActive(false);
+            optionButtons[1].gameObject.SetActive(false);
+            EventSystem.current.SetSelectedGameObject(null);
+
+            yield return DialogSet(dialog.Line);
+        }
+
+        if (dialog.SetFlag != "")
+        {
+            //if valid flag, attempt to set flag by adding to dictionary
+            PersistentData.Flags.TryAdd(dialog.SetFlag, true);
+        }
     }
 
     /// <summary>
@@ -91,6 +144,21 @@ public class DialogManager : MonoBehaviour
 
 
 
+    public void OnDialogButtonPress(int buttonIndex)
+    {
+        if (buttonIndex == 0)
+        {
+            StartCoroutine(HandleDialog(dialogs[currentLine].Option1Index));
+        }
+        else if (buttonIndex == 1)
+        {
+            StartCoroutine(HandleDialog(dialogs[currentLine].Option2Index));
+        }
+    }
+
+
+
+
     private void Update()
     {
         if (!GameState.InDialog || textAnimating)
@@ -100,17 +168,39 @@ public class DialogManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Return))
         {
-            if (currentLine < dialog.Lines.Count - 1)
+            if (currentLine < dialogs.Count - 1)
             {
-                currentLine++;
-                StartCoroutine(DialogSet(dialog.Lines[currentLine]));
+                //only show next if does not require button input
+                if (dialogs[currentLine].RequiresInput)
+                {
+                    return;
+                }
+
+                //find next non-InputOption dialog to show
+                int nextIndex = -1;
+                for (int i = currentLine + 1; i < dialogs.Count; i++)
+                {
+                    if (!dialogs[i].IsConditionalOnly)
+                    {
+                        nextIndex = i;
+                        break;
+                    }
+                }
+
+                if (nextIndex != -1)
+                {
+                    StartCoroutine(HandleDialog(nextIndex));
+                    return;
+                }
             }
-            else
-            {
-                currentLine = 0;
-                GameState.InDialog = false;
-                gameObject.SetActive(false);
-            }
+
+            //if reaches here, then is at last line or no remaining valid dialog to show
+            optionButtons[0].gameObject.SetActive(false);
+            optionButtons[1].gameObject.SetActive(false);
+            EventSystem.current.SetSelectedGameObject(null);
+
+            GameState.InDialog = false;
+            gameObject.SetActive(false);
         }
     }
 }

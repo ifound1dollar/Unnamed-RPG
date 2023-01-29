@@ -12,7 +12,7 @@ public class NPCController : MonoBehaviour, IInteractable
     [SerializeField] int moveSpeed = 2;
 
     [Header("Interaction data")]
-    [SerializeField] Dialog dialog;
+    [SerializeField] List<Dialog> dialogs;
 
 
     bool isBusy;
@@ -26,6 +26,7 @@ public class NPCController : MonoBehaviour, IInteractable
     {
         origPos = new((int)transform.position.x, (int)transform.position.y);
         animator = GetComponent<Animator>();
+        gameObject.AddComponent<BoxCollider2D>();
 
         //add childObject to this object and add a BoxCollider2D
         colliderChild = new("CollisionChild")
@@ -77,13 +78,13 @@ public class NPCController : MonoBehaviour, IInteractable
                 //if greater than radius, flip x or y direction to try to move the other way
                 if (Mathf.Abs(targetPos.x - origPos.x) > maximumRadius)
                 {
-                    Debug.Log("targetPos.x beyond maximumRadius, flipping x");
+                    //Debug.Log("targetPos.x beyond maximumRadius, flipping x");
                     //reverse sign and add value * 2 (already moved by 1)
                     targetPos.x += move.x * -2;
                 }
                 else if (Mathf.Abs(targetPos.y - origPos.y) > maximumRadius)
                 {
-                    Debug.Log("targetPos.y beyond maximumRadius, flipping y");
+                    //Debug.Log("targetPos.y beyond maximumRadius, flipping y");
                     targetPos.y += move.y * -2;
                 }
 
@@ -142,7 +143,7 @@ public class NPCController : MonoBehaviour, IInteractable
         isBusy = true;
 
         //wait until ShowDialog returns so it has time to set GameState.InDialog
-        yield return DialogManager.Instance.ShowDialog(dialog);
+        yield return DialogManager.Instance.ShowDialog(dialogs);
 
         //player dialog started here, so wait to reset isBusy until InDialog gamestate is over
         yield return new WaitUntil(() => !GameState.InDialog);

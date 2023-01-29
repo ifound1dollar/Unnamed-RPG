@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PersistentData : MonoBehaviour
@@ -28,6 +29,7 @@ public class PersistentData : MonoBehaviour
 
     //not visible in editor
     public BattleChar[] PlayerChars { get; private set; }
+    public static Dictionary<string, bool> Flags { get; private set; } = new();
 
 
 

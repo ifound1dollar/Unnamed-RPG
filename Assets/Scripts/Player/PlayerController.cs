@@ -24,6 +24,7 @@ public class PlayerController : MonoBehaviour
     {
         //initialize animator reference and move camera above player sprite
         animator = GetComponent<Animator>();
+        gameObject.AddComponent<BoxCollider2D>();
 
         colliderChild = new("CollisionChild")
         {
