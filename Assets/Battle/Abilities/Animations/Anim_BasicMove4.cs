@@ -15,7 +15,7 @@ public class Anim_BasicMove4 : AbilityAnimation
         //custom basic attack animation may not have movement at all
 
         playerUnit.PlayAttackAnimation();       //0.25s per one-way movement, total 0.5s
-        yield return new WaitForSeconds(0.30f); //wait for first half of attack animation + 0.05s
+        yield return new WaitForSeconds(0.50f); //wait for first half of attack animation + 0.05s IGNORE
         enemyUnit.PlayShakingAnimation();       //0.1s for first/last half-movement, 0.2s for other 3, total 0.8s
         yield return new WaitForSeconds(0.80f); //wait for entire shaking animation
     }

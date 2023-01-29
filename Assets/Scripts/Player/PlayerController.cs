@@ -16,12 +16,23 @@ public class PlayerController : MonoBehaviour
     Vector2 inputPos;
 
     Animator animator;
+    GameObject colliderChild;
+    Vector2 childWorldPos;
 
 
     private void Awake()
     {
         //initialize animator reference and move camera above player sprite
         animator = GetComponent<Animator>();
+
+        colliderChild = new("CollisionChild")
+        {
+            layer = 7  //player layer
+        };
+        colliderChild.transform.SetParent(transform);
+        colliderChild.transform.position = transform.position;
+        colliderChild.AddComponent<BoxCollider2D>();
+
         playerCamera.transform.position = new Vector3(transform.position.x,
             transform.position.y, playerCamera.transform.position.z);
     }
@@ -95,6 +106,7 @@ public class PlayerController : MonoBehaviour
         {
             //move player position toward targetPos by moveSpeed * elasped (delta) time (SMALL AMOUNT)
             transform.position = Vector3.MoveTowards(transform.position, targetPos, localMoveSpeed * Time.deltaTime);
+            colliderChild.transform.position = childWorldPos;
 
             //move camera position toward x and y (along with player x and y movement), not adjusting z
             playerCamera.transform.position = Vector3.MoveTowards(playerCamera.transform.position,
@@ -277,6 +289,9 @@ public class PlayerController : MonoBehaviour
         {
             return false;
         }
+
+        //if true, set 2D collider to targetPos to prevent NPC collisions
+        colliderChild.transform.position = childWorldPos = targetPos;
         return true;
     }
 
@@ -291,7 +306,7 @@ public class PlayerController : MonoBehaviour
         Collider2D collider = Physics2D.OverlapCircle(interactPos, 0.3f, interactableLayer);
         if (collider != null)
         {
-            collider.GetComponent<IInteractable>()?.Interact();
+            StartCoroutine(collider.GetComponentInParent<IInteractable>()?.Interact());
         }
     }
 }

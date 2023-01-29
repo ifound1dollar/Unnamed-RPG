@@ -34,8 +34,8 @@ public class ScriptableBattleChar : ScriptableObject
     [Tooltip("Value of -1 implies that it was left unchanged (0 could mean actual 0HP)")]
     [SerializeField] int actualHP = -1;
 
-    [Tooltip("Passive Ability is assigned by species data if undefined")]
-    [SerializeField] SpecialAbility passiveAbility;
+    [Tooltip("Passive Ability index is chosen from species data if left at -1")]
+    [SerializeField] int passiveAbilityIndex = -1;
     [Tooltip("Impossible Ability cannot normally be learned, but has a chance to replace Ability 4")]
     [SerializeField] string impossibleAbility;
 
@@ -58,7 +58,7 @@ public class ScriptableBattleChar : ScriptableObject
     public int MaxEnergy            { get { return maxEnergy; } }
     public int ActualHP             { get { return actualHP; } }
 
-    public SpecialAbility PassiveAbility    { get { return passiveAbility; } }
+    public int PassiveAbilityIndex  { get { return passiveAbilityIndex; } }
     public string ImpossibleAbility { get { return impossibleAbility; } }
 
     public float RawMaxHP           { get { return rawMaxHP; } }
@@ -92,7 +92,7 @@ public class ScriptableBattleChar : ScriptableObject
         eAbility2 = nAbility2 = hAbility2 = battleChar.Abilities[1].ToString();
         eAbility3 = nAbility3 = hAbility3 = battleChar.Abilities[2].ToString();
         eAbility4 = nAbility4 = hAbility4 = battleChar.Abilities[3].ToString();
-        passiveAbility = battleChar.PassiveAbility;
+        passiveAbilityIndex = battleChar.PassiveAbilityIndex;
 
         rawMaxHP = battleChar.RawMaxHP;
         rawStrength = battleChar.RawStrength;

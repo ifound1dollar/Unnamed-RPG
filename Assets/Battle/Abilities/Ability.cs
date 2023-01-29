@@ -77,7 +77,7 @@ public abstract class Ability
             yield return new WaitForSeconds(0.5f);
             playerUnit.PlayDamagedAnimation();
         }
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.1f);  //wait for DamagedAnimation to be fully dark
     }
 
     /// <summary>

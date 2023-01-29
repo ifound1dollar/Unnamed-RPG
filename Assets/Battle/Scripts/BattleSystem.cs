@@ -676,7 +676,7 @@ public class BattleSystem : MonoBehaviour
         }
 
         //Toxic Skin
-        if (data.Target.PassiveAbility.Name == "Toxic Skin")
+        if (data.Target.SpeciesData.PassiveAbilities[data.Target.PassiveAbilityIndex].Name == "Toxic Skin")
         {
             if (UnityEngine.Random.Range(0, 100) < 10)
             {

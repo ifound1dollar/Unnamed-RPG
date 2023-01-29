@@ -29,7 +29,7 @@ MonoBehaviour:
   nickname: player's thing
   maxEnergy: 0
   actualHP: -1
-  specialAbility: 
+  passiveAbilityIndex: -1
   impossibleAbility: 
   rawMaxHP: 0
   rawStrength: 0

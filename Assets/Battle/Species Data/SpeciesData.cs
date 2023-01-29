@@ -29,6 +29,7 @@ public class SpeciesData : ScriptableObject
     [SerializeField] SpecialAbility passiveAbility1;
     [SerializeField] SpecialAbility passiveAbility2;
     [SerializeField] SpecialAbility passiveAbility3;
+    SpecialAbility[] passiveAbilities;
 
     [Header("Evolution Data")]
     [SerializeField] int currentEvoStage = 1;
@@ -58,7 +59,20 @@ public class SpeciesData : ScriptableObject
     public int TotalEvoStages { get { return totalEvoStages; } }
     public List<EvolutionData> Evolutions { get { return evolutions; } }
 
-    public SpecialAbility PassiveAbility1 { get { return passiveAbility1; } }
-    public SpecialAbility PassiveAbility2 { get { return passiveAbility2; } }
-    public SpecialAbility PassiveAbility3 { get { return passiveAbility3; } }
+    public SpecialAbility[] PassiveAbilities { get { return GetPassiveAbilitiesAsArray(); } }
+    SpecialAbility[] GetPassiveAbilitiesAsArray()
+    {
+        if (passiveAbilities.Length != 0)
+        {
+            return passiveAbilities;
+        }
+
+        passiveAbilities = new SpecialAbility[3];
+        {
+            passiveAbilities[0] = passiveAbility1;
+            passiveAbilities[1] = passiveAbility2;
+            passiveAbilities[2] = passiveAbility3;
+        }
+        return passiveAbilities;
+    }
 }

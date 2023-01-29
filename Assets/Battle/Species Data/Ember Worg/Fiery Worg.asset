@@ -29,5 +29,6 @@ MonoBehaviour:
   passiveAbility1: {fileID: 11400000, guid: 42ab9e7ce79842c498d58bb2c6e76685, type: 2}
   passiveAbility2: {fileID: 11400000, guid: 42ab9e7ce79842c498d58bb2c6e76685, type: 2}
   passiveAbility3: {fileID: 11400000, guid: 42ab9e7ce79842c498d58bb2c6e76685, type: 2}
-  evolutionStage: 2
+  currentEvoStage: 2
+  totalEvoStages: 3
   evolutions: []

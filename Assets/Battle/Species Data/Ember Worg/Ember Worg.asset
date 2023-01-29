@@ -30,6 +30,6 @@ MonoBehaviour:
   passiveAbility2: {fileID: 11400000, guid: 42ab9e7ce79842c498d58bb2c6e76685, type: 2}
   passiveAbility3: {fileID: 11400000, guid: 42ab9e7ce79842c498d58bb2c6e76685, type: 2}
   currentEvoStage: 1
-  totalEvoStages: 1
+  totalEvoStages: 3
   evolutions:
   - {fileID: 11400000, guid: 58b2ada6b665e6c48881072ef4fe7bc8, type: 2}

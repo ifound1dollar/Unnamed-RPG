@@ -7,48 +7,50 @@ using Unity.VisualScripting;
 
 public class BattleUnit : MonoBehaviour
 {
-    [SerializeField] Image image;
+    [SerializeField] Image belowImage;
+    [SerializeField] Image unitImage;
+    [SerializeField] Image aboveImage;
 
     Vector3 origPos;
     Color origColor;
 
-    public Image Image { get { return image; } }
+    public Image Image { get { return unitImage; } }
     public bool IsPlayer { get; set; }
 
     private void Awake()
     {
         origPos = transform.localPosition;
-        image.gameObject.SetActive(false);
+        unitImage.gameObject.SetActive(false);
     }
 
     public void PlayStartAnimation()
     {
-        image.gameObject.SetActive(true);
+        unitImage.gameObject.SetActive(true);
 
         if (IsPlayer)
         {
-            image.transform.localPosition = new(transform.localPosition.x - 500, transform.localPosition.y);
+            transform.localPosition = new(transform.localPosition.x - 500, transform.localPosition.y);
         }
         else
         {
-            image.transform.localPosition = new(transform.localPosition.x + 500, transform.localPosition.y);
+            transform.localPosition = new(transform.localPosition.x + 500, transform.localPosition.y);
         }
 
-        image.transform.DOLocalMoveX(origPos.x, 1.0f);
+        transform.DOLocalMoveX(origPos.x, 1.0f);
     }
 
     public void PlaySlainAnimation()
     {
         if (IsPlayer)
         {
-            image.transform.DOLocalMoveY(transform.localPosition.y - 500, 1.0f);
+            transform.DOLocalMoveY(transform.localPosition.y - 500, 1.0f);
         }
         else
         {
-            image.transform.DOLocalMoveY(transform.localPosition.y - 500, 1.0f);
+            transform.DOLocalMoveY(transform.localPosition.y - 500, 1.0f);
         }
 
-        image.gameObject.SetActive(false);
+        unitImage.gameObject.SetActive(false);
     }
 
     public void PlayAttackAnimation()
@@ -58,14 +60,14 @@ public class BattleUnit : MonoBehaviour
 
         if (IsPlayer)
         {
-            sequence.Append(image.transform.DOLocalMoveX(origPos.x + 50f, 0.25f));
+            sequence.Append(transform.DOLocalMoveX(origPos.x + 50f, 0.25f));
         }
         else
         {
-            sequence.Append(image.transform.DOLocalMoveX(origPos.x - 50f, 0.25f));
+            sequence.Append(transform.DOLocalMoveX(origPos.x - 50f, 0.25f));
         }
 
-        sequence.Append(image.transform.DOLocalMoveX(origPos.x, 0.25f));
+        sequence.Append(transform.DOLocalMoveX(origPos.x, 0.25f));
         //apparently auto-plays sequence
     }
 
@@ -77,25 +79,25 @@ public class BattleUnit : MonoBehaviour
         {
             //PUT THESE IN LOOP LATER
             //if player, move left first (half distance, so half the time) then back right
-            sequence.Append(image.transform.DOLocalMoveX(origPos.x + -10.0f, 0.10f));
-            sequence.Append(image.transform.DOLocalMoveX(origPos.x + 10.0f, 0.20f));
-            sequence.Append(image.transform.DOLocalMoveX(origPos.x + -10.0f, 0.20f));
-            sequence.Append(image.transform.DOLocalMoveX(origPos.x + 10.0f, 0.20f));
+            sequence.Append(transform.DOLocalMoveX(origPos.x + -10.0f, 0.10f));
+            sequence.Append(transform.DOLocalMoveX(origPos.x + 10.0f, 0.20f));
+            sequence.Append(transform.DOLocalMoveX(origPos.x + -10.0f, 0.20f));
+            sequence.Append(transform.DOLocalMoveX(origPos.x + 10.0f, 0.20f));
             //sequence.Append(image.transform.DOLocalMoveX(origPos.x + -15.0f, 0.16f));
             //sequence.Append(image.transform.DOLocalMoveX(origPos.x + 15.0f, 0.16f));
         }
         else
         {
             //else move right first
-            sequence.Append(image.transform.DOLocalMoveX(origPos.x + 10.0f, 0.10f));
-            sequence.Append(image.transform.DOLocalMoveX(origPos.x + -10.0f, 0.20f));
-            sequence.Append(image.transform.DOLocalMoveX(origPos.x + 10.0f, 0.20f));
-            sequence.Append(image.transform.DOLocalMoveX(origPos.x + -10.0f, 0.20f));
+            sequence.Append(transform.DOLocalMoveX(origPos.x + 10.0f, 0.10f));
+            sequence.Append(transform.DOLocalMoveX(origPos.x + -10.0f, 0.20f));
+            sequence.Append(transform.DOLocalMoveX(origPos.x + 10.0f, 0.20f));
+            sequence.Append(transform.DOLocalMoveX(origPos.x + -10.0f, 0.20f));
             //sequence.Append(image.transform.DOLocalMoveX(origPos.x + 15.0f, 0.16f));
             //sequence.Append(image.transform.DOLocalMoveX(origPos.x + -15.0f, 0.16f));
         }
 
-        sequence.Append(image.transform.DOLocalMoveX(origPos.x, 0.10f));
+        sequence.Append(transform.DOLocalMoveX(origPos.x, 0.10f));
     }
 
     public void PlayKnockbackAnimation()
@@ -105,14 +107,14 @@ public class BattleUnit : MonoBehaviour
 
         if (IsPlayer)
         {
-            sequence.Append(image.transform.DOLocalMoveX(origPos.x - 50f, 0.4f));
+            sequence.Append(transform.DOLocalMoveX(origPos.x - 50f, 0.4f));
         }
         else
         {
-            sequence.Append(image.transform.DOLocalMoveX(origPos.x + 50f, 0.4f));
+            sequence.Append(transform.DOLocalMoveX(origPos.x + 50f, 0.4f));
         }
 
-        sequence.Append(image.transform.DOLocalMoveX(origPos.x, 0.4f));
+        sequence.Append(transform.DOLocalMoveX(origPos.x, 0.4f));
     }
 
     public void PlayDamagedAnimation()
@@ -120,7 +122,7 @@ public class BattleUnit : MonoBehaviour
         //universal damage animation
         DG.Tweening.Sequence sequence = DOTween.Sequence();
 
-        sequence.Append(image.DOColor(Color.gray, 0.1f));
-        sequence.Append(image.DOColor(Color.white, 0.1f));
+        sequence.Append(unitImage.DOColor(Color.gray, 0.1f));
+        sequence.Append(unitImage.DOColor(Color.white, 0.1f));
     }
 }

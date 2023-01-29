@@ -34,7 +34,7 @@ public class BattleChar
     public SpeciesData SpeciesData { get; }
 
     public Ability[] Abilities { get; set; } = new Ability[4];
-    public SpecialAbility PassiveAbility { get; set; }
+    public int PassiveAbilityIndex { get; set; }
     public string Name      { get; set; }
     public bool PlayerTeam  { get; set; }
     public int Level        { get; set; }
@@ -198,27 +198,27 @@ public class BattleChar
         }
 
         //special ability
-        if (data.PassiveAbility == null)
+        if (data.PassiveAbilityIndex == -1)
         {
             //if not defined, choose one of three from SpeciesData (third is only 10% chance)
             int rand = UnityEngine.Random.Range(0, 100);
             if (rand < 45)
             {
-                PassiveAbility = data.SpeciesData.PassiveAbility1;
+                PassiveAbilityIndex = 0;
             }
             else if (rand < 90)
             {
-                PassiveAbility = data.SpeciesData.PassiveAbility2;
+                PassiveAbilityIndex = 1;
             }
             else
             {
-                PassiveAbility = data.SpeciesData.PassiveAbility3;
+                PassiveAbilityIndex = 2;
             }
         }
         else
         {
             //else defined, so directly assign
-            PassiveAbility = data.PassiveAbility;
+            PassiveAbilityIndex = data.PassiveAbilityIndex;
         }
 
         //team
