@@ -31,6 +31,7 @@ public class PersistentData : MonoBehaviour
     public static Dictionary<string, bool> Flags { get; private set; } = new();
 
 
+    public static PersistentData Instance { get; private set; }
 
 
     /// <summary>
@@ -38,6 +39,7 @@ public class PersistentData : MonoBehaviour
     /// </summary>
     private void Awake()
     {
+        Instance = this;
         InitPlayerParty();
         battleSystem.SetPersistentData(this);
         partyMenu.Setup(PlayerChars, battleSystem);

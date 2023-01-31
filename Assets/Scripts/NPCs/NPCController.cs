@@ -41,7 +41,7 @@ public class NPCController : MonoBehaviour, IInteractable
         colliderChild.transform.position = transform.position;
         colliderChild.AddComponent<BoxCollider2D>();
 
-        InvokeRepeating(nameof(AttemptMovement), 1.0f, 1.0f);
+        InvokeRepeating(nameof(AttemptMovement), UnityEngine.Random.Range(0, 1.0f), 1.0f);
     }
 
     void AttemptMovement()

@@ -1168,6 +1168,9 @@ public class BattleSystem : MonoBehaviour
     }
     IEnumerator HandleXPOperations()
     {
+        //return if no enemies were slain (none at 0HP)
+        if (enemyChars.Min(x => x.HP) > 0) { yield break; }
+
         int[] playerTeamXP = new int[playerChars.Length];
         int participants = 0;
 

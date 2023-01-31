@@ -182,20 +182,10 @@ public class DialogManager : MonoBehaviour
                     return;
                 }
 
-                //find next non-InputOption dialog to show
-                int nextIndex = -1;
-                for (int i = currentLine + 1; i < dialogs.Count; i++)
+                //if valid next index, handle dialog at that index
+                if (dialogs[currentLine].DefaultNextIndex != -1)
                 {
-                    if (!dialogs[i].IsConditionalOnly)
-                    {
-                        nextIndex = i;
-                        break;
-                    }
-                }
-
-                if (nextIndex != -1)
-                {
-                    StartCoroutine(HandleDialog(nextIndex));
+                    StartCoroutine(HandleDialog(dialogs[currentLine].DefaultNextIndex));
                     return;
                 }
             }

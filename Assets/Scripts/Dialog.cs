@@ -8,7 +8,7 @@ public class Dialog
 {
     [TextArea()]
     [SerializeField] string line;
-    [SerializeField] bool isConditionalOnly;
+    [SerializeField] int defaultNextIndex = -1;
     [SerializeField] bool beginsBattle;
 
     [Header("Flags : dot notation (ex. 0.0)")]
@@ -25,7 +25,7 @@ public class Dialog
 
 
     public string Line              { get { return line; } }
-    public bool IsConditionalOnly   { get { return isConditionalOnly; } }
+    public int DefaultNextIndex     { get { return defaultNextIndex; } }
     public bool BeginsBattle        { get { return beginsBattle; } }
 
     public string CheckFlag         { get { return checkFlag; } }
