@@ -138,7 +138,7 @@ public class PartyMenu : MonoBehaviour
         backButton.gameObject.SetActive(true);
 
         //if in battle, call BattleSystem function to auto-select main Party button
-        if (GameState.InBattle)
+        if (GameManager.Instance.InBattle)
         {
             battleSystem.HidePartyMenuInBattle();
         }

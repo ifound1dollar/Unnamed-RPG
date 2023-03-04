@@ -11,7 +11,6 @@ public class PlayerController : MonoBehaviour
     public LayerMask interactableLayer;
     public Tilemap terrainTilemap;
     public Camera playerCamera;
-    public PersistentData persistentData;
 
     bool isMoving;
     Vector2 inputPos;
@@ -42,12 +41,12 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         //only allow movement input if not already moving
-        if (!GameState.InBattle && !GameState.IsMenuOpen && !GameState.InDialog && !isMoving)
+        if (!isMoving && GameManager.Instance.GetCanMove())
         {
             //first, check if attempting to interact with something (and not at y = n.5)
             if (Mathf.Approximately(transform.position.y % 1.0f, 0) && Input.GetKeyDown(KeyCode.Return))
             {
-                StartCoroutine(Interact());
+                Interact();
                 return;
             }
 
@@ -132,7 +131,7 @@ public class PlayerController : MonoBehaviour
             if (tilePlr.StairDirection == CustomTile.StairType.Right
                 || tilePlr.StairDirection == CustomTile.StairType.Left)
             {
-                //if changing y, should adjust targetTile because is standing between tiles
+                //if changing y, should adjust targetPos because is standing between tiles
                 if (xMovement == 0)
                 {
                     float yToCheck = targetPos.y;
@@ -299,7 +298,7 @@ public class PlayerController : MonoBehaviour
 
 
 
-    IEnumerator Interact()
+    void Interact()  //MAKE VOID
     {
         //get the tile that the player is looking at (can never be called when y ~ n.5)
         Vector3 facingDir = new(animator.GetFloat("moveX"), animator.GetFloat("moveY"));
@@ -308,17 +307,8 @@ public class PlayerController : MonoBehaviour
         Collider2D collider = Physics2D.OverlapCircle(interactPos, 0.3f, interactableLayer);
         if (collider != null)
         {
-            yield return collider.GetComponentInParent<IInteractable>()?.Interact();
-
-            //if now InBattle, begin battle
-            if (GameState.InBattle)
-            {
-                BattleParty enemyParty = collider.GetComponentInParent<BattleParty>();
-                if (enemyParty != null)
-                {
-                    persistentData.BeginBattle(enemyParty);
-                }
-            }
+            //waits for all interaction (dialog) to complete before moving on
+            StartCoroutine(collider.GetComponentInParent<IInteractable>()?.Interact());
         }
     }
 }

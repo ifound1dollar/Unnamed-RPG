@@ -10,10 +10,6 @@ public class PersistentData : MonoBehaviour
     [SerializeField] int dialogSpeed = 30;
     [Tooltip("Delay in seconds after dialog finishes printing, default 1.5")]
     [SerializeField] float textDelay = 1.5f;
-    [Space()]
-    [SerializeField] BattleSystem battleSystem;
-    [SerializeField] PartyMenu partyMenu;
-    [SerializeField] DialogManager dialogManager;
 
     //TEMP
     [Header("TEMP")]
@@ -28,28 +24,13 @@ public class PersistentData : MonoBehaviour
 
     //not visible in editor
     public BattleChar[] PlayerChars { get; private set; }
-    public static Dictionary<string, bool> Flags { get; private set; } = new();
+    public Dictionary<string, bool> Flags { get; private set; } = new();
 
-
-    public static PersistentData Instance { get; private set; }
-
-
-    /// <summary>
-    /// Initializes player party and runs BattleSystem and PartyMenu setup
-    /// </summary>
-    private void Awake()
-    {
-        Instance = this;
-        InitPlayerParty();
-        battleSystem.SetPersistentData(this);
-        partyMenu.Setup(PlayerChars, battleSystem);
-        dialogManager.Setup(dialogSpeed);
-    }
 
     /// <summary>
     /// Initializes PlayerChars from save data
     /// </summary>
-    void InitPlayerParty()
+    public void InitPlayerParty()
     {
         ///WILL PULL DATA FROM SAVE FILE IN THE FUTURE
 
@@ -58,11 +39,6 @@ public class PersistentData : MonoBehaviour
         {
             PlayerChars[i] = new BattleChar(playerParty.Team[i], difficulty, playerTeam: true);
         }
-    }
-
-    public void BeginBattle(BattleParty enemyParty)
-    {
-        battleSystem.BeginBattle(enemyParty);
     }
 
 }

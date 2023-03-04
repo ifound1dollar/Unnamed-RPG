@@ -36,6 +36,7 @@ public class BattleSystem : MonoBehaviour
     BattleChoice enemyChoice;
     int playerSwapIndex;
     int enemySwapIndex;
+    string battleFlag;
 
 
 
@@ -49,8 +50,10 @@ public class BattleSystem : MonoBehaviour
 
         playerChars = data.PlayerChars;
     }
-    public void BeginBattle(BattleParty enemyParty)
+    public void BeginBattle(BattleParty enemyParty, string battleFlag)
     {
+        this.battleFlag = battleFlag;
+
         //find first BattleChar in array with >0HP to make currPlayer
         foreach (BattleChar battleChar in playerChars)
         {
@@ -1156,6 +1159,11 @@ public class BattleSystem : MonoBehaviour
         yield return HandleXPOperations();
         HandleEvolutionChecks();
 
+        if (playerWin)
+        {
+            GameManager.Instance.PersistentData.Flags.TryAdd(battleFlag, true);
+        }
+
         dialogBox.ShowMainButtons(false);
         yield return dialogBox.DialogSet("Ending battle...");
         yield return new WaitForSeconds(textDelay);
@@ -1163,7 +1171,7 @@ public class BattleSystem : MonoBehaviour
         //hide this gameObject (entire BattleSystem) then stop all coroutines
         gameObject.SetActive(false);
         ResetAllBattleData();
-        GameState.InBattle = false;
+        GameManager.Instance.InBattle = false;
         StopAllCoroutines();
     }
     IEnumerator HandleXPOperations()
@@ -1258,7 +1266,7 @@ public class BattleSystem : MonoBehaviour
         {
             playerHud.UpdateHUD(player);
         }
-        yield return dialogBox.DialogSet($"{player.Name} leveled up to {player.Level + 1}!");
+        yield return dialogBox.DialogSet($"{player.Name} leveled up to {player.Level}!");
         yield return new WaitForSeconds(textDelay);
 
         //if LevelUp returns not empty, then an Ability is trying to be learned
@@ -1324,6 +1332,7 @@ public class BattleSystem : MonoBehaviour
         state = BattleState.Start;
         playerChoice = BattleChoice.Attack;
         enemyChoice = BattleChoice.Attack;
+        battleFlag = "";
 
         //reset all player BattleChar data and nullify enemyChars to free memory
         currPlayer = null;

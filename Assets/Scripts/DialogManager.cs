@@ -16,15 +16,14 @@ public class DialogManager : MonoBehaviour
     int dialogSpeed;
 
     int currentLine;
-    List<Dialog> dialogs;
     bool textAnimating = false;
+    bool awaitingBattle = false;
+
+    NPCData npcData;
 
 
-    //singleton making this DialogManager accessible anywhere, set in Setup
-    public static DialogManager Instance { get; private set; }
     public void Setup(int dialogSpeed)
     {
-        Instance = this;
         this.dialogSpeed = dialogSpeed;
     }
 
@@ -34,13 +33,14 @@ public class DialogManager : MonoBehaviour
     /// </summary>
     /// <param name="dialogs"></param>
     /// <returns></returns>
-    public IEnumerator ShowDialog(List<Dialog> dialogs)
+    public IEnumerator BeginDialog(NPCData npcData)
     {
         //wait for end of frame because Update() should be run first
         yield return new WaitForEndOfFrame();
 
-        GameState.InDialog = true;
-        this.dialogs = dialogs;
+        GameManager.Instance.InDialog = true;
+        this.npcData = npcData;
+        awaitingBattle = false;
 
         dialogBox.SetActive(true);
         StartCoroutine(HandleDialog(lineIndex: 0));
@@ -53,13 +53,13 @@ public class DialogManager : MonoBehaviour
     /// <returns></returns>
     public IEnumerator HandleDialog(int lineIndex)
     {
-        if (PersistentData.Flags.ContainsKey(dialogs[lineIndex].CheckFlag))
+        while (GameManager.Instance.PersistentData.Flags.ContainsKey(npcData.dialogs[lineIndex].CheckFlag))
         {
             //will not contain empty string; if contains actual flag, move onto reroute index
-            lineIndex = dialogs[lineIndex].FlagRerouteIndex;
+            lineIndex = npcData.dialogs[lineIndex].FlagRerouteIndex;
         }
 
-        Dialog dialog = dialogs[lineIndex];
+        Dialog dialog = npcData.dialogs[lineIndex];
         currentLine = lineIndex;
 
         if (dialog.RequiresInput)
@@ -87,13 +87,13 @@ public class DialogManager : MonoBehaviour
         if (dialog.SetFlag != "")
         {
             //if valid flag, attempt to set flag by adding to dictionary
-            PersistentData.Flags.TryAdd(dialog.SetFlag, true);
+            GameManager.Instance.PersistentData.Flags.TryAdd(dialog.SetFlag, true);
         }
 
         if (dialog.BeginsBattle)
         {
-            //will start battle from NPC Controller once dialog ends
-            GameState.InBattle = true;
+            //will start battle from NPCData once dialog ends
+            awaitingBattle = true;
         }
     }
 
@@ -154,11 +154,11 @@ public class DialogManager : MonoBehaviour
     {
         if (buttonIndex == 0)
         {
-            StartCoroutine(HandleDialog(dialogs[currentLine].Option1Index));
+            StartCoroutine(HandleDialog(npcData.dialogs[currentLine].Option1Index));
         }
         else if (buttonIndex == 1)
         {
-            StartCoroutine(HandleDialog(dialogs[currentLine].Option2Index));
+            StartCoroutine(HandleDialog(npcData.dialogs[currentLine].Option2Index));
         }
     }
 
@@ -167,25 +167,25 @@ public class DialogManager : MonoBehaviour
 
     private void Update()
     {
-        if (!GameState.InDialog || textAnimating)
+        if (!GameManager.Instance.InDialog || textAnimating)
         {
             return;
         }
 
         if (Input.GetKeyDown(KeyCode.Return))
         {
-            if (currentLine < dialogs.Count - 1)
+            if (currentLine < npcData.dialogs.Count - 1)
             {
                 //only show next if does not require button input
-                if (dialogs[currentLine].RequiresInput)
+                if (npcData.dialogs[currentLine].RequiresInput)
                 {
                     return;
                 }
 
                 //if valid next index, handle dialog at that index
-                if (dialogs[currentLine].DefaultNextIndex != -1)
+                if (npcData.dialogs[currentLine].DefaultNextIndex != -1)
                 {
-                    StartCoroutine(HandleDialog(dialogs[currentLine].DefaultNextIndex));
+                    StartCoroutine(HandleDialog(npcData.dialogs[currentLine].DefaultNextIndex));
                     return;
                 }
             }
@@ -195,8 +195,15 @@ public class DialogManager : MonoBehaviour
             optionButtons[1].gameObject.SetActive(false);
             EventSystem.current.SetSelectedGameObject(null);
 
-            GameState.InDialog = false;
+            GameManager.Instance.InDialog = false;
             gameObject.SetActive(false);
+
+            //START BATTLE HERE INSTEAD OF WITHIN PLAYERCONTROLLER
+            if (awaitingBattle)
+            {
+                GameManager.Instance.BeginBattle(npcData.battleParty, npcData.battleFlag);
+                //USE NPCDATA STRUCT (BattleParty, battleFlag) to begin battle from game
+            }
         }
     }
 }

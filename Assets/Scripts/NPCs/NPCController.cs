@@ -3,6 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+public struct NPCData
+{
+    public List<Dialog> dialogs;
+    public string battleFlag;
+    public BattleParty battleParty;
+
+    public NPCData(List<Dialog> dialogs, string battleFlag, BattleParty battleParty)
+    {
+        this.dialogs = dialogs;
+        this.battleFlag = battleFlag;
+        this.battleParty = battleParty;
+    }
+}
+
 public class NPCController : MonoBehaviour, IInteractable
 {
     [SerializeField] Tilemap terrainTilemap;
@@ -19,11 +33,13 @@ public class NPCController : MonoBehaviour, IInteractable
     [SerializeField] BattleParty party;
 
 
-    bool isBusy;
+    bool isMoving;
     Animator animator;
     GameObject colliderChild;
     Vector2 childWorldPos;
     Vector3Int origPos;
+
+    NPCData npcData;
 
 
     private void Awake()
@@ -42,11 +58,14 @@ public class NPCController : MonoBehaviour, IInteractable
         colliderChild.AddComponent<BoxCollider2D>();
 
         InvokeRepeating(nameof(AttemptMovement), UnityEngine.Random.Range(0, 1.0f), 1.0f);
+
+        //make NPCData object right away to be used on interaction
+        npcData = new(dialogs, battleFlag, party);
     }
 
     void AttemptMovement()
     {
-        if (!isBusy && !GameState.InBattle)
+        if (!isMoving && GameManager.Instance.GetCanMove())
         {
             //check moveChance
             if (UnityEngine.Random.Range(0, 100) < moveChancePercent)
@@ -103,7 +122,7 @@ public class NPCController : MonoBehaviour, IInteractable
     IEnumerator Move(Vector3Int targetPos)
     {
         //Debug.Log("Move called.");
-        isBusy = true;
+        isMoving = true;
 
         //while difference between target and actual position is not almost exact
         while ((targetPos - transform.position).sqrMagnitude > Mathf.Epsilon)
@@ -118,7 +137,7 @@ public class NPCController : MonoBehaviour, IInteractable
 
         //finally, after movement complete, set to actual targetPos to avoid tiny mathematical errors
         transform.localPosition = targetPos;
-        isBusy = false;
+        isMoving = false;
     }
 
     bool CheckIsWalkable(Vector3Int targetPos)
@@ -139,18 +158,12 @@ public class NPCController : MonoBehaviour, IInteractable
         return true;
     }
 
-    IEnumerator IInteractable.Interact()
+    IEnumerator IInteractable.Interact()    //MAKE INTERFACE VOID
     {
-        //return if currently moving (already isBusy)
-        if (isBusy) { yield break; }
-
-        isBusy = true;
+        //return if currently moving
+        if (isMoving) { yield break; }
 
         //wait until ShowDialog returns so it has time to set GameState.InDialog
-        yield return DialogManager.Instance.ShowDialog(dialogs);
-
-        //player dialog started here, so wait to reset isBusy until InDialog gamestate is over
-        yield return new WaitUntil(() => !GameState.InDialog);
-        isBusy = false;
+        yield return GameManager.Instance.DialogManager.BeginDialog(npcData);
     }
 }
