@@ -1173,6 +1173,8 @@ public class BattleSystem : MonoBehaviour
         ResetAllBattleData();
         GameManager.Instance.InBattle = false;
         StopAllCoroutines();
+
+        //CALL SOME METHOD (SCRIPT ACCESSIBLE IN GAMEMANAGER) TO HANDLE EVOLUTIONS
     }
     IEnumerator HandleXPOperations()
     {

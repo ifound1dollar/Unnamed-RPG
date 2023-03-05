@@ -5081,7 +5081,7 @@ MonoBehaviour:
     defaultNextIndex: -1
     beginsBattle: 0
     checkFlag: 0.0
-    flagRerouteIndex: -1
+    flagRerouteIndex: 3
     setFlag: 
     requiresInput: 1
     option1Text: Yes

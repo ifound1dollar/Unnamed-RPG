@@ -65,7 +65,6 @@ public class PartyMenu : MonoBehaviour
     public bool BackButtonJumped    { get; private set; }
 
     BattleChar[] playerChars;
-    BattleSystem battleSystem;
     int currPlayerIndex = 0;
     int lastAbilityIndex = 0;
 
@@ -73,14 +72,12 @@ public class PartyMenu : MonoBehaviour
 
 
     /// <summary>
-    /// Sets local references to playerChars array and BattleSystem instance
+    /// Sets local reference to playerChars array
     /// </summary>
     /// <param name="playerChars">Reference to playerChars array</param>
-    /// <param name="battleSystem">Reference to active BattleSystem instance</param>
-    public void Setup(BattleChar[] playerChars, BattleSystem battleSystem = null)
+    public void Setup(BattleChar[] playerChars)
     {
         this.playerChars = playerChars;
-        this.battleSystem = battleSystem;
     }
 
 
@@ -140,7 +137,7 @@ public class PartyMenu : MonoBehaviour
         //if in battle, call BattleSystem function to auto-select main Party button
         if (GameManager.Instance.InBattle)
         {
-            battleSystem.HidePartyMenuInBattle();
+            GameManager.Instance.BattleSystem.HidePartyMenuInBattle();
         }
         //else if should deselect everything
         else
@@ -213,13 +210,10 @@ public class PartyMenu : MonoBehaviour
     /// <param name="battleSystem">Reference to active BattleSystem (in-battle only)</param>
     public void OnSwapButtonPressed()
     {
-        if (battleSystem != null)
-        {
-            HideSelectOptions();
+        HideSelectOptions();
 
-            //call battleSystem's OnSwapButtonPressed method with currentIndex
-            battleSystem.OnSwapButtonPress(CurrCharIndex);
-        }
+        //call battleSystem's OnSwapButtonPressed method with currentIndex
+        GameManager.Instance.BattleSystem.OnSwapButtonPress(CurrCharIndex);
     }
 
     /// <summary>

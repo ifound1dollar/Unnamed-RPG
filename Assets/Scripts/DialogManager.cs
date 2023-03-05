@@ -22,6 +22,10 @@ public class DialogManager : MonoBehaviour
     NPCData npcData;
 
 
+    /// <summary>
+    /// Sets dialog speed local attribute
+    /// </summary>
+    /// <param name="dialogSpeed">Dialog scroll speed in characters per second</param>
     public void Setup(int dialogSpeed)
     {
         this.dialogSpeed = dialogSpeed;

@@ -32,7 +32,7 @@ public class GameManager : MonoBehaviour
         Instance = this;
         PersistentData.InitPlayerParty();
         BattleSystem.SetPersistentData(PersistentData);
-        PartyMenu.Setup(PersistentData.PlayerChars, BattleSystem);
+        PartyMenu.Setup(PersistentData.PlayerChars);
         DialogManager.Setup(PersistentData.DialogSpeed);
     }
 
