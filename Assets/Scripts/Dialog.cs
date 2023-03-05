@@ -13,7 +13,7 @@ public class Dialog
 
     [Header("Flags : dot notation (ex. 0.0)")]
     [SerializeField] string checkFlag;
-    [SerializeField] int flagRerouteIndex;
+    [SerializeField] int flagRerouteIndex = -1;
     [SerializeField] string setFlag;
 
     [Header("Option input")]

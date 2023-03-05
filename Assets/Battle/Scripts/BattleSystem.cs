@@ -1264,7 +1264,7 @@ public class BattleSystem : MonoBehaviour
         string abilityName = player.LevelUp();
         if (player == currPlayer)
         {
-            playerHud.UpdateHUD(player);
+            playerHud.SetHUD(player);
         }
         yield return dialogBox.DialogSet($"{player.Name} leveled up to {player.Level}!");
         yield return new WaitForSeconds(textDelay);

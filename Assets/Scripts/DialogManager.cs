@@ -55,7 +55,15 @@ public class DialogManager : MonoBehaviour
     {
         while (GameManager.Instance.PersistentData.Flags.ContainsKey(npcData.dialogs[lineIndex].CheckFlag))
         {
-            //will not contain empty string; if contains actual flag, move onto reroute index
+            //if reroute index is -1, log error and end dialog
+            if (npcData.dialogs[lineIndex].FlagRerouteIndex == -1)
+            {
+                Debug.Log("Missing flag reroute index from dialog line index " + lineIndex);
+                EndDialog();
+                yield break;
+            }
+
+            //if the CheckFlag is set (exists in Flags), move onto reroute index
             lineIndex = npcData.dialogs[lineIndex].FlagRerouteIndex;
         }
 
@@ -165,6 +173,25 @@ public class DialogManager : MonoBehaviour
 
 
 
+    void EndDialog()
+    {
+        optionButtons[0].gameObject.SetActive(false);
+        optionButtons[1].gameObject.SetActive(false);
+        EventSystem.current.SetSelectedGameObject(null);
+
+        GameManager.Instance.InDialog = false;
+        gameObject.SetActive(false);
+
+        //START BATTLE HERE INSTEAD OF WITHIN PLAYERCONTROLLER
+        if (awaitingBattle)
+        {
+            GameManager.Instance.BeginBattle(npcData.battleParty, npcData.battleFlag);
+        }
+    }
+
+
+
+
     private void Update()
     {
         if (!GameManager.Instance.InDialog || textAnimating)
@@ -191,19 +218,7 @@ public class DialogManager : MonoBehaviour
             }
 
             //if reaches here, then is at last line or no remaining valid dialog to show
-            optionButtons[0].gameObject.SetActive(false);
-            optionButtons[1].gameObject.SetActive(false);
-            EventSystem.current.SetSelectedGameObject(null);
-
-            GameManager.Instance.InDialog = false;
-            gameObject.SetActive(false);
-
-            //START BATTLE HERE INSTEAD OF WITHIN PLAYERCONTROLLER
-            if (awaitingBattle)
-            {
-                GameManager.Instance.BeginBattle(npcData.battleParty, npcData.battleFlag);
-                //USE NPCDATA STRUCT (BattleParty, battleFlag) to begin battle from game
-            }
+            EndDialog();
         }
     }
 }

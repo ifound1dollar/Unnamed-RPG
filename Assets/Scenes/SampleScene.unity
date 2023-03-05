@@ -5081,7 +5081,7 @@ MonoBehaviour:
     defaultNextIndex: -1
     beginsBattle: 0
     checkFlag: 0.0
-    flagRerouteIndex: 3
+    flagRerouteIndex: -1
     setFlag: 
     requiresInput: 1
     option1Text: Yes
@@ -5092,7 +5092,7 @@ MonoBehaviour:
     defaultNextIndex: -1
     beginsBattle: 0
     checkFlag: 
-    flagRerouteIndex: 0
+    flagRerouteIndex: -1
     setFlag: 0.0
     requiresInput: 0
     option1Text: 
@@ -5103,7 +5103,7 @@ MonoBehaviour:
     defaultNextIndex: -1
     beginsBattle: 0
     checkFlag: 
-    flagRerouteIndex: 0
+    flagRerouteIndex: -1
     setFlag: 0.0
     requiresInput: 0
     option1Text: 
